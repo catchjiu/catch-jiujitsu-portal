@@ -64,7 +64,7 @@
                                     hover:file:bg-blue-600
                                     file:cursor-pointer cursor-pointer">
                         </label>
-                        <p class="text-slate-500 text-xs mt-2">JPG, PNG, GIF or WebP. Auto-compressed to under 1MB.</p>
+                        <p class="text-slate-500 text-xs mt-2">JPG, PNG, GIF or WebP. Max 2MB (auto-compressed).</p>
                         @error('avatar')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror

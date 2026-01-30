@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
-use Intervention\Image\Laravel\Facades\Image;
 
 class SettingsController extends Controller
 {
@@ -26,7 +25,7 @@ class SettingsController extends Controller
     public function updateAvatar(Request $request)
     {
         $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // Allow up to 10MB upload, we'll compress it
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // 2MB max (nginx default limit)
         ]);
 
         $user = $request->user();
@@ -36,39 +35,78 @@ class SettingsController extends Controller
             Storage::disk('public')->delete($user->avatar_url);
         }
 
-        // Process and compress image
+        // Process and compress image using GD library
         $file = $request->file('avatar');
         $filename = 'avatars/' . uniqid() . '_' . time() . '.jpg';
         
-        // Read image and resize/compress
-        $image = Image::read($file->getPathname());
+        // Create image from uploaded file
+        $sourceImage = $this->createImageFromFile($file->getPathname(), $file->getMimeType());
         
-        // Resize to max 500x500 while maintaining aspect ratio
-        $image->scaleDown(500, 500);
+        if (!$sourceImage) {
+            return back()->with('error', 'Unable to process image.');
+        }
         
-        // Start with quality 90 and reduce until under 1MB
-        $quality = 90;
-        $maxSize = 1024 * 1024; // 1MB in bytes
+        // Get original dimensions
+        $origWidth = imagesx($sourceImage);
+        $origHeight = imagesy($sourceImage);
         
-        do {
-            $encoded = $image->toJpeg($quality);
-            $size = strlen($encoded);
-            
-            if ($size > $maxSize && $quality > 20) {
-                $quality -= 10;
+        // Calculate new dimensions (max 500x500, maintain aspect ratio)
+        $maxSize = 500;
+        if ($origWidth > $maxSize || $origHeight > $maxSize) {
+            if ($origWidth > $origHeight) {
+                $newWidth = $maxSize;
+                $newHeight = intval($origHeight * ($maxSize / $origWidth));
             } else {
-                break;
+                $newHeight = $maxSize;
+                $newWidth = intval($origWidth * ($maxSize / $origHeight));
             }
-        } while ($quality > 20);
+        } else {
+            $newWidth = $origWidth;
+            $newHeight = $origHeight;
+        }
         
-        // Save to storage
-        Storage::disk('public')->put($filename, $encoded);
+        // Create resized image
+        $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+        imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+        
+        // Save to temp file with compression
+        $tempFile = tempnam(sys_get_temp_dir(), 'avatar_');
+        $quality = 85;
+        imagejpeg($resizedImage, $tempFile, $quality);
+        
+        // Clean up
+        imagedestroy($sourceImage);
+        imagedestroy($resizedImage);
+        
+        // Move to storage
+        Storage::disk('public')->put($filename, file_get_contents($tempFile));
+        unlink($tempFile);
 
         $user->update([
             'avatar_url' => $filename,
         ]);
 
         return back()->with('success', 'Profile picture updated successfully.');
+    }
+    
+    /**
+     * Create GD image resource from file.
+     */
+    private function createImageFromFile($path, $mimeType)
+    {
+        switch ($mimeType) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                return imagecreatefromjpeg($path);
+            case 'image/png':
+                return imagecreatefrompng($path);
+            case 'image/gif':
+                return imagecreatefromgif($path);
+            case 'image/webp':
+                return imagecreatefromwebp($path);
+            default:
+                return null;
+        }
     }
 
     /**
