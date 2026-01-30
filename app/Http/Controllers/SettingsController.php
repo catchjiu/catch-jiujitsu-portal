@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
+use Intervention\Image\Laravel\Facades\Image;
 
 class SettingsController extends Controller
 {
@@ -25,7 +26,7 @@ class SettingsController extends Controller
     public function updateAvatar(Request $request)
     {
         $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // Allow up to 10MB upload, we'll compress it
         ]);
 
         $user = $request->user();
@@ -35,11 +36,36 @@ class SettingsController extends Controller
             Storage::disk('public')->delete($user->avatar_url);
         }
 
-        // Store new avatar
-        $path = $request->file('avatar')->store('avatars', 'public');
+        // Process and compress image
+        $file = $request->file('avatar');
+        $filename = 'avatars/' . uniqid() . '_' . time() . '.jpg';
+        
+        // Read image and resize/compress
+        $image = Image::read($file->getPathname());
+        
+        // Resize to max 500x500 while maintaining aspect ratio
+        $image->scaleDown(500, 500);
+        
+        // Start with quality 90 and reduce until under 1MB
+        $quality = 90;
+        $maxSize = 1024 * 1024; // 1MB in bytes
+        
+        do {
+            $encoded = $image->toJpeg($quality);
+            $size = strlen($encoded);
+            
+            if ($size > $maxSize && $quality > 20) {
+                $quality -= 10;
+            } else {
+                break;
+            }
+        } while ($quality > 20);
+        
+        // Save to storage
+        Storage::disk('public')->put($filename, $encoded);
 
         $user->update([
-            'avatar_url' => $path,
+            'avatar_url' => $filename,
         ]);
 
         return back()->with('success', 'Profile picture updated successfully.');
