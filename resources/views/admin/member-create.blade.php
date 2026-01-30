@@ -29,11 +29,19 @@
             <form action="{{ route('admin.members.store') }}" method="POST" class="space-y-4">
                 @csrf
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                    <input type="text" name="name" value="{{ old('name') }}" required
-                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
-                        placeholder="John Doe">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
+                        <input type="text" name="first_name" value="{{ old('first_name') }}" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="John">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last Name</label>
+                        <input type="text" name="last_name" value="{{ old('last_name') }}" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="Doe">
+                    </div>
                 </div>
 
                 <div>

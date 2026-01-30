@@ -38,10 +38,17 @@
 
             <form method="POST" action="{{ route('register') }}" class="space-y-4">
                 @csrf
-                <div>
-                    <label for="name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
-                    <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus
-                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label for="first_name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
+                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required autofocus
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                    </div>
+                    <div>
+                        <label for="last_name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                    </div>
                 </div>
                 <div>
                     <label for="email" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email</label>

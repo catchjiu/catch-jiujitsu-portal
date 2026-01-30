@@ -19,10 +19,13 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
+        'chinese_name',
         'email',
         'password',
         'rank',
+        'belt_color',
         'stripes',
         'mat_hours',
         'is_admin',
@@ -31,6 +34,9 @@ class User extends Authenticatable
         'monthly_hours_goal',
         'reminders_enabled',
         'public_profile',
+        'line_id',
+        'gender',
+        'dob',
     ];
 
     /**
@@ -60,6 +66,7 @@ class User extends Authenticatable
             'monthly_hours_goal' => 'integer',
             'reminders_enabled' => 'boolean',
             'public_profile' => 'boolean',
+            'dob' => 'date',
         ];
     }
 
@@ -94,6 +101,22 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->is_admin;
+    }
+
+    /**
+     * Get the user's full name.
+     */
+    public function getNameAttribute(): string
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
+    }
+
+    /**
+     * Get the user's full name (alias).
+     */
+    public function getFullNameAttribute(): string
+    {
+        return $this->name;
     }
 
     /**

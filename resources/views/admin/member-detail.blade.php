@@ -22,7 +22,7 @@
                     <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-slate-400 text-3xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">
-                        {{ strtoupper(substr($member->name, 0, 2)) }}
+                        {{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}
                     </div>
                 @endif
             </div>
@@ -78,10 +78,17 @@
                 @csrf
                 @method('PUT')
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Name</label>
-                    <input type="text" name="name" value="{{ old('name', $member->name) }}" required
-                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
+                        <input type="text" name="first_name" value="{{ old('first_name', $member->first_name) }}" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last Name</label>
+                        <input type="text" name="last_name" value="{{ old('last_name', $member->last_name) }}" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
                 </div>
 
                 <div>

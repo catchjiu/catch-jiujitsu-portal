@@ -18,7 +18,8 @@ class DatabaseSeeder extends Seeder
     {
         // Create Admin User
         $admin = User::create([
-            'name' => 'Coach Marco',
+            'first_name' => 'Marco',
+            'last_name' => 'Coach',
             'email' => 'admin@catchjiujitsu.com',
             'password' => Hash::make('password'),
             'rank' => 'Black',
@@ -29,7 +30,8 @@ class DatabaseSeeder extends Seeder
 
         // Create Demo Member
         $member = User::create([
-            'name' => "Alex 'The Shark'",
+            'first_name' => 'Alex',
+            'last_name' => 'The Shark',
             'email' => 'member@catchjiujitsu.com',
             'password' => Hash::make('password'),
             'rank' => 'Blue',
@@ -40,14 +42,15 @@ class DatabaseSeeder extends Seeder
 
         // Create Additional Members
         $members = [
-            ['name' => 'Sarah Connor', 'email' => 'sarah@example.com', 'rank' => 'Purple', 'stripes' => 1, 'mat_hours' => 320],
-            ['name' => 'John Smith', 'email' => 'john@example.com', 'rank' => 'White', 'stripes' => 3, 'mat_hours' => 45],
-            ['name' => 'Mike Johnson', 'email' => 'mike@example.com', 'rank' => 'Blue', 'stripes' => 4, 'mat_hours' => 200],
+            ['first_name' => 'Sarah', 'last_name' => 'Connor', 'email' => 'sarah@example.com', 'rank' => 'Purple', 'stripes' => 1, 'mat_hours' => 320],
+            ['first_name' => 'John', 'last_name' => 'Smith', 'email' => 'john@example.com', 'rank' => 'White', 'stripes' => 3, 'mat_hours' => 45],
+            ['first_name' => 'Mike', 'last_name' => 'Johnson', 'email' => 'mike@example.com', 'rank' => 'Blue', 'stripes' => 4, 'mat_hours' => 200],
         ];
 
         foreach ($members as $memberData) {
             User::create([
-                'name' => $memberData['name'],
+                'first_name' => $memberData['first_name'],
+                'last_name' => $memberData['last_name'],
                 'email' => $memberData['email'],
                 'password' => Hash::make('password'),
                 'rank' => $memberData['rank'],

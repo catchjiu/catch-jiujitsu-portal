@@ -297,7 +297,8 @@ class AdminController extends Controller
         // Search filter
         if ($search) {
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('rank', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
@@ -306,7 +307,7 @@ class AdminController extends Controller
         // Category filter (for future use - can add member_type field)
         // For now, we'll just show all members
 
-        $members = $query->orderBy('name')->get();
+        $members = $query->orderBy('first_name')->orderBy('last_name')->get();
 
         $stats = [
             'total_members' => User::where('is_admin', false)->count(),
@@ -345,7 +346,8 @@ class AdminController extends Controller
         $member = User::where('is_admin', false)->findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'rank' => 'required|in:White,Blue,Purple,Brown,Black',
             'stripes' => 'required|integer|min:0|max:4',
@@ -371,7 +373,8 @@ class AdminController extends Controller
     public function storeMember(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'rank' => 'required|in:White,Blue,Purple,Brown,Black',
@@ -379,7 +382,8 @@ class AdminController extends Controller
         ]);
 
         $member = User::create([
-            'name' => $validated['name'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'rank' => $validated['rank'],
