@@ -69,12 +69,16 @@ class AdminController extends Controller
     {
         $selectedDate = $request->get('date') ? Carbon::parse($request->get('date')) : Carbon::today();
         
-        // Get week days
-        $weekStart = $selectedDate->copy()->startOfWeek();
+        // Get week days (full 7-day week, Mon-Sun)
+        $weekStart = $selectedDate->copy()->startOfWeek(Carbon::MONDAY);
         $weekDays = [];
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $weekDays[] = $weekStart->copy()->addDays($i);
         }
+        
+        // Calculate previous and next week dates
+        $prevWeek = $weekStart->copy()->subWeek();
+        $nextWeek = $weekStart->copy()->addWeek();
         
         // Get classes for selected date
         $dayStart = $selectedDate->copy()->startOfDay();
@@ -94,6 +98,9 @@ class AdminController extends Controller
         return view('admin.classes', [
             'selectedDate' => $selectedDate,
             'weekDays' => $weekDays,
+            'weekStart' => $weekStart,
+            'prevWeek' => $prevWeek,
+            'nextWeek' => $nextWeek,
             'classes' => $classes,
         ]);
     }

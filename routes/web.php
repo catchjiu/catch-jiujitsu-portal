@@ -6,6 +6,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\GoalsController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,9 +45,14 @@ Route::middleware(['auth', 'member'])->group(function () {
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
     Route::post('/payments/{payment}/upload', [PaymentController::class, 'uploadProof'])->name('payments.upload');
 
-    // Goals & Settings
+    // Goals
     Route::get('/goals', [GoalsController::class, 'index'])->name('goals');
     Route::post('/goals', [GoalsController::class, 'update'])->name('goals.update');
+
+    // Settings
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+    Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
+    Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
 
     // Leaderboard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');

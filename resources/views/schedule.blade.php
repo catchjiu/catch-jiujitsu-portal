@@ -3,19 +3,70 @@
 @section('title', 'Schedule')
 
 @section('content')
-<div class="space-y-6">
+<div class="space-y-5">
     <!-- Header with Filter -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">Schedule</h2>
         <div class="flex bg-slate-800 rounded-lg p-1">
-            @foreach(['All', 'Gi', 'No-Gi'] as $filter)
-                <a href="{{ route('schedule', ['filter' => $filter]) }}"
+            @foreach(['All', 'Adults', 'Kids'] as $filter)
+                <a href="{{ route('schedule', ['filter' => $filter, 'date' => $selectedDate->format('Y-m-d')]) }}"
                    class="px-3 py-1 text-xs font-bold rounded-md transition-all {{ $currentFilter === $filter ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-white' }}">
                     {{ $filter }}
                 </a>
             @endforeach
         </div>
     </div>
+
+    <!-- Week Navigation -->
+    <div class="flex items-center justify-between">
+        <a href="{{ route('schedule', ['date' => $prevWeek->format('Y-m-d'), 'filter' => $currentFilter]) }}" 
+           class="w-10 h-10 rounded-full bg-slate-800/60 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </a>
+        <span class="text-sm font-semibold text-slate-300">
+            {{ $weekStart->format('M d') }} - {{ $weekStart->copy()->addDays(6)->format('M d, Y') }}
+        </span>
+        <a href="{{ route('schedule', ['date' => $nextWeek->format('Y-m-d'), 'filter' => $currentFilter]) }}" 
+           class="w-10 h-10 rounded-full bg-slate-800/60 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </a>
+    </div>
+
+    <!-- Week Day Selector -->
+    <div class="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
+        @foreach($weekDays as $day)
+            @php
+                $isSelected = $selectedDate->isSameDay($day);
+                $isToday = $day->isToday();
+                $isPast = $day->isPast() && !$day->isToday();
+            @endphp
+            <a href="{{ route('schedule', ['date' => $day->format('Y-m-d'), 'filter' => $currentFilter]) }}"
+               class="flex flex-col items-center justify-center flex-1 min-w-[44px] py-2 px-1 rounded-xl transition-all
+               {{ $isSelected 
+                   ? 'bg-blue-500 text-white' 
+                   : ($isToday 
+                       ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' 
+                       : ($isPast 
+                           ? 'bg-slate-800/40 text-slate-500 hover:bg-slate-700/60' 
+                           : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60')) }}">
+                <span class="text-[10px] font-bold uppercase">{{ $day->format('D') }}</span>
+                <span class="text-lg font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $day->format('d') }}</span>
+                @if($isToday && !$isSelected)
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-0.5"></div>
+                @endif
+            </a>
+        @endforeach
+    </div>
+
+    <!-- Today Button (if not viewing current week) -->
+    @if(!$selectedDate->isSameWeek(now()))
+        <div class="text-center">
+            <a href="{{ route('schedule', ['date' => now()->format('Y-m-d'), 'filter' => $currentFilter]) }}" 
+               class="inline-block px-4 py-2 text-xs font-semibold rounded-lg bg-slate-700/50 text-slate-300 hover:bg-slate-700 transition-colors">
+                Back to Today
+            </a>
+        </div>
+    @endif
 
     <!-- Class List -->
     <div class="space-y-4">
@@ -24,6 +75,7 @@
                 $isFull = $class->bookings_count >= $class->capacity;
                 $capacityPercent = ($class->bookings_count / $class->capacity) * 100;
                 $isBooked = $class->is_booked_by_user;
+                $isPastClass = $class->start_time->isPast();
                 
                 // Capacity bar color
                 if ($capacityPercent >= 100) {
@@ -35,7 +87,7 @@
                 }
             @endphp
             
-            <div class="glass rounded-2xl p-5 relative overflow-hidden transition-all duration-300 hover:bg-slate-800/60">
+            <div class="glass rounded-2xl p-5 relative overflow-hidden transition-all duration-300 {{ $isPastClass ? 'opacity-50' : 'hover:bg-slate-800/60' }}">
                 <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                 <div class="relative z-10">
                     <!-- Date & Type Row -->
@@ -49,10 +101,14 @@
                             </span>
                             <span class="text-slate-400 text-xs">{{ $class->duration_minutes }} Minutes</span>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col items-end gap-1">
                             <span class="inline-block px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border 
                                 {{ str_contains($class->type, 'No-Gi') ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20' }}">
                                 {{ $class->type }}
+                            </span>
+                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider 
+                                {{ ($class->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : (($class->age_group ?? 'Adults') === 'All' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-700/50 text-slate-400') }}">
+                                {{ $class->age_group ?? 'Adults' }}
                             </span>
                         </div>
                     </div>
@@ -77,7 +133,11 @@
                     </div>
 
                     <!-- Action Button -->
-                    @if($isBooked)
+                    @if($isPastClass)
+                        <div class="w-full py-2.5 rounded bg-slate-700 text-slate-500 font-bold text-sm text-center uppercase tracking-wide">
+                            Class Ended
+                        </div>
+                    @elseif($isBooked)
                         <form action="{{ route('book.destroy', $class->id) }}" method="POST">
                             @csrf
                             @method('DELETE')
@@ -101,7 +161,8 @@
         @empty
             <div class="p-10 text-center text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
                 <span class="material-symbols-outlined text-4xl mb-2">event_busy</span>
-                <p>No upcoming classes found.</p>
+                <p>No classes scheduled for {{ $selectedDate->format('l, M j') }}.</p>
+                <p class="text-xs mt-2">Try selecting a different day or changing the filter.</p>
             </div>
         @endforelse
     </div>

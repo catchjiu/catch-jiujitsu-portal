@@ -6,6 +6,7 @@ use App\Models\ClassSession;
 use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
@@ -14,18 +15,41 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $filter = $request->get('filter', 'All');
+        $user = Auth::user();
+        
+        // Default filter based on user's age_group
+        $defaultFilter = $user->age_group ?? 'Adults';
+        $filter = $request->get('filter', $defaultFilter);
+        
+        // Get selected date (default to today)
+        $selectedDate = $request->get('date') ? Carbon::parse($request->get('date')) : Carbon::today();
+        
+        // Get week days (Mon-Sun)
+        $weekStart = $selectedDate->copy()->startOfWeek(Carbon::MONDAY);
+        $weekDays = [];
+        for ($i = 0; $i < 7; $i++) {
+            $weekDays[] = $weekStart->copy()->addDays($i);
+        }
+        
+        // Calculate previous and next week dates
+        $prevWeek = $weekStart->copy()->subWeek();
+        $nextWeek = $weekStart->copy()->addWeek();
+        
+        // Get classes for selected date
+        $dayStart = $selectedDate->copy()->startOfDay();
+        $dayEnd = $selectedDate->copy()->endOfDay();
         
         $query = ClassSession::withCount('bookings')
-            ->where('start_time', '>', now())
+            ->whereBetween('start_time', [$dayStart, $dayEnd])
             ->orderBy('start_time');
         
-        // Apply filter
-        if ($filter === 'Gi') {
-            $query->whereIn('type', ['Gi', 'Fundamentals']);
-        } elseif ($filter === 'No-Gi') {
-            $query->where('type', 'No-Gi');
+        // Apply age group filter
+        if ($filter === 'Kids') {
+            $query->whereIn('age_group', ['Kids', 'All']);
+        } elseif ($filter === 'Adults') {
+            $query->whereIn('age_group', ['Adults', 'All']);
         }
+        // 'All' filter shows all classes
         
         $classes = $query->get()->map(function ($class) {
             $class->is_booked_by_user = $class->isBookedByUser(Auth::user());
@@ -35,6 +59,11 @@ class BookingController extends Controller
         return view('schedule', [
             'classes' => $classes,
             'currentFilter' => $filter,
+            'selectedDate' => $selectedDate,
+            'weekDays' => $weekDays,
+            'weekStart' => $weekStart,
+            'prevWeek' => $prevWeek,
+            'nextWeek' => $nextWeek,
         ]);
     }
 

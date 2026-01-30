@@ -12,25 +12,49 @@
             </a>
             <h1 class="text-xl font-bold text-white">Manage Classes</h1>
         </div>
-        <button class="text-slate-400 hover:text-white transition-colors">
-            <span class="material-symbols-outlined">calendar_month</span>
-        </button>
+        <a href="{{ route('admin.classes', ['date' => now()->format('Y-m-d')]) }}" 
+           class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-700/50 text-slate-300 hover:bg-slate-700 transition-colors">
+            Today
+        </a>
+    </div>
+
+    <!-- Week Navigation -->
+    <div class="flex items-center justify-between">
+        <a href="{{ route('admin.classes', ['date' => $prevWeek->format('Y-m-d')]) }}" 
+           class="w-10 h-10 rounded-full bg-slate-800/60 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined">chevron_left</span>
+        </a>
+        <span class="text-sm font-semibold text-slate-300">
+            {{ $weekStart->format('M d') }} - {{ $weekStart->copy()->addDays(6)->format('M d, Y') }}
+        </span>
+        <a href="{{ route('admin.classes', ['date' => $nextWeek->format('Y-m-d')]) }}" 
+           class="w-10 h-10 rounded-full bg-slate-800/60 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined">chevron_right</span>
+        </a>
     </div>
 
     <!-- Week Day Selector -->
-    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+    <div class="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
         @foreach($weekDays as $day)
             @php
                 $isSelected = $selectedDate->isSameDay($day);
                 $isToday = $day->isToday();
+                $isPast = $day->isPast() && !$day->isToday();
             @endphp
             <a href="{{ route('admin.classes', ['date' => $day->format('Y-m-d')]) }}"
-               class="flex flex-col items-center justify-center min-w-[56px] py-2 px-3 rounded-xl transition-all
+               class="flex flex-col items-center justify-center flex-1 min-w-[44px] py-2 px-1 rounded-xl transition-all
                {{ $isSelected 
                    ? 'bg-blue-500 text-white' 
-                   : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60' }}">
+                   : ($isToday 
+                       ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30' 
+                       : ($isPast 
+                           ? 'bg-slate-800/40 text-slate-500 hover:bg-slate-700/60' 
+                           : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60')) }}">
                 <span class="text-[10px] font-bold uppercase">{{ $day->format('D') }}</span>
-                <span class="text-xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $day->format('d') }}</span>
+                <span class="text-lg font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $day->format('d') }}</span>
+                @if($isToday && !$isSelected)
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-0.5"></div>
+                @endif
             </a>
         @endforeach
     </div>

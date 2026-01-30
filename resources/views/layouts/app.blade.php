@@ -26,7 +26,7 @@
             </div>
             <div class="flex items-center gap-3">
                 @auth
-                    <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800">
+                    <a href="{{ route('settings') }}" class="w-8 h-8 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800 hover:border-blue-500 transition-colors">
                         @if(auth()->user()->avatar_url)
                             <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                         @else
@@ -34,7 +34,7 @@
                                 {{ substr(auth()->user()->name, 0, 1) }}
                             </div>
                         @endif
-                    </div>
+                    </a>
                 @endauth
             </div>
         </div>
@@ -69,9 +69,9 @@
                 <span class="material-symbols-outlined text-2xl">calendar_today</span>
                 <span class="text-[10px] font-medium">Schedule</span>
             </a>
-            <a href="{{ route('goals') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('goals') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
-                <span class="material-symbols-outlined text-2xl">emoji_events</span>
-                <span class="text-[10px] font-medium">Goals</span>
+            <a href="{{ route('settings') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('settings') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
+                <span class="material-symbols-outlined text-2xl">settings</span>
+                <span class="text-[10px] font-medium">Settings</span>
             </a>
             <a href="{{ route('payments') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('payments') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">payments</span>
