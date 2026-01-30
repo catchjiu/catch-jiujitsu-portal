@@ -18,8 +18,8 @@
         <div class="relative z-10">
             <!-- Avatar -->
             <div class="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden bg-slate-700 border-4 border-slate-600">
-                @if($member->avatar_url)
-                    <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
+                @if($member->avatar)
+                    <img src="{{ $member->avatar }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-slate-400 text-3xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">
                         {{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}

@@ -34,8 +34,8 @@
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex items-center gap-4">
                 <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-blue-500 flex-shrink-0">
-                    @if($currentUser->avatar_url)
-                        <img src="{{ $currentUser->avatar_url }}" alt="" class="w-full h-full object-cover">
+                    @if($currentUser->avatar)
+                        <img src="{{ $currentUser->avatar }}" alt="" class="w-full h-full object-cover">
                     @else
                         <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">
                             {{ strtoupper(substr($currentUser->name, 0, 2)) }}
@@ -92,8 +92,8 @@
 
                     <!-- Avatar -->
                     <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 flex-shrink-0 {{ $isTop3 ? 'ring-2 ring-offset-2 ring-offset-slate-900 ' . ($rank === 1 ? 'ring-amber-400' : ($rank === 2 ? 'ring-slate-300' : 'ring-amber-700')) : '' }}">
-                        @if($entry['user']->avatar_url)
-                            <img src="{{ $entry['user']->avatar_url }}" alt="" class="w-full h-full object-cover">
+                        @if($entry['user']->avatar)
+                            <img src="{{ $entry['user']->avatar }}" alt="" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
                                 {{ strtoupper(substr($entry['user']->name, 0, 2)) }}
@@ -150,8 +150,8 @@
 
                     <!-- Avatar -->
                     <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 flex-shrink-0 {{ $isTop3 ? 'ring-2 ring-offset-2 ring-offset-slate-900 ' . ($rank === 1 ? 'ring-amber-400' : ($rank === 2 ? 'ring-slate-300' : 'ring-amber-700')) : '' }}">
-                        @if($entry['user']->avatar_url)
-                            <img src="{{ $entry['user']->avatar_url }}" alt="" class="w-full h-full object-cover">
+                        @if($entry['user']->avatar)
+                            <img src="{{ $entry['user']->avatar }}" alt="" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
                                 {{ strtoupper(substr($entry['user']->name, 0, 2)) }}

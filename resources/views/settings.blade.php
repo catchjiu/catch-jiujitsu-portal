@@ -32,8 +32,8 @@
                     <!-- Current Avatar -->
                     <div class="relative">
                         <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
-                            @if($user->avatar_url)
-                                <img src="{{ Storage::url($user->avatar_url) }}" alt="Avatar" class="w-full h-full object-cover">
+                            @if($user->avatar)
+                                <img src="{{ $user->avatar }}" alt="Avatar" class="w-full h-full object-cover">
                             @else
                                 <div class="w-full h-full flex items-center justify-center text-slate-400 text-2xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">
                                     {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}

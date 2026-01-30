@@ -79,8 +79,8 @@
                 <!-- Avatar -->
                 <div class="relative flex-shrink-0">
                     <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
-                        @if($user->avatar_url)
-                            <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                        @if($user->avatar)
+                            <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">
                                 {{ strtoupper(substr($user->name, 0, 2)) }}

@@ -62,8 +62,8 @@
                 <!-- Avatar with status indicator -->
                 <div class="relative flex-shrink-0">
                     <div class="w-14 h-14 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
-                        @if($member->avatar_url)
-                            <img src="{{ $member->avatar_url }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
+                        @if($member->avatar)
+                            <img src="{{ $member->avatar }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400 text-xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">
                                 {{ strtoupper(substr($member->name, 0, 2)) }}

@@ -121,6 +121,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the avatar URL (handles both external URLs and local storage).
+     */
+    public function getAvatarAttribute(): ?string
+    {
+        if (!$this->avatar_url) {
+            return null;
+        }
+        
+        // If it's already a full URL, return as-is
+        if (str_starts_with($this->avatar_url, 'http')) {
+            return $this->avatar_url;
+        }
+        
+        // Otherwise, it's a local storage path
+        return asset('storage/' . $this->avatar_url);
+    }
+
+    /**
      * Get the user's next booked class.
      */
     public function nextBookedClass(): ?ClassSession

@@ -27,8 +27,8 @@
             <div class="flex items-center gap-3">
                 @auth
                     <a href="{{ route('settings') }}" class="w-8 h-8 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800 hover:border-blue-500 transition-colors">
-                        @if(auth()->user()->avatar_url)
-                            <img src="{{ auth()->user()->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ auth()->user()->avatar }}" alt="Avatar" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
                                 {{ substr(auth()->user()->name, 0, 1) }}

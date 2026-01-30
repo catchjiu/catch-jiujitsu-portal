@@ -123,8 +123,8 @@
                 <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/30">
                     <!-- Avatar -->
                     <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 flex-shrink-0">
-                        @if($payment->user->avatar_url)
-                            <img src="{{ $payment->user->avatar_url }}" alt="" class="w-full h-full object-cover">
+                        @if($payment->user->avatar)
+                            <img src="{{ $payment->user->avatar }}" alt="" class="w-full h-full object-cover">
                         @else
                             <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
                                 {{ strtoupper(substr($payment->user->name, 0, 1)) }}
