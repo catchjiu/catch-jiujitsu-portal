@@ -40,16 +40,17 @@
             @php
                 $beltColors = [
                     'White' => ['bg' => 'bg-gray-200', 'text' => 'White Belt'],
-                    'Grey' => ['bg' => 'bg-gray-400', 'text' => 'Grey Belt'],
+                    'Grey' => ['bg' => 'bg-gray-300', 'text' => 'Grey Belt'],
                     'Yellow' => ['bg' => 'bg-yellow-400', 'text' => 'Yellow Belt'],
                     'Orange' => ['bg' => 'bg-orange-500', 'text' => 'Orange Belt'],
                     'Green' => ['bg' => 'bg-green-500', 'text' => 'Green Belt'],
                     'Blue' => ['bg' => 'bg-blue-600', 'text' => 'Blue Belt'],
                     'Purple' => ['bg' => 'bg-purple-600', 'text' => 'Purple Belt'],
                     'Brown' => ['bg' => 'bg-yellow-800', 'text' => 'Brown Belt'],
-                    'Black' => ['bg' => 'bg-slate-900', 'text' => 'Black Belt'],
+                    'Black' => ['bg' => 'bg-black', 'text' => 'Black Belt'],
                 ];
                 $belt = $beltColors[$member->rank] ?? $beltColors['White'];
+                $isBlackBelt = $member->rank === 'Black';
                 
                 // Random online status for demo (you can add a real field later)
                 $isOnline = rand(0, 1);
@@ -87,12 +88,21 @@
                         <!-- Belt bar with stripes -->
                         <div class="flex items-center">
                             <div class="w-16 h-4 rounded-sm {{ $belt['bg'] }} relative flex items-center justify-end pr-1">
-                                <!-- Black bar for stripes -->
-                                <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
-                                    @for ($i = 0; $i < $member->stripes; $i++)
-                                        <div class="w-1 h-full bg-white"></div>
-                                    @endfor
-                                </div>
+                                @if($isBlackBelt)
+                                    <!-- Red bar for black belt -->
+                                    <div class="h-full w-6 bg-red-600 flex items-center justify-around px-0.5">
+                                        @for ($i = 0; $i < $member->stripes; $i++)
+                                            <div class="w-1 h-full bg-white"></div>
+                                        @endfor
+                                    </div>
+                                @else
+                                    <!-- Black bar for stripes -->
+                                    <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
+                                        @for ($i = 0; $i < $member->stripes; $i++)
+                                            <div class="w-1 h-full bg-white"></div>
+                                        @endfor
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         <span class="text-slate-400 text-sm">{{ $belt['text'] }}</span>

@@ -34,23 +34,34 @@
             @php
                 $beltColors = [
                     'White' => 'bg-gray-200',
-                    'Grey' => 'bg-gray-400',
+                    'Grey' => 'bg-gray-300',
                     'Yellow' => 'bg-yellow-400',
                     'Orange' => 'bg-orange-500',
                     'Green' => 'bg-green-500',
                     'Blue' => 'bg-blue-600',
                     'Purple' => 'bg-purple-600',
                     'Brown' => 'bg-yellow-800',
-                    'Black' => 'bg-slate-900 border border-red-600',
+                    'Black' => 'bg-black',
                 ];
+                $isBlackBelt = $member->rank === 'Black';
             @endphp
             <div class="flex justify-center mb-4">
                 <div class="w-32 h-6 rounded {{ $beltColors[$member->rank] ?? 'bg-gray-200' }} relative flex items-center justify-end pr-2">
-                    <div class="h-full w-10 bg-black flex items-center justify-around px-1">
-                        @for ($i = 0; $i < $member->stripes; $i++)
-                            <div class="w-1.5 h-full bg-white"></div>
-                        @endfor
-                    </div>
+                    @if($isBlackBelt)
+                        <!-- Red bar for black belt -->
+                        <div class="h-full w-10 bg-red-600 flex items-center justify-around px-1">
+                            @for ($i = 0; $i < $member->stripes; $i++)
+                                <div class="w-1.5 h-full bg-white"></div>
+                            @endfor
+                        </div>
+                    @else
+                        <!-- Black bar for stripes -->
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1">
+                            @for ($i = 0; $i < $member->stripes; $i++)
+                                <div class="w-1.5 h-full bg-white"></div>
+                            @endfor
+                        </div>
+                    @endif
                 </div>
             </div>
 
