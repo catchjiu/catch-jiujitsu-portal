@@ -36,6 +36,7 @@ class User extends Authenticatable
         'public_profile',
         'line_id',
         'gender',
+        'age_group',
         'dob',
     ];
 

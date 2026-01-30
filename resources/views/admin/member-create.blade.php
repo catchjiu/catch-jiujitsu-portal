@@ -60,25 +60,38 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Age Group</label>
+                        <select name="age_group" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                            <option value="Adults" {{ old('age_group', 'Adults') === 'Adults' ? 'selected' : '' }}>Adults</option>
+                            <option value="Kids" {{ old('age_group') === 'Kids' ? 'selected' : '' }}>Kids</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Belt Rank</label>
                         <select name="rank" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                             <option value="White" selected>White</option>
+                            <option value="Grey">Grey</option>
+                            <option value="Yellow">Yellow</option>
+                            <option value="Orange">Orange</option>
+                            <option value="Green">Green</option>
                             <option value="Blue">Blue</option>
                             <option value="Purple">Purple</option>
                             <option value="Brown">Brown</option>
                             <option value="Black">Black</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stripes</label>
-                        <select name="stripes" required
-                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
-                            @for($i = 0; $i <= 4; $i++)
-                                <option value="{{ $i }}">{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Stripes</label>
+                    <select name="stripes" required
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        @for($i = 0; $i <= 4; $i++)
+                            <option value="{{ $i }}">{{ $i }}</option>
+                        @endfor
+                    </select>
                 </div>
 
                 <div class="pt-4">

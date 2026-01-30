@@ -51,6 +51,17 @@
             </select>
         </div>
 
+        <!-- Age Group -->
+        <div>
+            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Age Group</label>
+            <select name="age_group" required
+                class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                <option value="Adults" {{ ($class->age_group ?? 'Adults') == 'Adults' ? 'selected' : '' }}>Adults</option>
+                <option value="Kids" {{ ($class->age_group ?? '') == 'Kids' ? 'selected' : '' }}>Kids</option>
+                <option value="All" {{ ($class->age_group ?? '') == 'All' ? 'selected' : '' }}>All Ages</option>
+            </select>
+        </div>
+
         <!-- Instructor -->
         <div>
             <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Instructor</label>

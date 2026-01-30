@@ -40,6 +40,10 @@
             @php
                 $beltColors = [
                     'White' => ['bg' => 'bg-gray-200', 'text' => 'White Belt'],
+                    'Grey' => ['bg' => 'bg-gray-400', 'text' => 'Grey Belt'],
+                    'Yellow' => ['bg' => 'bg-yellow-400', 'text' => 'Yellow Belt'],
+                    'Orange' => ['bg' => 'bg-orange-500', 'text' => 'Orange Belt'],
+                    'Green' => ['bg' => 'bg-green-500', 'text' => 'Green Belt'],
                     'Blue' => ['bg' => 'bg-blue-600', 'text' => 'Blue Belt'],
                     'Purple' => ['bg' => 'bg-purple-600', 'text' => 'Purple Belt'],
                     'Brown' => ['bg' => 'bg-yellow-800', 'text' => 'Brown Belt'],
@@ -73,8 +77,8 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
                         <h3 class="text-white font-semibold truncate">{{ $member->name }}</h3>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-700/50 text-slate-400 flex-shrink-0">
-                            Adult
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($member->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/50 text-slate-400' }} flex-shrink-0">
+                            {{ $member->age_group ?? 'Adults' }}
                         </span>
                     </div>
                     

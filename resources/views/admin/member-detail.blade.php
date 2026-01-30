@@ -34,6 +34,10 @@
             @php
                 $beltColors = [
                     'White' => 'bg-gray-200',
+                    'Grey' => 'bg-gray-400',
+                    'Yellow' => 'bg-yellow-400',
+                    'Orange' => 'bg-orange-500',
+                    'Green' => 'bg-green-500',
                     'Blue' => 'bg-blue-600',
                     'Purple' => 'bg-purple-600',
                     'Brown' => 'bg-yellow-800',
@@ -99,10 +103,26 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Age Group</label>
+                        <select name="age_group" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                            <option value="Adults" {{ ($member->age_group ?? 'Adults') === 'Adults' ? 'selected' : '' }}>Adults</option>
+                            <option value="Kids" {{ ($member->age_group ?? '') === 'Kids' ? 'selected' : '' }}>Kids</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mat Hours</label>
+                        <input type="number" name="mat_hours" value="{{ old('mat_hours', $member->mat_hours) }}" required min="0"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Belt Rank</label>
                         <select name="rank" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
-                            @foreach(['White', 'Blue', 'Purple', 'Brown', 'Black'] as $rank)
+                            @foreach(['White', 'Grey', 'Yellow', 'Orange', 'Green', 'Blue', 'Purple', 'Brown', 'Black'] as $rank)
                                 <option value="{{ $rank }}" {{ $member->rank === $rank ? 'selected' : '' }}>{{ $rank }}</option>
                             @endforeach
                         </select>
@@ -116,12 +136,6 @@
                             @endfor
                         </select>
                     </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mat Hours</label>
-                    <input type="number" name="mat_hours" value="{{ old('mat_hours', $member->mat_hours) }}" required min="0"
-                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
 
                 <button type="submit"

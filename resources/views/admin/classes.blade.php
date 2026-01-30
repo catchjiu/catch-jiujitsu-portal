@@ -83,7 +83,12 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-start justify-between mb-2">
                                         <div>
-                                            <h3 class="text-white font-semibold">{{ $class->title }}</h3>
+                                            <div class="flex items-center gap-2">
+                                                <h3 class="text-white font-semibold">{{ $class->title }}</h3>
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($class->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : (($class->age_group ?? 'Adults') === 'All' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-700/50 text-slate-400') }}">
+                                                    {{ $class->age_group ?? 'Adults' }}
+                                                </span>
+                                            </div>
                                             <div class="flex items-center gap-2 text-slate-400 text-sm">
                                                 <span class="material-symbols-outlined text-sm">person</span>
                                                 {{ $class->instructor_name }}

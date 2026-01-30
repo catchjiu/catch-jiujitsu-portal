@@ -118,6 +118,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:Gi,No-Gi,Open Mat,Fundamentals',
+            'age_group' => 'required|in:Kids,Adults,All',
             'instructor_name' => 'required|string|max:255',
             'date' => 'required|date',
             'time' => 'required',
@@ -132,6 +133,7 @@ class AdminController extends Controller
         ClassSession::create([
             'title' => $validated['title'],
             'type' => $validated['type'],
+            'age_group' => $validated['age_group'],
             'start_time' => $startTime,
             'duration_minutes' => $validated['duration_minutes'],
             'instructor_name' => $validated['instructor_name'],
@@ -144,6 +146,7 @@ class AdminController extends Controller
                 ClassSession::create([
                     'title' => $validated['title'],
                     'type' => $validated['type'],
+                    'age_group' => $validated['age_group'],
                     'start_time' => $startTime->copy()->addWeeks($week),
                     'duration_minutes' => $validated['duration_minutes'],
                     'instructor_name' => $validated['instructor_name'],
@@ -174,6 +177,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:Gi,No-Gi,Open Mat,Fundamentals',
+            'age_group' => 'required|in:Kids,Adults,All',
             'instructor_name' => 'required|string|max:255',
             'capacity' => 'required|integer|min:1|max:100',
         ]);
@@ -349,7 +353,8 @@ class AdminController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
-            'rank' => 'required|in:White,Blue,Purple,Brown,Black',
+            'age_group' => 'required|in:Kids,Adults',
+            'rank' => 'required|in:White,Grey,Yellow,Orange,Green,Blue,Purple,Brown,Black',
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
         ]);
@@ -377,7 +382,8 @@ class AdminController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'rank' => 'required|in:White,Blue,Purple,Brown,Black',
+            'age_group' => 'required|in:Kids,Adults',
+            'rank' => 'required|in:White,Grey,Yellow,Orange,Green,Blue,Purple,Brown,Black',
             'stripes' => 'required|integer|min:0|max:4',
         ]);
 
@@ -386,6 +392,7 @@ class AdminController extends Controller
             'last_name' => $validated['last_name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
+            'age_group' => $validated['age_group'],
             'rank' => $validated['rank'],
             'stripes' => $validated['stripes'],
             'mat_hours' => 0,

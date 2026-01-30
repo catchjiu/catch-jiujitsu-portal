@@ -16,6 +16,7 @@ class ClassSession extends Model
     protected $fillable = [
         'title',
         'type',
+        'age_group',
         'start_time',
         'duration_minutes',
         'instructor_name',
