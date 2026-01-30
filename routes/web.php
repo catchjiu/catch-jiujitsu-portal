@@ -53,6 +53,8 @@ Route::middleware(['auth', 'member'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::post('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
     Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::post('/settings/avatar', [SettingsController::class, 'updateAvatar'])->name('settings.avatar');
+    Route::delete('/settings/avatar', [SettingsController::class, 'removeAvatar'])->name('settings.avatar.remove');
 
     // Leaderboard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');

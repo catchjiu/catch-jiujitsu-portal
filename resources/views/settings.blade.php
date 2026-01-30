@@ -18,6 +18,65 @@
         </div>
     @endif
 
+    <!-- Profile Picture -->
+    <div class="space-y-3">
+        <div>
+            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Profile Picture</h2>
+            <p class="text-slate-500 text-sm">Upload a photo for your profile</p>
+        </div>
+
+        <div class="glass rounded-2xl p-5 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-5">
+                    <!-- Current Avatar -->
+                    <div class="relative">
+                        <div class="w-20 h-20 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
+                            @if($user->avatar_url)
+                                <img src="{{ Storage::url($user->avatar_url) }}" alt="Avatar" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-slate-400 text-2xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">
+                                    {{ strtoupper(substr($user->first_name, 0, 1) . substr($user->last_name, 0, 1)) }}
+                                </div>
+                            @endif
+                        </div>
+                        @if($user->avatar_url)
+                            <form action="{{ route('settings.avatar.remove') }}" method="POST" class="absolute -top-1 -right-1">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-sm">close</span>
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+
+                    <!-- Upload Form -->
+                    <form action="{{ route('settings.avatar') }}" method="POST" enctype="multipart/form-data" class="flex-1">
+                        @csrf
+                        <label class="block">
+                            <input type="file" name="avatar" accept="image/*" required
+                                class="block w-full text-sm text-slate-400
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-lg file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-blue-500 file:text-white
+                                    hover:file:bg-blue-600
+                                    file:cursor-pointer cursor-pointer">
+                        </label>
+                        <p class="text-slate-500 text-xs mt-2">JPG, PNG, GIF or WebP. Max 2MB.</p>
+                        @error('avatar')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        <button type="submit" class="mt-3 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors">
+                            Upload Photo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Profile Settings -->
     <div class="space-y-3">
         <div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
 class SettingsController extends Controller
@@ -16,6 +17,50 @@ class SettingsController extends Controller
         return view('settings', [
             'user' => auth()->user(),
         ]);
+    }
+
+    /**
+     * Update avatar/profile picture.
+     */
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $user = $request->user();
+
+        // Delete old avatar if exists
+        if ($user->avatar_url && Storage::disk('public')->exists($user->avatar_url)) {
+            Storage::disk('public')->delete($user->avatar_url);
+        }
+
+        // Store new avatar
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        $user->update([
+            'avatar_url' => $path,
+        ]);
+
+        return back()->with('success', 'Profile picture updated successfully.');
+    }
+
+    /**
+     * Remove avatar.
+     */
+    public function removeAvatar(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->avatar_url && Storage::disk('public')->exists($user->avatar_url)) {
+            Storage::disk('public')->delete($user->avatar_url);
+        }
+
+        $user->update([
+            'avatar_url' => null,
+        ]);
+
+        return back()->with('success', 'Profile picture removed.');
     }
 
     /**
