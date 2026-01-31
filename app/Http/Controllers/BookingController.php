@@ -134,4 +134,32 @@ class BookingController extends Controller
 
         return back()->with('success', 'Booking cancelled successfully.');
     }
+
+    /**
+     * Show class attendance for coaches.
+     */
+    public function showAttendance($classId)
+    {
+        $user = Auth::user();
+        
+        // Only coaches can view attendance
+        if (!$user->isCoach()) {
+            return redirect()->route('schedule')->with('error', 'Only coaches can view attendance.');
+        }
+
+        $class = ClassSession::with(['instructor', 'bookings.user'])
+            ->withCount('bookings')
+            ->findOrFail($classId);
+
+        // Get all bookings with user details
+        $bookings = $class->bookings()
+            ->with('user')
+            ->orderBy('booked_at')
+            ->get();
+
+        return view('class-attendance', [
+            'class' => $class,
+            'bookings' => $bookings,
+        ]);
+    }
 }

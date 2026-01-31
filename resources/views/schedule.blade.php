@@ -184,6 +184,15 @@
                         </div>
                     </div>
 
+                    <!-- Coach View Attendance Button -->
+                    @if(Auth::user()->isCoach())
+                        <a href="{{ route('class.attendance', $class->id) }}" 
+                           class="w-full py-2.5 mb-2 rounded bg-amber-500/20 text-amber-400 font-bold text-sm text-center uppercase tracking-wide hover:bg-amber-500/30 transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">groups</span>
+                            View Attendance ({{ $class->bookings_count }})
+                        </a>
+                    @endif
+
                     <!-- Action Button -->
                     @if($isPastClass)
                         <div class="w-full py-2.5 rounded bg-slate-700 text-slate-500 font-bold text-sm text-center uppercase tracking-wide">
