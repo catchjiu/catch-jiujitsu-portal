@@ -91,9 +91,9 @@
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-emerald-500/20 text-emerald-400">
                             Active
                         </span>
-                    @elseif($user->hasHalfPriceDiscount())
+                    @elseif($user->hasFixedDiscount())
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-amber-500/20 text-amber-400">
-                            50% Off
+                            -NT${{ number_format($user->discount_amount) }}
                         </span>
                     @else
                         @php
