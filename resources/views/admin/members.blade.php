@@ -124,6 +124,28 @@
                         </div>
                         <span class="text-slate-400 text-sm">{{ $belt['text'] }}</span>
                     </div>
+                    
+                    <!-- Membership Expiry -->
+                    @if($member->discount_type === 'gratis')
+                        <p class="text-emerald-400 text-xs mt-1">
+                            <span class="material-symbols-outlined text-xs align-middle">all_inclusive</span>
+                            Unlimited Access
+                        </p>
+                    @elseif($member->membership_expires_at)
+                        @php
+                            $isExpired = $member->membership_expires_at->isPast();
+                            $isExpiringSoon = !$isExpired && $member->membership_expires_at->diffInDays(now()) <= 7;
+                        @endphp
+                        <p class="text-xs mt-1 {{ $isExpired ? 'text-red-400' : ($isExpiringSoon ? 'text-amber-400' : 'text-slate-500') }}">
+                            <span class="material-symbols-outlined text-xs align-middle">event</span>
+                            {{ $isExpired ? 'Expired' : 'Expires' }}: {{ $member->membership_expires_at->format('M j, Y') }}
+                        </p>
+                    @elseif($member->membership_status === 'none' || !$member->membership_status)
+                        <p class="text-slate-600 text-xs mt-1">
+                            <span class="material-symbols-outlined text-xs align-middle">cancel</span>
+                            No membership
+                        </p>
+                    @endif
                 </div>
 
                 <!-- Arrow -->
@@ -140,4 +162,34 @@
     </div>
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+    // Save scroll position before navigating away
+    document.querySelectorAll('a[href*="members/"]').forEach(link => {
+        link.addEventListener('click', function() {
+            sessionStorage.setItem('membersScrollPosition', window.scrollY);
+        });
+    });
+    
+    // Restore scroll position when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedPosition = sessionStorage.getItem('membersScrollPosition');
+        if (savedPosition) {
+            window.scrollTo(0, parseInt(savedPosition));
+            // Clear after restoring so it doesn't affect fresh visits
+            // Only clear if we came back from a member detail page
+        }
+    });
+    
+    // Clear scroll position if navigating to a different section
+    window.addEventListener('beforeunload', function() {
+        // Keep the position if going to member detail, clear otherwise
+        const currentUrl = window.location.href;
+        if (!currentUrl.includes('/admin/members')) {
+            sessionStorage.removeItem('membersScrollPosition');
+        }
+    });
+</script>
 @endsection
