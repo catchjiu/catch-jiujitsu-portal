@@ -7,11 +7,14 @@
     <!-- Welcome Header -->
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
+            <button onclick="openMenu()" class="text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
                 @if($user->avatar)
                     <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
                 @else
-                    <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">
+                    <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold text-sm">
                         {{ substr($user->name, 0, 1) }}
                     </div>
                 @endif

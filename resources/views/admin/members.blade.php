@@ -6,7 +6,12 @@
 <div class="space-y-5">
     <!-- Header -->
     <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Member Directory</h1>
+        <div class="flex items-center gap-3">
+            <button onclick="openMenu()" class="text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+            <h1 class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Member Directory</h1>
+        </div>
         <button class="text-slate-400 hover:text-white transition-colors">
             <span class="material-symbols-outlined">tune</span>
         </button>

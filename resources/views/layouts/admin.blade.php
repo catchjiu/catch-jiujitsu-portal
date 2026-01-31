@@ -25,10 +25,10 @@
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
     <!-- Slide-out Menu Overlay -->
-    <div id="menuOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <div id="menuOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300"></div>
 
     <!-- Slide-out Menu -->
-    <div id="slideMenu" class="fixed top-0 left-0 h-full w-72 bg-slate-900 z-50 transform -translate-x-full transition-transform duration-300 shadow-2xl">
+    <div id="slideMenu" class="fixed top-0 left-0 h-full w-72 bg-slate-900 z-[60] transition-transform duration-300 shadow-2xl" style="transform: translateX(-100%)">
         <div class="p-5">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8">
@@ -121,13 +121,30 @@
 
     <script>
         function openMenu() {
-            document.getElementById('slideMenu').classList.remove('-translate-x-full');
-            document.getElementById('menuOverlay').classList.remove('opacity-0', 'pointer-events-none');
+            const menu = document.getElementById('slideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            overlay.classList.remove('hidden');
+            // Small delay to allow the display change to take effect before animating
+            setTimeout(() => {
+                menu.style.transform = 'translateX(0)';
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+            }, 10);
         }
         
         function closeMenu() {
-            document.getElementById('slideMenu').classList.add('-translate-x-full');
-            document.getElementById('menuOverlay').classList.add('opacity-0', 'pointer-events-none');
+            const menu = document.getElementById('slideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            menu.style.transform = 'translateX(-100%)';
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            
+            // Hide overlay after animation completes
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
         }
         
         document.getElementById('menuOverlay').addEventListener('click', closeMenu);

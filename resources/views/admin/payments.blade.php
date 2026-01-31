@@ -5,9 +5,14 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header -->
-    <div class="space-y-1">
-        <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">Payments & Settings</h2>
-        <p class="text-slate-400 text-sm">Verify payments and manage settings</p>
+    <div class="flex items-center gap-3 mb-1">
+        <button onclick="openMenu()" class="text-slate-400 hover:text-white transition-colors">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div>
+            <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">Payments & Settings</h2>
+            <p class="text-slate-400 text-sm">Verify payments and manage settings</p>
+        </div>
     </div>
 
     <!-- Stats Cards -->

@@ -7,9 +7,9 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.index') }}" class="text-slate-400 hover:text-white transition-colors">
-                <span class="material-symbols-outlined">arrow_back</span>
-            </a>
+            <button onclick="openMenu()" class="text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
             <h1 class="text-xl font-bold text-white">Manage Classes</h1>
         </div>
         <a href="{{ route('admin.classes', ['date' => now()->format('Y-m-d')]) }}" 
