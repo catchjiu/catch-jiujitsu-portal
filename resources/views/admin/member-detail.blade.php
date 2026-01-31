@@ -149,6 +149,18 @@
                     </div>
                 </div>
 
+                <!-- Coach Toggle -->
+                <div class="flex items-center justify-between p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <div>
+                        <p class="text-white font-medium">Coach / Instructor</p>
+                        <p class="text-slate-500 text-xs">Can be assigned to teach classes</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="is_coach" value="1" class="sr-only peer" {{ $member->is_coach ? 'checked' : '' }}>
+                        <div class="w-12 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                    </label>
+                </div>
+
                 <button type="submit"
                     class="w-full py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">
                     Save Changes

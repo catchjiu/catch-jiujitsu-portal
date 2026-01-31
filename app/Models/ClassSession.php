@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ClassSession extends Model
@@ -19,13 +20,33 @@ class ClassSession extends Model
         'age_group',
         'start_time',
         'duration_minutes',
-        'instructor_name',
+        'instructor_id',
+        'instructor_name', // Kept for backward compatibility
         'capacity',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
     ];
+
+    /**
+     * Get the instructor (coach) for this class.
+     */
+    public function instructor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    /**
+     * Get instructor name (from relationship or legacy field).
+     */
+    public function getInstructorDisplayNameAttribute(): string
+    {
+        if ($this->instructor) {
+            return $this->instructor->name;
+        }
+        return $this->instructor_name ?? 'TBA';
+    }
 
     /**
      * Get all bookings for this class.

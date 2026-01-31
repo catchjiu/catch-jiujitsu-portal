@@ -21,7 +21,7 @@
             <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-bold text-black text-lg" style="font-family: 'Bebas Neue', sans-serif;">C</div>
                 <h1 class="font-bold text-xl tracking-wider text-white" style="font-family: 'Bebas Neue', sans-serif;">
-                    CATCH <span class="text-amber-500">BJJ</span>
+                    CATCH <span class="text-amber-500">JIU JITSU</span>
                 </h1>
             </div>
             <div class="flex items-center gap-3">

@@ -61,15 +61,18 @@
         <!-- Instructor -->
         <div>
             <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Instructor</label>
-            <div class="relative">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
-                <input type="text" name="instructor_name" value="{{ old('instructor_name') }}" required
-                    class="w-full pl-12 pr-12 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
-                    placeholder="Search instructor...">
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-slate-400 text-lg">person</span>
-                </div>
-            </div>
+            <select name="instructor_id" required
+                class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none cursor-pointer">
+                <option value="" disabled selected>Select instructor</option>
+                @foreach($coaches as $coach)
+                    <option value="{{ $coach->id }}" {{ old('instructor_id') == $coach->id ? 'selected' : '' }}>
+                        {{ $coach->name }} ({{ $coach->rank }} Belt)
+                    </option>
+                @endforeach
+            </select>
+            @if($coaches->isEmpty())
+                <p class="text-amber-500 text-xs mt-2">No coaches found. Mark users as coaches in their profile first.</p>
+            @endif
         </div>
 
         <!-- Date and Time -->

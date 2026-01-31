@@ -141,7 +141,34 @@
                     <!-- Title & Instructor -->
                     <div class="mb-4">
                         <h3 class="text-lg font-bold text-slate-100">{{ $class->title }}</h3>
-                        <p class="text-sm text-slate-400">Instr: {{ $class->instructor_name }}</p>
+                        @if($class->instructor)
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
+                                    @if($class->instructor->avatar)
+                                        <img src="{{ $class->instructor->avatar }}" alt="{{ $class->instructor->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">
+                                            {{ substr($class->instructor->first_name, 0, 1) }}{{ substr($class->instructor->last_name, 0, 1) }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-slate-300">{{ $class->instructor->name }}</span>
+                                    @php
+                                        $instructorBeltColors = [
+                                            'White' => 'bg-gray-200',
+                                            'Blue' => 'bg-blue-600',
+                                            'Purple' => 'bg-purple-600',
+                                            'Brown' => 'bg-yellow-800',
+                                            'Black' => 'bg-black border border-slate-600',
+                                        ];
+                                    @endphp
+                                    <div class="w-6 h-3 rounded-sm {{ $instructorBeltColors[$class->instructor->rank] ?? 'bg-gray-200' }}"></div>
+                                </div>
+                            </div>
+                        @else
+                            <p class="text-sm text-slate-400">Instructor: {{ $class->instructor_display_name }}</p>
+                        @endif
                     </div>
 
                     <!-- Capacity Bar -->

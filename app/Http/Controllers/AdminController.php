@@ -111,10 +111,10 @@ class AdminController extends Controller
      */
     public function createClass()
     {
-        $instructors = User::where('is_admin', true)->orWhere('rank', 'Black')->get();
+        $coaches = User::where('is_coach', true)->orderBy('first_name')->get();
         
         return view('admin.class-create', [
-            'instructors' => $instructors,
+            'coaches' => $coaches,
         ]);
     }
 
@@ -127,7 +127,7 @@ class AdminController extends Controller
             'title' => 'required|string|max:255',
             'type' => 'required|in:Gi,No-Gi,Open Mat,Fundamentals',
             'age_group' => 'required|in:Kids,Adults,All',
-            'instructor_name' => 'required|string|max:255',
+            'instructor_id' => 'required|exists:users,id',
             'date' => 'required|date',
             'time' => 'required',
             'duration_minutes' => 'required|integer|min:30|max:180',
@@ -136,6 +136,7 @@ class AdminController extends Controller
         ]);
 
         $startTime = Carbon::parse($validated['date'] . ' ' . $validated['time']);
+        $instructor = User::find($validated['instructor_id']);
 
         // Create the class
         ClassSession::create([
@@ -144,7 +145,8 @@ class AdminController extends Controller
             'age_group' => $validated['age_group'],
             'start_time' => $startTime,
             'duration_minutes' => $validated['duration_minutes'],
-            'instructor_name' => $validated['instructor_name'],
+            'instructor_id' => $validated['instructor_id'],
+            'instructor_name' => $instructor->name, // Keep for backward compatibility
             'capacity' => $validated['capacity'],
         ]);
 
@@ -157,7 +159,8 @@ class AdminController extends Controller
                     'age_group' => $validated['age_group'],
                     'start_time' => $startTime->copy()->addWeeks($week),
                     'duration_minutes' => $validated['duration_minutes'],
-                    'instructor_name' => $validated['instructor_name'],
+                    'instructor_id' => $validated['instructor_id'],
+                    'instructor_name' => $instructor->name,
                     'capacity' => $validated['capacity'],
                 ]);
             }
@@ -172,7 +175,12 @@ class AdminController extends Controller
     public function editClass($id)
     {
         $class = ClassSession::findOrFail($id);
-        return view('admin.class-edit', ['class' => $class]);
+        $coaches = User::where('is_coach', true)->orderBy('first_name')->get();
+        
+        return view('admin.class-edit', [
+            'class' => $class,
+            'coaches' => $coaches,
+        ]);
     }
 
     /**
@@ -186,11 +194,20 @@ class AdminController extends Controller
             'title' => 'required|string|max:255',
             'type' => 'required|in:Gi,No-Gi,Open Mat,Fundamentals',
             'age_group' => 'required|in:Kids,Adults,All',
-            'instructor_name' => 'required|string|max:255',
+            'instructor_id' => 'required|exists:users,id',
             'capacity' => 'required|integer|min:1|max:100',
         ]);
+        
+        $instructor = User::find($validated['instructor_id']);
 
-        $class->update($validated);
+        $class->update([
+            'title' => $validated['title'],
+            'type' => $validated['type'],
+            'age_group' => $validated['age_group'],
+            'instructor_id' => $validated['instructor_id'],
+            'instructor_name' => $instructor->name,
+            'capacity' => $validated['capacity'],
+        ]);
 
         return redirect()->route('admin.classes')->with('success', 'Class updated successfully.');
     }
@@ -372,7 +389,10 @@ class AdminController extends Controller
             'rank' => 'required|in:White,Grey,Yellow,Orange,Green,Blue,Purple,Brown,Black',
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
+            'is_coach' => 'boolean',
         ]);
+
+        $validated['is_coach'] = $request->has('is_coach');
 
         $member->update($validated);
 

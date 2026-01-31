@@ -65,8 +65,14 @@
         <!-- Instructor -->
         <div>
             <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Instructor</label>
-            <input type="text" name="instructor_name" value="{{ old('instructor_name', $class->instructor_name) }}" required
-                class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+            <select name="instructor_id" required
+                class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white focus:outline-none focus:border-blue-500 transition-colors appearance-none cursor-pointer">
+                @foreach($coaches as $coach)
+                    <option value="{{ $coach->id }}" {{ old('instructor_id', $class->instructor_id) == $coach->id ? 'selected' : '' }}>
+                        {{ $coach->name }} ({{ $coach->rank }} Belt)
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <!-- Capacity -->

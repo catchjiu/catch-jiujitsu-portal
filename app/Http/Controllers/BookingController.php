@@ -39,7 +39,8 @@ class BookingController extends Controller
         $dayStart = $selectedDate->copy()->startOfDay();
         $dayEnd = $selectedDate->copy()->endOfDay();
         
-        $query = ClassSession::withCount('bookings')
+        $query = ClassSession::with('instructor')
+            ->withCount('bookings')
             ->whereBetween('start_time', [$dayStart, $dayEnd])
             ->orderBy('start_time');
         

@@ -31,6 +31,7 @@ class User extends Authenticatable
         'stripes',
         'mat_hours',
         'is_admin',
+        'is_coach',
         'avatar_url',
         'monthly_class_goal',
         'monthly_hours_goal',
@@ -67,6 +68,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'is_coach' => 'boolean',
             'stripes' => 'integer',
             'mat_hours' => 'integer',
             'monthly_class_goal' => 'integer',
@@ -118,6 +120,14 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->is_admin;
+    }
+
+    /**
+     * Check if the user is a coach.
+     */
+    public function isCoach(): bool
+    {
+        return $this->is_coach ?? false;
     }
 
     /**
