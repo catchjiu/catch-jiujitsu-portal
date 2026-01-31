@@ -11,6 +11,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $user->load('membershipPackage'); // Load membership package relationship
         $nextClass = $user->nextBookedClass();
         
         // Get classes booked this month

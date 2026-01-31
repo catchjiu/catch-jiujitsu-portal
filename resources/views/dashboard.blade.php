@@ -66,6 +66,70 @@
         </div>
     </div>
 
+    <!-- Membership Card -->
+    <div class="glass rounded-2xl p-5 border-t-4 {{ $user->membership_status === 'active' ? 'border-t-emerald-500' : ($user->membership_status === 'pending' ? 'border-t-amber-500' : 'border-t-red-500') }} relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Membership</p>
+                    @if($user->membershipPackage)
+                        <h3 class="text-2xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membershipPackage->name }}</h3>
+                    @else
+                        <h3 class="text-2xl font-bold text-slate-500 uppercase" style="font-family: 'Bebas Neue', sans-serif;">No Package</h3>
+                    @endif
+                </div>
+                <div class="text-right">
+                    @php
+                        $statusColors = [
+                            'active' => 'bg-emerald-500/20 text-emerald-400',
+                            'pending' => 'bg-amber-500/20 text-amber-400',
+                            'expired' => 'bg-red-500/20 text-red-400',
+                            'none' => 'bg-slate-700/50 text-slate-400',
+                        ];
+                        $statusColor = $statusColors[$user->membership_status] ?? $statusColors['none'];
+                    @endphp
+                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ $statusColor }}">
+                        {{ $user->membership_status ?? 'None' }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Membership Details -->
+            <div class="mt-4 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                @if($user->membership_status === 'active')
+                    @if($user->membershipPackage && $user->membershipPackage->duration_type === 'classes')
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 text-sm">Classes Remaining</span>
+                            <span class="text-white font-bold text-lg" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->classes_remaining ?? 0 }}</span>
+                        </div>
+                    @elseif($user->membership_expires_at)
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 text-sm">Valid Until</span>
+                            <span class="text-white font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membership_expires_at->format('M d, Y') }}</span>
+                        </div>
+                    @else
+                        <p class="text-slate-400 text-sm text-center">Unlimited access</p>
+                    @endif
+                @elseif($user->membership_status === 'pending')
+                    <p class="text-amber-400 text-sm text-center">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">hourglass_top</span>
+                        Payment pending verification
+                    </p>
+                @elseif($user->membership_status === 'expired')
+                    <p class="text-red-400 text-sm text-center">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">warning</span>
+                        Membership expired. Please renew.
+                    </p>
+                @else
+                    <p class="text-slate-500 text-sm text-center">
+                        Contact the gym to get started.
+                    </p>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 gap-4">
         <div class="glass rounded-2xl p-5 relative overflow-hidden">
