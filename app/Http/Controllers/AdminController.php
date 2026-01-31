@@ -296,43 +296,176 @@ class AdminController extends Controller
      */
     public function finance()
     {
-        // Calculate MRR (Monthly Recurring Revenue)
-        $currentMonth = now()->format('F Y');
-        $paidThisMonth = Payment::where('status', 'Paid')
-            ->where('month', $currentMonth)
-            ->sum('amount');
-        
+        // Total members
         $totalMembers = User::where('is_admin', false)->count();
-        $activeMembers = Payment::where('status', 'Paid')
-            ->where('month', $currentMonth)
-            ->distinct('user_id')
-            ->count('user_id');
-
-        // Membership breakdown (mock data for now)
-        $membershipPlans = [
-            ['name' => 'Unlimited (Adults)', 'percentage' => 65, 'color' => 'bg-blue-500'],
-            ['name' => 'Kids Program', 'percentage' => 25, 'color' => 'bg-emerald-500'],
-            ['name' => '3x / Week', 'percentage' => 10, 'color' => 'bg-amber-500'],
-        ];
-
-        // Recent transactions
+        
+        // Membership status breakdown
+        $activeMemberships = User::where('is_admin', false)
+            ->where(function($q) {
+                $q->where('membership_status', 'active')
+                  ->orWhere('discount_type', 'gratis');
+            })->count();
+        $pendingMemberships = User::where('is_admin', false)->where('membership_status', 'pending')->count();
+        $expiredMemberships = User::where('is_admin', false)->where('membership_status', 'expired')->count();
+        $noMembership = User::where('is_admin', false)->where('membership_status', 'none')->where('discount_type', 'none')->count();
+        
+        // New members this month
+        $newMembersThisMonth = User::where('is_admin', false)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+        
+        // Age group breakdown
+        $adultMembers = User::where('is_admin', false)->where('age_group', 'Adults')->count();
+        $kidsMembers = User::where('is_admin', false)->where('age_group', 'Kids')->count();
+        
+        // Membership package breakdown (real data from database)
+        $packageBreakdown = User::where('is_admin', false)
+            ->whereNotNull('membership_package_id')
+            ->selectRaw('membership_package_id, COUNT(*) as count')
+            ->groupBy('membership_package_id')
+            ->with('membershipPackage')
+            ->get();
+        
+        $membershipPlans = [];
+        $colors = ['bg-blue-500', 'bg-emerald-500', 'bg-amber-500', 'bg-purple-500', 'bg-pink-500', 'bg-cyan-500'];
+        $chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'];
+        $packageLabels = [];
+        $packageData = [];
+        
+        $totalWithPackage = $packageBreakdown->sum('count');
+        foreach ($packageBreakdown as $index => $item) {
+            if ($item->membershipPackage) {
+                $percentage = $totalWithPackage > 0 ? round(($item->count / $totalWithPackage) * 100) : 0;
+                $membershipPlans[] = [
+                    'name' => $item->membershipPackage->name,
+                    'count' => $item->count,
+                    'percentage' => $percentage,
+                    'color' => $colors[$index % count($colors)],
+                ];
+                $packageLabels[] = $item->membershipPackage->name;
+                $packageData[] = $item->count;
+            }
+        }
+        
+        // Gratis members
+        $gratisMembers = User::where('is_admin', false)->where('discount_type', 'gratis')->count();
+        $halfPriceMembers = User::where('is_admin', false)->where('discount_type', 'half_price')->count();
+        
+        // Calculate estimated monthly revenue from active memberships
+        $estimatedRevenue = 0;
+        $activePackageUsers = User::where('is_admin', false)
+            ->where('membership_status', 'active')
+            ->where('discount_type', 'none')
+            ->whereNotNull('membership_package_id')
+            ->with('membershipPackage')
+            ->get();
+        
+        foreach ($activePackageUsers as $user) {
+            if ($user->membershipPackage) {
+                // Normalize to monthly revenue
+                $package = $user->membershipPackage;
+                $monthlyValue = $package->price;
+                if ($package->duration_type === 'months' && $package->duration_value > 1) {
+                    $monthlyValue = $package->price / $package->duration_value;
+                } elseif ($package->duration_type === 'years') {
+                    $monthlyValue = $package->price / ($package->duration_value * 12);
+                } elseif ($package->duration_type === 'weeks') {
+                    $monthlyValue = ($package->price / $package->duration_value) * 4.33;
+                }
+                $estimatedRevenue += $monthlyValue;
+            }
+        }
+        
+        // Half price members
+        $halfPriceUsers = User::where('is_admin', false)
+            ->where('membership_status', 'active')
+            ->where('discount_type', 'half_price')
+            ->whereNotNull('membership_package_id')
+            ->with('membershipPackage')
+            ->get();
+        
+        foreach ($halfPriceUsers as $user) {
+            if ($user->membershipPackage) {
+                $package = $user->membershipPackage;
+                $monthlyValue = $package->price * 0.5;
+                if ($package->duration_type === 'months' && $package->duration_value > 1) {
+                    $monthlyValue = ($package->price / $package->duration_value) * 0.5;
+                } elseif ($package->duration_type === 'years') {
+                    $monthlyValue = ($package->price / ($package->duration_value * 12)) * 0.5;
+                } elseif ($package->duration_type === 'weeks') {
+                    $monthlyValue = (($package->price / $package->duration_value) * 4.33) * 0.5;
+                }
+                $estimatedRevenue += $monthlyValue;
+            }
+        }
+        
+        // Monthly member growth (last 6 months)
+        $memberGrowth = [];
+        $monthLabels = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthLabels[] = $date->format('M');
+            $memberGrowth[] = User::where('is_admin', false)
+                ->where('created_at', '<=', $date->endOfMonth())
+                ->count();
+        }
+        
+        // Memberships expiring soon (next 7 days)
+        $expiringSoon = User::where('is_admin', false)
+            ->where('membership_status', 'active')
+            ->where('membership_expires_at', '>=', now())
+            ->where('membership_expires_at', '<=', now()->addDays(7))
+            ->count();
+        
+        // Classes data for this month
+        $classesThisMonth = ClassSession::whereMonth('start_time', now()->month)
+            ->whereYear('start_time', now()->year)
+            ->count();
+        
+        $totalBookingsThisMonth = Booking::whereHas('classSession', function($q) {
+            $q->whereMonth('start_time', now()->month)
+              ->whereYear('start_time', now()->year);
+        })->count();
+        
+        // Recent transactions (from payments table)
         $recentPayments = Payment::with('user')
             ->orderBy('updated_at', 'desc')
             ->take(10)
             ->get();
-
-        // Pending payments count
+        
+        // Payment status counts
         $pendingCount = Payment::where('status', 'Pending Verification')->count();
         $failedCount = Payment::where('status', 'Rejected')->count();
+        $paidCount = Payment::where('status', 'Paid')->count();
+        $overdueCount = Payment::where('status', 'Overdue')->count();
 
         return view('admin.finance', [
-            'mrr' => $paidThisMonth,
-            'activeMembers' => $activeMembers,
             'totalMembers' => $totalMembers,
+            'activeMemberships' => $activeMemberships,
+            'pendingMemberships' => $pendingMemberships,
+            'expiredMemberships' => $expiredMemberships,
+            'noMembership' => $noMembership,
+            'newMembersThisMonth' => $newMembersThisMonth,
+            'adultMembers' => $adultMembers,
+            'kidsMembers' => $kidsMembers,
             'membershipPlans' => $membershipPlans,
+            'packageLabels' => json_encode($packageLabels),
+            'packageData' => json_encode($packageData),
+            'chartColors' => json_encode($chartColors),
+            'gratisMembers' => $gratisMembers,
+            'halfPriceMembers' => $halfPriceMembers,
+            'estimatedRevenue' => round($estimatedRevenue),
+            'monthLabels' => json_encode($monthLabels),
+            'memberGrowth' => json_encode($memberGrowth),
+            'expiringSoon' => $expiringSoon,
+            'classesThisMonth' => $classesThisMonth,
+            'totalBookingsThisMonth' => $totalBookingsThisMonth,
             'recentPayments' => $recentPayments,
             'pendingCount' => $pendingCount,
             'failedCount' => $failedCount,
+            'paidCount' => $paidCount,
+            'overdueCount' => $overdueCount,
         ]);
     }
 
