@@ -160,9 +160,9 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-amber-400 text-lg">sell</span>
-                            <span class="text-slate-300 text-sm">50% Off</span>
+                            <span class="text-slate-300 text-sm">Discounted</span>
                         </div>
-                        <span class="text-amber-400 font-bold">{{ $halfPriceMembers }}</span>
+                        <span class="text-amber-400 font-bold">{{ $discountedMembers }}</span>
                     </div>
                 </div>
             </div>

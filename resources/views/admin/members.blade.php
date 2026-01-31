@@ -88,8 +88,8 @@
                         </span>
                         @if($member->discount_type === 'gratis')
                             <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/20 text-emerald-400 flex-shrink-0" title="Gratis Member">FREE</span>
-                        @elseif($member->discount_type === 'half_price')
-                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-400 flex-shrink-0" title="50% Discount">50%</span>
+                        @elseif($member->discount_type === 'percentage' && $member->discount_percentage > 0)
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-400 flex-shrink-0" title="{{ $member->discount_percentage }}% Discount">{{ $member->discount_percentage }}%</span>
                         @endif
                         @if($member->membership_status === 'active' || $member->discount_type === 'gratis')
                             <span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Active Membership"></span>

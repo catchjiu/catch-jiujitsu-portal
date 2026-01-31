@@ -179,21 +179,32 @@
                     <p class="text-white font-medium mb-3">Membership Discount</p>
                     <div class="space-y-3">
                         <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="discount_type" value="none" class="w-4 h-4 text-blue-500 bg-slate-700 border-slate-600 focus:ring-blue-500" {{ ($member->discount_type ?? 'none') === 'none' ? 'checked' : '' }}>
+                            <input type="radio" name="discount_type" value="none" id="discount_none" class="w-4 h-4 text-blue-500 bg-slate-700 border-slate-600 focus:ring-blue-500" {{ ($member->discount_type ?? 'none') === 'none' ? 'checked' : '' }} onchange="toggleDiscountInput()">
                             <div>
                                 <span class="text-slate-300">None</span>
                                 <p class="text-slate-500 text-xs">Regular membership pricing</p>
                             </div>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="discount_type" value="half_price" class="w-4 h-4 text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500" {{ ($member->discount_type ?? '') === 'half_price' ? 'checked' : '' }}>
-                            <div>
-                                <span class="text-amber-400">50% Off</span>
-                                <p class="text-slate-500 text-xs">Half price on membership fees</p>
+                            <input type="radio" name="discount_type" value="percentage" id="discount_percentage" class="w-4 h-4 text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500" {{ ($member->discount_type ?? '') === 'percentage' ? 'checked' : '' }} onchange="toggleDiscountInput()">
+                            <div class="flex-1">
+                                <span class="text-amber-400">Custom Discount</span>
+                                <p class="text-slate-500 text-xs">Set a specific discount percentage</p>
                             </div>
                         </label>
+                        <!-- Discount percentage input -->
+                        <div id="discount_amount_container" class="ml-7 {{ ($member->discount_type ?? 'none') !== 'percentage' ? 'hidden' : '' }}">
+                            <div class="flex items-center gap-2">
+                                <input type="number" name="discount_percentage" id="discount_percentage_input" 
+                                    value="{{ $member->discount_percentage ?? 0 }}" 
+                                    min="1" max="99" 
+                                    class="w-20 px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-center focus:outline-none focus:border-amber-500 transition-colors"
+                                    placeholder="50">
+                                <span class="text-amber-400 font-bold">% Off</span>
+                            </div>
+                        </div>
                         <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="discount_type" value="gratis" class="w-4 h-4 text-emerald-500 bg-slate-700 border-slate-600 focus:ring-emerald-500" {{ ($member->discount_type ?? '') === 'gratis' ? 'checked' : '' }}>
+                            <input type="radio" name="discount_type" value="gratis" id="discount_gratis" class="w-4 h-4 text-emerald-500 bg-slate-700 border-slate-600 focus:ring-emerald-500" {{ ($member->discount_type ?? '') === 'gratis' ? 'checked' : '' }} onchange="toggleDiscountInput()">
                             <div>
                                 <span class="text-emerald-400">Gratis (Free)</span>
                                 <p class="text-slate-500 text-xs">Free membership, can always book classes</p>
@@ -201,6 +212,18 @@
                         </label>
                     </div>
                 </div>
+                
+                <script>
+                    function toggleDiscountInput() {
+                        const container = document.getElementById('discount_amount_container');
+                        const percentageRadio = document.getElementById('discount_percentage');
+                        if (percentageRadio.checked) {
+                            container.classList.remove('hidden');
+                        } else {
+                            container.classList.add('hidden');
+                        }
+                    }
+                </script>
 
                 <button type="submit"
                     class="w-full py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">

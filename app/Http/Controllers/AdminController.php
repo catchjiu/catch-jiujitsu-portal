@@ -350,7 +350,7 @@ class AdminController extends Controller
         
         // Gratis members
         $gratisMembers = User::where('is_admin', false)->where('discount_type', 'gratis')->count();
-        $halfPriceMembers = User::where('is_admin', false)->where('discount_type', 'half_price')->count();
+        $discountedMembers = User::where('is_admin', false)->where('discount_type', 'percentage')->where('discount_percentage', '>', 0)->count();
         
         // Calculate estimated monthly revenue from active memberships
         $estimatedRevenue = 0;
@@ -377,24 +377,26 @@ class AdminController extends Controller
             }
         }
         
-        // Half price members
-        $halfPriceUsers = User::where('is_admin', false)
+        // Discounted members (percentage discount)
+        $discountedUsers = User::where('is_admin', false)
             ->where('membership_status', 'active')
-            ->where('discount_type', 'half_price')
+            ->where('discount_type', 'percentage')
+            ->where('discount_percentage', '>', 0)
             ->whereNotNull('membership_package_id')
             ->with('membershipPackage')
             ->get();
         
-        foreach ($halfPriceUsers as $user) {
+        foreach ($discountedUsers as $user) {
             if ($user->membershipPackage) {
                 $package = $user->membershipPackage;
-                $monthlyValue = $package->price * 0.5;
+                $discountMultiplier = (100 - $user->discount_percentage) / 100;
+                $monthlyValue = $package->price * $discountMultiplier;
                 if ($package->duration_type === 'months' && $package->duration_value > 1) {
-                    $monthlyValue = ($package->price / $package->duration_value) * 0.5;
+                    $monthlyValue = ($package->price / $package->duration_value) * $discountMultiplier;
                 } elseif ($package->duration_type === 'years') {
-                    $monthlyValue = ($package->price / ($package->duration_value * 12)) * 0.5;
+                    $monthlyValue = ($package->price / ($package->duration_value * 12)) * $discountMultiplier;
                 } elseif ($package->duration_type === 'weeks') {
-                    $monthlyValue = (($package->price / $package->duration_value) * 4.33) * 0.5;
+                    $monthlyValue = (($package->price / $package->duration_value) * 4.33) * $discountMultiplier;
                 }
                 $estimatedRevenue += $monthlyValue;
             }
@@ -454,7 +456,7 @@ class AdminController extends Controller
             'packageData' => json_encode($packageData),
             'chartColors' => json_encode($chartColors),
             'gratisMembers' => $gratisMembers,
-            'halfPriceMembers' => $halfPriceMembers,
+            'discountedMembers' => $discountedMembers,
             'estimatedRevenue' => round($estimatedRevenue),
             'monthLabels' => json_encode($monthLabels),
             'memberGrowth' => json_encode($memberGrowth),
@@ -546,10 +548,16 @@ class AdminController extends Controller
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
             'is_coach' => 'boolean',
-            'discount_type' => 'required|in:none,gratis,half_price',
+            'discount_type' => 'required|in:none,gratis,percentage',
+            'discount_percentage' => 'nullable|integer|min:1|max:99',
         ]);
 
         $validated['is_coach'] = $request->has('is_coach');
+        
+        // Set discount_percentage to 0 if not using percentage discount
+        if ($validated['discount_type'] !== 'percentage') {
+            $validated['discount_percentage'] = 0;
+        }
 
         $member->update($validated);
 
