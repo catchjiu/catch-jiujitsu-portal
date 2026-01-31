@@ -86,7 +86,12 @@
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($member->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/50 text-slate-400' }} flex-shrink-0">
                             {{ $member->age_group ?? 'Adults' }}
                         </span>
-                        @if($member->membership_status === 'active')
+                        @if($member->discount_type === 'gratis')
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/20 text-emerald-400 flex-shrink-0" title="Gratis Member">FREE</span>
+                        @elseif($member->discount_type === 'half_price')
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-500/20 text-amber-400 flex-shrink-0" title="50% Discount">50%</span>
+                        @endif
+                        @if($member->membership_status === 'active' || $member->discount_type === 'gratis')
                             <span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Active Membership"></span>
                         @elseif($member->membership_status === 'pending')
                             <span class="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Pending"></span>

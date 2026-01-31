@@ -390,6 +390,7 @@ class AdminController extends Controller
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
             'is_coach' => 'boolean',
+            'discount_type' => 'required|in:none,gratis,half_price',
         ]);
 
         $validated['is_coach'] = $request->has('is_coach');

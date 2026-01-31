@@ -67,37 +67,59 @@
     </div>
 
     <!-- Membership Card -->
-    <div class="glass rounded-2xl p-5 border-t-4 {{ $user->membership_status === 'active' ? 'border-t-emerald-500' : ($user->membership_status === 'pending' ? 'border-t-amber-500' : 'border-t-red-500') }} relative overflow-hidden">
+    @php
+        $borderColor = $user->isGratis() ? 'border-t-emerald-500' : 
+            ($user->membership_status === 'active' ? 'border-t-emerald-500' : 
+            ($user->membership_status === 'pending' ? 'border-t-amber-500' : 'border-t-red-500'));
+    @endphp
+    <div class="glass rounded-2xl p-5 border-t-4 {{ $borderColor }} relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div class="relative z-10">
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Membership</p>
-                    @if($user->membershipPackage)
+                    @if($user->isGratis())
+                        <h3 class="text-2xl font-bold text-emerald-400 uppercase" style="font-family: 'Bebas Neue', sans-serif;">Gratis</h3>
+                    @elseif($user->membershipPackage)
                         <h3 class="text-2xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membershipPackage->name }}</h3>
                     @else
                         <h3 class="text-2xl font-bold text-slate-500 uppercase" style="font-family: 'Bebas Neue', sans-serif;">No Package</h3>
                     @endif
                 </div>
-                <div class="text-right">
-                    @php
-                        $statusColors = [
-                            'active' => 'bg-emerald-500/20 text-emerald-400',
-                            'pending' => 'bg-amber-500/20 text-amber-400',
-                            'expired' => 'bg-red-500/20 text-red-400',
-                            'none' => 'bg-slate-700/50 text-slate-400',
-                        ];
-                        $statusColor = $statusColors[$user->membership_status] ?? $statusColors['none'];
-                    @endphp
-                    <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ $statusColor }}">
-                        {{ $user->membership_status ?? 'None' }}
-                    </span>
+                <div class="text-right flex flex-col gap-1">
+                    @if($user->isGratis())
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-emerald-500/20 text-emerald-400">
+                            Active
+                        </span>
+                    @elseif($user->hasHalfPriceDiscount())
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-amber-500/20 text-amber-400">
+                            50% Off
+                        </span>
+                    @else
+                        @php
+                            $statusColors = [
+                                'active' => 'bg-emerald-500/20 text-emerald-400',
+                                'pending' => 'bg-amber-500/20 text-amber-400',
+                                'expired' => 'bg-red-500/20 text-red-400',
+                                'none' => 'bg-slate-700/50 text-slate-400',
+                            ];
+                            $statusColor = $statusColors[$user->membership_status] ?? $statusColors['none'];
+                        @endphp
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ $statusColor }}">
+                            {{ $user->membership_status ?? 'None' }}
+                        </span>
+                    @endif
                 </div>
             </div>
             
             <!-- Membership Details -->
             <div class="mt-4 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                @if($user->membership_status === 'active')
+                @if($user->isGratis())
+                    <p class="text-emerald-400 text-sm text-center">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">verified</span>
+                        Complimentary membership - Unlimited access
+                    </p>
+                @elseif($user->membership_status === 'active')
                     @if($user->membershipPackage && $user->membershipPackage->duration_type === 'classes')
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400 text-sm">Classes Remaining</span>

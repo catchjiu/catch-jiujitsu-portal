@@ -161,6 +161,34 @@
                     </label>
                 </div>
 
+                <!-- Discount Options -->
+                <div class="p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <p class="text-white font-medium mb-3">Membership Discount</p>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="discount_type" value="none" class="w-4 h-4 text-blue-500 bg-slate-700 border-slate-600 focus:ring-blue-500" {{ ($member->discount_type ?? 'none') === 'none' ? 'checked' : '' }}>
+                            <div>
+                                <span class="text-slate-300">None</span>
+                                <p class="text-slate-500 text-xs">Regular membership pricing</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="discount_type" value="half_price" class="w-4 h-4 text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500" {{ ($member->discount_type ?? '') === 'half_price' ? 'checked' : '' }}>
+                            <div>
+                                <span class="text-amber-400">50% Off</span>
+                                <p class="text-slate-500 text-xs">Half price on membership fees</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="discount_type" value="gratis" class="w-4 h-4 text-emerald-500 bg-slate-700 border-slate-600 focus:ring-emerald-500" {{ ($member->discount_type ?? '') === 'gratis' ? 'checked' : '' }}>
+                            <div>
+                                <span class="text-emerald-400">Gratis (Free)</span>
+                                <p class="text-slate-500 text-xs">Free membership, can always book classes</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <button type="submit"
                     class="w-full py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">
                     Save Changes

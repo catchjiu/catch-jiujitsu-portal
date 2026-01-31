@@ -32,6 +32,7 @@ class User extends Authenticatable
         'mat_hours',
         'is_admin',
         'is_coach',
+        'discount_type',
         'avatar_url',
         'monthly_class_goal',
         'monthly_hours_goal',
@@ -135,6 +136,11 @@ class User extends Authenticatable
      */
     public function hasActiveMembership(): bool
     {
+        // Gratis members always have access
+        if ($this->discount_type === 'gratis') {
+            return true;
+        }
+
         // Check membership status
         if ($this->membership_status !== 'active') {
             return false;
@@ -156,10 +162,43 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if the user has gratis membership.
+     */
+    public function isGratis(): bool
+    {
+        return $this->discount_type === 'gratis';
+    }
+
+    /**
+     * Check if the user has 50% discount.
+     */
+    public function hasHalfPriceDiscount(): bool
+    {
+        return $this->discount_type === 'half_price';
+    }
+
+    /**
+     * Get the discount percentage.
+     */
+    public function getDiscountPercentageAttribute(): int
+    {
+        return match($this->discount_type) {
+            'gratis' => 100,
+            'half_price' => 50,
+            default => 0,
+        };
+    }
+
+    /**
      * Get the reason why membership is not active.
      */
     public function getMembershipIssueAttribute(): ?string
     {
+        // Gratis members never have issues
+        if ($this->discount_type === 'gratis') {
+            return null;
+        }
+
         if ($this->membership_status === 'none') {
             return 'No active membership. Please purchase a membership package.';
         }
