@@ -245,7 +245,7 @@
                     </div>
                     
                     @if($nextBooking)
-                        <form action="{{ route('booking.destroy', $nextClass->id) }}" method="POST" 
+                        <form action="{{ route('book.destroy', $nextClass->id) }}" method="POST" 
                               onsubmit="return confirm('Are you sure you want to cancel this booking?')">
                             @csrf
                             @method('DELETE')
