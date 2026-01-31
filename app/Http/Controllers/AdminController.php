@@ -46,11 +46,30 @@ class AdminController extends Controller
             ->take(5)
             ->get();
         
-        // Recent signups
+        // Recent signups (last 7 days)
         $recentSignups = User::where('is_admin', false)
+            ->where('created_at', '>=', now()->subDays(7))
             ->orderBy('created_at', 'desc')
-            ->take(3)
+            ->take(5)
             ->get();
+        
+        // Memberships expiring in the next 3 days (for notifications)
+        $expiringMemberships = User::where('is_admin', false)
+            ->where('membership_status', 'active')
+            ->where('membership_expires_at', '>=', now())
+            ->where('membership_expires_at', '<=', now()->addDays(3))
+            ->with('membershipPackage')
+            ->orderBy('membership_expires_at')
+            ->get();
+        
+        // New signups in the last 24 hours (for notifications)
+        $newSignupsToday = User::where('is_admin', false)
+            ->where('created_at', '>=', now()->subDay())
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        // Total notification count
+        $notificationCount = $expiringMemberships->count() + $newSignupsToday->count();
 
         return view('admin.overview', [
             'user' => $user,
@@ -60,6 +79,9 @@ class AdminController extends Controller
             'hourlyData' => $hourlyData,
             'recentActivity' => $recentActivity,
             'recentSignups' => $recentSignups,
+            'expiringMemberships' => $expiringMemberships,
+            'newSignupsToday' => $newSignupsToday,
+            'notificationCount' => $notificationCount,
         ]);
     }
 

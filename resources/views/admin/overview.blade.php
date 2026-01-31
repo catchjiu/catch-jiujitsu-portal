@@ -24,10 +24,80 @@
                 <h1 class="text-white font-bold text-lg">Coach {{ explode(' ', $user->name)[0] }}</h1>
             </div>
         </div>
-        <button class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors relative">
-            <span class="material-symbols-outlined">notifications</span>
-            <span class="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
-        </button>
+        <!-- Notifications Bell -->
+        <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors relative">
+                <span class="material-symbols-outlined">notifications</span>
+                @if($notificationCount > 0)
+                    <span class="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+                @endif
+            </button>
+            
+            <!-- Notifications Dropdown -->
+            <div x-show="open" 
+                 @click.away="open = false"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="absolute right-0 top-12 w-80 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden"
+                 style="display: none;">
+                
+                <div class="p-3 border-b border-slate-700">
+                    <h4 class="text-white font-semibold text-sm">Notifications</h4>
+                </div>
+                
+                <div class="max-h-80 overflow-y-auto">
+                    @if($notificationCount === 0)
+                        <div class="p-4 text-center text-slate-500 text-sm">
+                            No new notifications
+                        </div>
+                    @else
+                        <!-- Expiring Memberships -->
+                        @foreach($expiringMemberships as $member)
+                            <a href="{{ route('admin.members.show', $member->id) }}" 
+                               class="flex items-center gap-3 p-3 hover:bg-slate-700/50 transition-colors border-b border-slate-700/50">
+                                <div class="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                                    <span class="material-symbols-outlined text-amber-500 text-lg">schedule</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-white text-sm font-medium truncate">{{ $member->name }}</p>
+                                    <p class="text-amber-400 text-xs">
+                                        Membership expires {{ $member->membership_expires_at->diffForHumans() }}
+                                    </p>
+                                </div>
+                            </a>
+                        @endforeach
+                        
+                        <!-- New Signups -->
+                        @foreach($newSignupsToday as $signup)
+                            <a href="{{ route('admin.members.show', $signup->id) }}" 
+                               class="flex items-center gap-3 p-3 hover:bg-slate-700/50 transition-colors border-b border-slate-700/50">
+                                <div class="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                    <span class="material-symbols-outlined text-emerald-500 text-lg">person_add</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-white text-sm font-medium truncate">{{ $signup->name }}</p>
+                                    <p class="text-emerald-400 text-xs">
+                                        New signup {{ $signup->created_at->diffForHumans() }}
+                                    </p>
+                                </div>
+                            </a>
+                        @endforeach
+                    @endif
+                </div>
+                
+                @if($notificationCount > 0)
+                    <div class="p-2 border-t border-slate-700">
+                        <a href="{{ route('admin.members') }}" class="block text-center text-blue-400 hover:text-blue-300 text-xs py-1">
+                            View All Members
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- Overview Title -->
@@ -132,7 +202,8 @@
         
         <div class="space-y-3">
             @foreach($recentActivity as $activity)
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/30">
+                <a href="{{ route('admin.members.show', $activity->user->id) }}" 
+                   class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/30 hover:bg-slate-700/50 transition-colors">
                     <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 flex-shrink-0">
                         @if($activity->user->avatar)
                             <img src="{{ $activity->user->avatar }}" alt="" class="w-full h-full object-cover">
@@ -147,21 +218,28 @@
                         <p class="text-slate-500 text-xs truncate">Checked in - {{ $activity->classSession->title ?? 'Class' }}</p>
                     </div>
                     <span class="text-slate-500 text-xs flex-shrink-0">{{ $activity->booked_at->diffForHumans(null, true) }}</span>
-                </div>
+                </a>
             @endforeach
 
-            @foreach($recentSignups->take(2) as $signup)
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/30">
-                    <div class="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-500 flex-shrink-0 flex items-center justify-center">
+            @foreach($recentSignups as $signup)
+                <a href="{{ route('admin.members.show', $signup->id) }}" 
+                   class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-emerald-500/30 hover:bg-slate-700/50 transition-colors">
+                    <div class="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-500 flex-shrink-0 flex items-center justify-center">
                         <span class="material-symbols-outlined text-white text-lg">person_add</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-white text-sm font-medium">New Signup</p>
+                        <p class="text-white text-sm font-medium truncate">New Signup</p>
                         <p class="text-slate-500 text-xs truncate">{{ $signup->name }} joined</p>
                     </div>
-                    <span class="text-slate-500 text-xs flex-shrink-0">{{ $signup->created_at->diffForHumans(null, true) }}</span>
-                </div>
+                    <span class="text-emerald-400 text-xs flex-shrink-0">{{ $signup->created_at->diffForHumans(null, true) }}</span>
+                </a>
             @endforeach
+            
+            @if($recentActivity->isEmpty() && $recentSignups->isEmpty())
+                <div class="text-center py-6 text-slate-500 text-sm">
+                    No recent activity
+                </div>
+            @endif
         </div>
     </div>
 </div>
