@@ -155,16 +155,34 @@
                             <span class="material-symbols-outlined text-emerald-400 text-lg">volunteer_activism</span>
                             <span class="text-slate-300 text-sm">Gratis (Free)</span>
                         </div>
-                        <span class="text-emerald-400 font-bold">{{ $gratisMembers }}</span>
+                        <div class="text-right">
+                            <span class="text-emerald-400 font-bold">{{ $gratisMembers }}</span>
+                            @if($gratisValue > 0)
+                                <p class="text-slate-500 text-[10px]">-NT${{ number_format($gratisValue) }}</p>
+                            @endif
+                        </div>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-amber-400 text-lg">sell</span>
                             <span class="text-slate-300 text-sm">Discounted</span>
                         </div>
-                        <span class="text-amber-400 font-bold">{{ $discountedMembers }}</span>
+                        <div class="text-right">
+                            <span class="text-amber-400 font-bold">{{ $discountedMembers }}</span>
+                            @if($totalDiscountsGiven > 0)
+                                <p class="text-slate-500 text-[10px]">-NT${{ number_format($totalDiscountsGiven) }}</p>
+                            @endif
+                        </div>
                     </div>
                 </div>
+                @if($gratisValue > 0 || $totalDiscountsGiven > 0)
+                <div class="mt-3 pt-3 border-t border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400 text-xs">Revenue Adjustment</span>
+                        <span class="text-red-400 font-bold text-sm">-NT${{ number_format($gratisValue + $totalDiscountsGiven) }}</span>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>

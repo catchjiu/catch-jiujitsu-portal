@@ -352,6 +352,22 @@ class AdminController extends Controller
         $gratisMembers = User::where('is_admin', false)->where('discount_type', 'gratis')->count();
         $discountedMembers = User::where('is_admin', false)->where('discount_type', 'fixed')->where('discount_amount', '>', 0)->count();
         
+        // Calculate value of gratis memberships (potential revenue if they paid)
+        $gratisValue = 0;
+        $gratisUsers = User::where('is_admin', false)
+            ->where('discount_type', 'gratis')
+            ->whereNotNull('membership_package_id')
+            ->with('membershipPackage')
+            ->get();
+        foreach ($gratisUsers as $user) {
+            if ($user->membershipPackage) {
+                $gratisValue += $user->membershipPackage->price;
+            }
+        }
+        
+        // Calculate total discounts given (monthly value of all discounts)
+        $totalDiscountsGiven = 0;
+        
         // Calculate estimated monthly revenue from active memberships
         $estimatedRevenue = 0;
         $activePackageUsers = User::where('is_admin', false)
@@ -389,8 +405,12 @@ class AdminController extends Controller
         foreach ($discountedUsers as $user) {
             if ($user->membershipPackage) {
                 $package = $user->membershipPackage;
-                $basePrice = $package->price - ($user->discount_amount ?? 0);
+                $discountAmount = $user->discount_amount ?? 0;
+                $basePrice = $package->price - $discountAmount;
                 if ($basePrice < 0) $basePrice = 0;
+                
+                // Track total discounts given
+                $totalDiscountsGiven += $discountAmount;
                 
                 $monthlyValue = $basePrice;
                 if ($package->duration_type === 'months' && $package->duration_value > 1) {
@@ -459,6 +479,8 @@ class AdminController extends Controller
             'chartColors' => json_encode($chartColors),
             'gratisMembers' => $gratisMembers,
             'discountedMembers' => $discountedMembers,
+            'gratisValue' => round($gratisValue),
+            'totalDiscountsGiven' => round($totalDiscountsGiven),
             'estimatedRevenue' => round($estimatedRevenue),
             'monthLabels' => json_encode($monthLabels),
             'memberGrowth' => json_encode($memberGrowth),
