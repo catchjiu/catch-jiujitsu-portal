@@ -548,11 +548,17 @@ class AdminController extends Controller
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
             'is_coach' => 'boolean',
-            'discount_type' => 'required|in:none,gratis,percentage',
-            'discount_percentage' => 'nullable|integer|min:1|max:99',
+            'discount_type' => 'required|in:none,gratis,percentage,half_price',
+            'discount_percentage' => 'nullable|integer|min:0|max:99',
         ]);
 
         $validated['is_coach'] = $request->has('is_coach');
+        
+        // Convert old 'half_price' to new 'percentage' format
+        if ($validated['discount_type'] === 'half_price') {
+            $validated['discount_type'] = 'percentage';
+            $validated['discount_percentage'] = 50;
+        }
         
         // Set discount_percentage to 0 if not using percentage discount
         if ($validated['discount_type'] !== 'percentage') {

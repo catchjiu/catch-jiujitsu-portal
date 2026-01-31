@@ -186,18 +186,18 @@
                             </div>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="discount_type" value="percentage" id="discount_percentage" class="w-4 h-4 text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500" {{ ($member->discount_type ?? '') === 'percentage' ? 'checked' : '' }} onchange="toggleDiscountInput()">
+                            <input type="radio" name="discount_type" value="percentage" id="discount_percentage" class="w-4 h-4 text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500" {{ in_array($member->discount_type ?? '', ['percentage', 'half_price']) ? 'checked' : '' }} onchange="toggleDiscountInput()">
                             <div class="flex-1">
                                 <span class="text-amber-400">Custom Discount</span>
                                 <p class="text-slate-500 text-xs">Set a specific discount percentage</p>
                             </div>
                         </label>
                         <!-- Discount percentage input -->
-                        <div id="discount_amount_container" class="ml-7 {{ ($member->discount_type ?? 'none') !== 'percentage' ? 'hidden' : '' }}">
+                        <div id="discount_amount_container" class="ml-7 {{ !in_array($member->discount_type ?? 'none', ['percentage', 'half_price']) ? 'hidden' : '' }}">
                             <div class="flex items-center gap-2">
                                 <input type="number" name="discount_percentage" id="discount_percentage_input" 
-                                    value="{{ $member->discount_percentage ?? 0 }}" 
-                                    min="1" max="99" 
+                                    value="{{ $member->discount_type === 'half_price' ? 50 : ($member->discount_percentage ?? 0) }}" 
+                                    min="0" max="99" 
                                     class="w-20 px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-center focus:outline-none focus:border-amber-500 transition-colors"
                                     placeholder="50">
                                 <span class="text-amber-400 font-bold">% Off</span>
