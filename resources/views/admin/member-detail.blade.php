@@ -317,10 +317,13 @@
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Package</label>
                     <select name="membership_package_id" id="membership_package_select"
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                        onchange="autoSetActive()">
-                        <option value="">No Package</option>
+                        onchange="autoSetActiveAndExpiry()">
+                        <option value="" data-duration-type="" data-duration-value="">No Package</option>
                         @foreach($packages as $package)
-                            <option value="{{ $package->id }}" {{ $member->membership_package_id == $package->id ? 'selected' : '' }}>
+                            <option value="{{ $package->id }}" 
+                                data-duration-type="{{ $package->duration_type }}" 
+                                data-duration-value="{{ $package->duration_value }}"
+                                {{ $member->membership_package_id == $package->id ? 'selected' : '' }}>
                                 {{ $package->name }} - NT${{ number_format($package->price) }} ({{ $package->duration_label }})
                             </option>
                         @endforeach
@@ -339,20 +342,49 @@
                         </select>
                         
                         <script>
-                            function autoSetActive() {
+                            function autoSetActiveAndExpiry() {
                                 const packageSelect = document.getElementById('membership_package_select');
                                 const statusSelect = document.getElementById('membership_status_select');
+                                const expiryInput = document.getElementById('membership_expires_at');
                                 
-                                // If a package is selected, auto-set status to active
+                                // If a package is selected
                                 if (packageSelect.value) {
+                                    // Auto-set status to active
                                     statusSelect.value = 'active';
+                                    
+                                    // Get selected option's duration data
+                                    const selectedOption = packageSelect.options[packageSelect.selectedIndex];
+                                    const durationType = selectedOption.dataset.durationType;
+                                    const durationValue = parseInt(selectedOption.dataset.durationValue) || 0;
+                                    
+                                    // Calculate expiry date from today
+                                    if (durationType && durationValue > 0) {
+                                        const today = new Date();
+                                        let expiryDate = new Date(today);
+                                        
+                                        if (durationType === 'days') {
+                                            expiryDate.setDate(today.getDate() + durationValue);
+                                        } else if (durationType === 'weeks') {
+                                            expiryDate.setDate(today.getDate() + (durationValue * 7));
+                                        } else if (durationType === 'months') {
+                                            expiryDate.setMonth(today.getMonth() + durationValue);
+                                        } else if (durationType === 'years') {
+                                            expiryDate.setFullYear(today.getFullYear() + durationValue);
+                                        }
+                                        
+                                        // Format as YYYY-MM-DD
+                                        const year = expiryDate.getFullYear();
+                                        const month = String(expiryDate.getMonth() + 1).padStart(2, '0');
+                                        const day = String(expiryDate.getDate()).padStart(2, '0');
+                                        expiryInput.value = `${year}-${month}-${day}`;
+                                    }
                                 }
                             }
                         </script>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Expires At</label>
-                        <input type="date" name="membership_expires_at" value="{{ $member->membership_expires_at?->format('Y-m-d') }}"
+                        <input type="date" name="membership_expires_at" id="membership_expires_at" value="{{ $member->membership_expires_at?->format('Y-m-d') }}"
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                     </div>
                 </div>
