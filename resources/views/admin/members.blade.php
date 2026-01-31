@@ -12,32 +12,71 @@
             </button>
             <h1 class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Member Directory</h1>
         </div>
-        <button class="text-slate-400 hover:text-white transition-colors">
-            <span class="material-symbols-outlined">tune</span>
-        </button>
     </div>
 
     <!-- Search Bar -->
-    <form action="{{ route('admin.members') }}" method="GET">
+    <form action="{{ route('admin.members') }}" method="GET" id="filterForm">
         <div class="relative">
             <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
             <input type="text" name="search" value="{{ $search }}" placeholder="Search by name, belt..."
                 class="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
         </div>
+        
+        <!-- Hidden inputs for filters -->
+        <input type="hidden" name="age" id="ageFilter" value="{{ request('age', '') }}">
+        <input type="hidden" name="status" id="statusFilter" value="{{ request('status', '') }}">
     </form>
 
     <!-- Filter Tabs -->
     <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-        @foreach(['All', 'Adults', 'Kids', 'Competitors'] as $filter)
-            <a href="{{ route('admin.members', ['filter' => $filter, 'search' => $search]) }}"
-               class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all
-               {{ $currentFilter === $filter 
-                   ? 'bg-blue-500 text-white' 
-                   : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60 hover:text-white' }}">
-                {{ $filter }}
-            </a>
-        @endforeach
+        <!-- Age Group Filters -->
+        <button type="button" onclick="toggleFilter('age', '')" 
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all filter-btn
+            {{ request('age', '') === '' ? 'bg-blue-500 text-white' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60 hover:text-white' }}">
+            All
+        </button>
+        <button type="button" onclick="toggleFilter('age', 'Adults')"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all filter-btn
+            {{ request('age') === 'Adults' ? 'bg-blue-500 text-white' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60 hover:text-white' }}">
+            Adults
+        </button>
+        <button type="button" onclick="toggleFilter('age', 'Kids')"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all filter-btn
+            {{ request('age') === 'Kids' ? 'bg-blue-500 text-white' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60 hover:text-white' }}">
+            Kids
+        </button>
+        
+        <!-- Divider -->
+        <div class="w-px bg-slate-700 mx-1"></div>
+        
+        <!-- Status Filters -->
+        <button type="button" onclick="toggleFilter('status', 'active')"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all filter-btn
+            {{ request('status') === 'active' ? 'bg-emerald-500 text-white' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60 hover:text-white' }}">
+            Active
+        </button>
+        <button type="button" onclick="toggleFilter('status', 'inactive')"
+            class="px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all filter-btn
+            {{ request('status') === 'inactive' ? 'bg-red-500 text-white' : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60 hover:text-white' }}">
+            Inactive
+        </button>
     </div>
+    
+    <script>
+        function toggleFilter(filterType, value) {
+            const form = document.getElementById('filterForm');
+            
+            if (filterType === 'age') {
+                document.getElementById('ageFilter').value = value;
+            } else if (filterType === 'status') {
+                const currentValue = document.getElementById('statusFilter').value;
+                // Toggle off if same value clicked
+                document.getElementById('statusFilter').value = currentValue === value ? '' : value;
+            }
+            
+            form.submit();
+        }
+    </script>
 
     <!-- Member List -->
     <div class="space-y-3">

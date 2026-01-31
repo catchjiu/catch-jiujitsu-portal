@@ -501,7 +501,8 @@ class AdminController extends Controller
     public function members(Request $request)
     {
         $search = $request->get('search');
-        $filter = $request->get('filter', 'All');
+        $ageFilter = $request->get('age', '');
+        $statusFilter = $request->get('status', '');
 
         $query = User::where('is_admin', false);
 
@@ -516,12 +517,27 @@ class AdminController extends Controller
         }
 
         // Age group filter
-        if ($filter === 'Adults') {
+        if ($ageFilter === 'Adults') {
             $query->where('age_group', 'Adults');
-        } elseif ($filter === 'Kids') {
+        } elseif ($ageFilter === 'Kids') {
             $query->where('age_group', 'Kids');
         }
-        // 'All' and 'Competitors' show all for now
+        
+        // Status filter (active = has active membership or gratis, inactive = expired/none/pending)
+        if ($statusFilter === 'active') {
+            $query->where(function($q) {
+                $q->where('membership_status', 'active')
+                  ->orWhere('discount_type', 'gratis');
+            });
+        } elseif ($statusFilter === 'inactive') {
+            $query->where('discount_type', '!=', 'gratis')
+                  ->where(function($q) {
+                      $q->where('membership_status', 'expired')
+                        ->orWhere('membership_status', 'none')
+                        ->orWhere('membership_status', 'pending')
+                        ->orWhereNull('membership_status');
+                  });
+        }
 
         $members = $query->orderBy('first_name')->orderBy('last_name')->get();
 
@@ -533,7 +549,6 @@ class AdminController extends Controller
         return view('admin.members', [
             'members' => $members,
             'stats' => $stats,
-            'currentFilter' => $filter,
             'search' => $search,
         ]);
     }
