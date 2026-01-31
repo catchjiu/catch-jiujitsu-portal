@@ -8,6 +8,7 @@ use App\Models\ClassSession;
 use App\Models\Booking;
 use App\Models\MembershipPackage;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class AdminController extends Controller
@@ -483,6 +484,103 @@ class AdminController extends Controller
         $member->delete();
         
         return redirect()->route('admin.members')->with('success', 'Member deleted successfully.');
+    }
+
+    /**
+     * Update member's avatar.
+     */
+    public function updateMemberAvatar(Request $request, $id)
+    {
+        $member = User::where('is_admin', false)->findOrFail($id);
+
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+        ]);
+
+        // Delete old avatar if exists
+        if ($member->avatar_url && !str_starts_with($member->avatar_url, 'http')) {
+            Storage::disk('public')->delete($member->avatar_url);
+        }
+
+        $file = $request->file('avatar');
+        $extension = strtolower($file->getClientOriginalExtension());
+        
+        // Read and resize image using GD
+        $maxWidth = 400;
+        $maxHeight = 400;
+        $quality = 85;
+        
+        // Get image info
+        $imageInfo = getimagesize($file->getPathname());
+        $originalWidth = $imageInfo[0];
+        $originalHeight = $imageInfo[1];
+        $mimeType = $imageInfo['mime'];
+        
+        // Create image resource based on type
+        switch ($mimeType) {
+            case 'image/jpeg':
+                $sourceImage = imagecreatefromjpeg($file->getPathname());
+                break;
+            case 'image/png':
+                $sourceImage = imagecreatefrompng($file->getPathname());
+                break;
+            case 'image/gif':
+                $sourceImage = imagecreatefromgif($file->getPathname());
+                break;
+            case 'image/webp':
+                $sourceImage = imagecreatefromwebp($file->getPathname());
+                break;
+            default:
+                return back()->with('error', 'Unsupported image format.');
+        }
+        
+        if (!$sourceImage) {
+            return back()->with('error', 'Failed to process image.');
+        }
+        
+        // Calculate new dimensions maintaining aspect ratio
+        $ratio = min($maxWidth / $originalWidth, $maxHeight / $originalHeight);
+        if ($ratio < 1) {
+            $newWidth = (int) ($originalWidth * $ratio);
+            $newHeight = (int) ($originalHeight * $ratio);
+        } else {
+            $newWidth = $originalWidth;
+            $newHeight = $originalHeight;
+        }
+        
+        // Create new image
+        $newImage = imagecreatetruecolor($newWidth, $newHeight);
+        
+        // Preserve transparency for PNG
+        if ($mimeType === 'image/png') {
+            imagealphablending($newImage, false);
+            imagesavealpha($newImage, true);
+            $transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
+            imagefilledrectangle($newImage, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+        
+        // Resize
+        imagecopyresampled($newImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $originalWidth, $originalHeight);
+        
+        // Generate filename and path
+        $filename = 'avatars/' . $member->id . '_' . time() . '.jpg';
+        $tempPath = sys_get_temp_dir() . '/' . uniqid() . '.jpg';
+        
+        // Save as JPEG for smaller file size
+        imagejpeg($newImage, $tempPath, $quality);
+        
+        // Clean up
+        imagedestroy($sourceImage);
+        imagedestroy($newImage);
+        
+        // Store in public disk
+        Storage::disk('public')->put($filename, file_get_contents($tempPath));
+        unlink($tempPath);
+        
+        // Update user
+        $member->update(['avatar_url' => $filename]);
+
+        return redirect()->route('admin.members.show', $member->id)->with('success', 'Profile picture updated.');
     }
 
     /**

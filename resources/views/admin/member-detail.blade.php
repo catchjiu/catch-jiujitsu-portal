@@ -16,16 +16,29 @@
     <div class="glass rounded-2xl p-6 text-center relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div class="relative z-10">
-            <!-- Avatar -->
-            <div class="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden bg-slate-700 border-4 border-slate-600">
-                @if($member->avatar)
-                    <img src="{{ $member->avatar }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
-                @else
-                    <div class="w-full h-full flex items-center justify-center text-slate-400 text-3xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">
-                        {{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}
-                    </div>
-                @endif
+            <!-- Avatar (double-click to upload) -->
+            <div class="relative w-24 h-24 mx-auto mb-4 group cursor-pointer" ondblclick="document.getElementById('avatarInput').click()">
+                <div class="w-24 h-24 rounded-full overflow-hidden bg-slate-700 border-4 border-slate-600 transition-all group-hover:border-blue-500">
+                    @if($member->avatar)
+                        <img src="{{ $member->avatar }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
+                    @else
+                        <div class="w-full h-full flex items-center justify-center text-slate-400 text-3xl font-bold" style="font-family: 'Bebas Neue', sans-serif;">
+                            {{ strtoupper(substr($member->first_name, 0, 1) . substr($member->last_name, 0, 1)) }}
+                        </div>
+                    @endif
+                </div>
+                <!-- Upload overlay on hover -->
+                <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                </div>
             </div>
+            <p class="text-slate-500 text-xs mb-2">Double-click to upload photo</p>
+            
+            <!-- Hidden file input and form -->
+            <form id="avatarForm" action="{{ route('admin.members.avatar', $member->id) }}" method="POST" enctype="multipart/form-data" class="hidden">
+                @csrf
+                <input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="document.getElementById('avatarForm').submit()">
+            </form>
             
             <h2 class="text-2xl font-bold text-white mb-1">{{ $member->name }}</h2>
             <p class="text-slate-400 text-sm mb-4">{{ $member->email }}</p>
