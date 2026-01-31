@@ -157,6 +157,88 @@
         </div>
     </div>
 
+    <!-- Membership Management -->
+    <div class="glass rounded-2xl p-5 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Membership</h3>
+                @php
+                    $statusColors = [
+                        'active' => 'text-emerald-400 bg-emerald-400/10',
+                        'pending' => 'text-amber-500 bg-amber-500/10',
+                        'expired' => 'text-red-400 bg-red-400/10',
+                        'none' => 'text-slate-400 bg-slate-400/10',
+                    ];
+                @endphp
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ $statusColors[$member->membership_status] ?? $statusColors['none'] }}">
+                    {{ $member->membership_status ?? 'None' }}
+                </span>
+            </div>
+
+            @if($member->membershipPackage)
+                <div class="mb-4 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                    <p class="text-white font-medium">{{ $member->membershipPackage->name }}</p>
+                    <div class="flex items-center gap-4 text-sm text-slate-400 mt-1">
+                        @if($member->membership_expires_at)
+                            <span>Expires: {{ $member->membership_expires_at->format('M d, Y') }}</span>
+                        @endif
+                        @if($member->membershipPackage->duration_type === 'classes' && $member->classes_remaining !== null)
+                            <span>{{ $member->classes_remaining }} classes remaining</span>
+                        @endif
+                    </div>
+                </div>
+            @endif
+            
+            <form action="{{ route('admin.members.membership', $member->id) }}" method="POST" class="space-y-4">
+                @csrf
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Package</label>
+                    <select name="membership_package_id"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        <option value="">No Package</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}" {{ $member->membership_package_id == $package->id ? 'selected' : '' }}>
+                                {{ $package->name }} - ฿{{ number_format($package->price) }} ({{ $package->duration_label }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
+                        <select name="membership_status" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                            <option value="none" {{ $member->membership_status === 'none' ? 'selected' : '' }}>None</option>
+                            <option value="pending" {{ $member->membership_status === 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="active" {{ $member->membership_status === 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="expired" {{ $member->membership_status === 'expired' ? 'selected' : '' }}>Expired</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Expires At</label>
+                        <input type="date" name="membership_expires_at" value="{{ $member->membership_expires_at?->format('Y-m-d') }}"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Classes Remaining (for class packages)</label>
+                    <input type="number" name="classes_remaining" value="{{ $member->classes_remaining }}" min="0"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                        placeholder="Leave empty for time-based packages">
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">
+                    Update Membership
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Payment History -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>

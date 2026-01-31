@@ -4,6 +4,31 @@
 
 @section('content')
 <div class="space-y-5">
+    <!-- Membership Status Banner -->
+    @if(!Auth::user()->hasActiveMembership())
+        <div class="rounded-xl p-4 bg-amber-500/10 border border-amber-500/20">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-amber-500 text-lg flex-shrink-0 mt-0.5">warning</span>
+                <div>
+                    <p class="text-amber-400 font-semibold text-sm">{{ Auth::user()->membership_issue ?? 'Membership Required' }}</p>
+                    <p class="text-slate-400 text-xs mt-1">Contact the gym to activate your membership.</p>
+                </div>
+            </div>
+        </div>
+    @else
+        @if(Auth::user()->membershipPackage && Auth::user()->membershipPackage->duration_type === 'classes' && Auth::user()->classes_remaining !== null)
+            <div class="rounded-xl p-3 bg-slate-800/50 border border-slate-700/50 flex items-center justify-between">
+                <span class="text-slate-400 text-sm">Classes Remaining</span>
+                <span class="text-emerald-400 font-bold">{{ Auth::user()->classes_remaining }}</span>
+            </div>
+        @elseif(Auth::user()->membership_expires_at)
+            <div class="rounded-xl p-3 bg-slate-800/50 border border-slate-700/50 flex items-center justify-between">
+                <span class="text-slate-400 text-sm">Membership Expires</span>
+                <span class="text-emerald-400 font-bold">{{ Auth::user()->membership_expires_at->format('M d, Y') }}</span>
+            </div>
+        @endif
+    @endif
+
     <!-- Header with Filter -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">Schedule</h2>
@@ -146,13 +171,17 @@
                             </button>
                         </form>
                     @else
+                        @php
+                            $canBook = Auth::user()->hasActiveMembership() && !$isFull;
+                            $buttonText = $isFull ? 'Class Full' : (!Auth::user()->hasActiveMembership() ? 'Membership Required' : 'Book Class');
+                        @endphp
                         <form action="{{ route('book.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="class_id" value="{{ $class->id }}">
-                            <button type="submit" {{ $isFull ? 'disabled' : '' }}
+                            <button type="submit" {{ !$canBook ? 'disabled' : '' }}
                                 class="w-full py-2.5 rounded font-bold text-sm uppercase tracking-wide transition-all shadow-lg 
-                                {{ $isFull ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white shadow-blue-500/20' }}">
-                                {{ $isFull ? 'Class Full' : 'Book Class' }}
+                                {{ !$canBook ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white shadow-blue-500/20' }}">
+                                {{ $buttonText }}
                             </button>
                         </form>
                     @endif

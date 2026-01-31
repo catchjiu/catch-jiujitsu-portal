@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
@@ -38,6 +40,10 @@ class User extends Authenticatable
         'gender',
         'age_group',
         'dob',
+        'membership_package_id',
+        'membership_status',
+        'membership_expires_at',
+        'classes_remaining',
     ];
 
     /**
@@ -68,6 +74,8 @@ class User extends Authenticatable
             'reminders_enabled' => 'boolean',
             'public_profile' => 'boolean',
             'dob' => 'date',
+            'membership_expires_at' => 'date',
+            'classes_remaining' => 'integer',
         ];
     }
 
@@ -97,11 +105,94 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's membership package.
+     */
+    public function membershipPackage(): BelongsTo
+    {
+        return $this->belongsTo(MembershipPackage::class);
+    }
+
+    /**
      * Check if the user is an admin.
      */
     public function isAdmin(): bool
     {
         return $this->is_admin;
+    }
+
+    /**
+     * Check if the user has an active membership that allows booking.
+     */
+    public function hasActiveMembership(): bool
+    {
+        // Check membership status
+        if ($this->membership_status !== 'active') {
+            return false;
+        }
+
+        // Check if membership has expired
+        if ($this->membership_expires_at && Carbon::parse($this->membership_expires_at)->isPast()) {
+            return false;
+        }
+
+        // For class-based packages, check if classes remain
+        if ($this->membershipPackage && $this->membershipPackage->duration_type === 'classes') {
+            if ($this->classes_remaining !== null && $this->classes_remaining <= 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the reason why membership is not active.
+     */
+    public function getMembershipIssueAttribute(): ?string
+    {
+        if ($this->membership_status === 'none') {
+            return 'No active membership. Please purchase a membership package.';
+        }
+
+        if ($this->membership_status === 'pending') {
+            return 'Your membership payment is pending verification.';
+        }
+
+        if ($this->membership_status === 'expired') {
+            return 'Your membership has expired. Please renew to continue booking.';
+        }
+
+        if ($this->membership_expires_at && Carbon::parse($this->membership_expires_at)->isPast()) {
+            return 'Your membership has expired. Please renew to continue booking.';
+        }
+
+        if ($this->membershipPackage && $this->membershipPackage->duration_type === 'classes') {
+            if ($this->classes_remaining !== null && $this->classes_remaining <= 0) {
+                return 'You have no classes remaining. Please purchase more classes.';
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Decrement classes remaining (for class-based packages).
+     */
+    public function decrementClassesRemaining(): void
+    {
+        if ($this->classes_remaining !== null && $this->classes_remaining > 0) {
+            $this->decrement('classes_remaining');
+        }
+    }
+
+    /**
+     * Increment classes remaining (when cancelling a booking).
+     */
+    public function incrementClassesRemaining(): void
+    {
+        if ($this->membershipPackage && $this->membershipPackage->duration_type === 'classes') {
+            $this->increment('classes_remaining');
+        }
     }
 
     /**

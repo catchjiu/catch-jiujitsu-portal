@@ -81,6 +81,13 @@
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($member->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/50 text-slate-400' }} flex-shrink-0">
                             {{ $member->age_group ?? 'Adults' }}
                         </span>
+                        @if($member->membership_status === 'active')
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" title="Active Membership"></span>
+                        @elseif($member->membership_status === 'pending')
+                            <span class="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Pending"></span>
+                        @elseif($member->membership_status === 'expired')
+                            <span class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" title="Expired"></span>
+                        @endif
                     </div>
                     
                     <!-- Belt Display -->

@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\ClassSession;
 use App\Models\Booking;
+use App\Models\MembershipPackage;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -343,14 +344,16 @@ class AdminController extends Controller
      */
     public function showMember($id)
     {
-        $member = User::where('is_admin', false)->findOrFail($id);
+        $member = User::where('is_admin', false)->with('membershipPackage')->findOrFail($id);
         $payments = $member->payments()->orderBy('created_at', 'desc')->get();
         $bookings = $member->bookings()->with('classSession')->orderBy('booked_at', 'desc')->take(10)->get();
+        $packages = MembershipPackage::active()->ordered()->get();
 
         return view('admin.member-detail', [
             'member' => $member,
             'payments' => $payments,
             'bookings' => $bookings,
+            'packages' => $packages,
         ]);
     }
 
@@ -437,6 +440,58 @@ class AdminController extends Controller
         $member->delete();
         
         return redirect()->route('admin.members')->with('success', 'Member deleted successfully.');
+    }
+
+    /**
+     * Update member's membership.
+     */
+    public function updateMembership(Request $request, $id)
+    {
+        $member = User::where('is_admin', false)->findOrFail($id);
+
+        $validated = $request->validate([
+            'membership_package_id' => 'nullable|exists:membership_packages,id',
+            'membership_status' => 'required|in:none,pending,active,expired',
+            'membership_expires_at' => 'nullable|date',
+            'classes_remaining' => 'nullable|integer|min:0',
+        ]);
+
+        // If a package is selected and status is being set to active, calculate expiration
+        if ($validated['membership_package_id'] && $validated['membership_status'] === 'active' && !$validated['membership_expires_at']) {
+            $package = MembershipPackage::find($validated['membership_package_id']);
+            if ($package && $package->duration_type !== 'classes') {
+                $expiresAt = now();
+                switch ($package->duration_type) {
+                    case 'days':
+                        $expiresAt = $expiresAt->addDays($package->duration_value);
+                        break;
+                    case 'weeks':
+                        $expiresAt = $expiresAt->addWeeks($package->duration_value);
+                        break;
+                    case 'months':
+                        $expiresAt = $expiresAt->addMonths($package->duration_value);
+                        break;
+                    case 'years':
+                        $expiresAt = $expiresAt->addYears($package->duration_value);
+                        break;
+                }
+                $validated['membership_expires_at'] = $expiresAt;
+            }
+
+            // Set classes remaining for class-based packages
+            if ($package && $package->duration_type === 'classes' && $validated['classes_remaining'] === null) {
+                $validated['classes_remaining'] = $package->duration_value;
+            }
+        }
+
+        $member->update([
+            'membership_package_id' => $validated['membership_package_id'],
+            'membership_status' => $validated['membership_status'],
+            'membership_expires_at' => $validated['membership_expires_at'],
+            'classes_remaining' => $validated['classes_remaining'],
+        ]);
+
+        return redirect()->route('admin.members.show', $member->id)->with('success', 'Membership updated successfully.');
     }
 
     /**

@@ -76,6 +76,13 @@ class BookingController extends Controller
             'class_id' => 'required|exists:classes,id'
         ]);
 
+        $user = Auth::user();
+
+        // Check if user has active membership
+        if (!$user->hasActiveMembership()) {
+            return back()->with('error', $user->membership_issue ?? 'You need an active membership to book classes.');
+        }
+
         $class = ClassSession::withCount('bookings')->findOrFail($request->class_id);
 
         // Check if class is full
@@ -84,7 +91,7 @@ class BookingController extends Controller
         }
 
         // Check if already booked
-        $existingBooking = Booking::where('user_id', Auth::id())
+        $existingBooking = Booking::where('user_id', $user->id)
             ->where('class_id', $class->id)
             ->first();
 
@@ -94,9 +101,12 @@ class BookingController extends Controller
 
         // Create booking
         Booking::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'class_id' => $class->id,
         ]);
+
+        // Decrement classes remaining for class-based packages
+        $user->decrementClassesRemaining();
 
         return back()->with('success', 'Class booked successfully! See you on the mats.');
     }
@@ -106,7 +116,9 @@ class BookingController extends Controller
      */
     public function destroy($classId)
     {
-        $booking = Booking::where('user_id', Auth::id())
+        $user = Auth::user();
+        
+        $booking = Booking::where('user_id', $user->id)
             ->where('class_id', $classId)
             ->first();
 
@@ -115,6 +127,9 @@ class BookingController extends Controller
         }
 
         $booking->delete();
+
+        // Restore class credit for class-based packages
+        $user->incrementClassesRemaining();
 
         return back()->with('success', 'Booking cancelled successfully.');
     }
