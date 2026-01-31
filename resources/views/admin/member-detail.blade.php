@@ -271,12 +271,13 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Package</label>
-                    <select name="membership_package_id"
-                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    <select name="membership_package_id" id="membership_package_select"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                        onchange="autoSetActive()">
                         <option value="">No Package</option>
                         @foreach($packages as $package)
                             <option value="{{ $package->id }}" {{ $member->membership_package_id == $package->id ? 'selected' : '' }}>
-                                {{ $package->name }} - ฿{{ number_format($package->price) }} ({{ $package->duration_label }})
+                                {{ $package->name }} - NT${{ number_format($package->price) }} ({{ $package->duration_label }})
                             </option>
                         @endforeach
                     </select>
@@ -285,13 +286,25 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
-                        <select name="membership_status" required
+                        <select name="membership_status" id="membership_status_select" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                             <option value="none" {{ $member->membership_status === 'none' ? 'selected' : '' }}>None</option>
                             <option value="pending" {{ $member->membership_status === 'pending' ? 'selected' : '' }}>Pending</option>
                             <option value="active" {{ $member->membership_status === 'active' ? 'selected' : '' }}>Active</option>
                             <option value="expired" {{ $member->membership_status === 'expired' ? 'selected' : '' }}>Expired</option>
                         </select>
+                        
+                        <script>
+                            function autoSetActive() {
+                                const packageSelect = document.getElementById('membership_package_select');
+                                const statusSelect = document.getElementById('membership_status_select');
+                                
+                                // If a package is selected, auto-set status to active
+                                if (packageSelect.value) {
+                                    statusSelect.value = 'active';
+                                }
+                            }
+                        </script>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Expires At</label>
