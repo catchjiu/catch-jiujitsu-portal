@@ -33,7 +33,7 @@ class User extends Authenticatable
         'is_admin',
         'is_coach',
         'discount_type',
-        'discount_percentage',
+        'discount_amount',
         'avatar_url',
         'monthly_class_goal',
         'monthly_hours_goal',
@@ -171,23 +171,22 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if member has a percentage discount.
+     * Check if member has a fixed discount.
      */
-    public function hasPercentageDiscount(): bool
+    public function hasFixedDiscount(): bool
     {
-        return $this->discount_type === 'percentage' && ($this->attributes['discount_percentage'] ?? 0) > 0;
+        return $this->discount_type === 'fixed' && ($this->discount_amount ?? 0) > 0;
     }
 
     /**
-     * Get the actual discount percentage value.
+     * Get the actual discount amount value.
      */
-    public function getActualDiscountPercentage(): int
+    public function getDiscountAmountValue(): int
     {
-        return match($this->discount_type) {
-            'gratis' => 100,
-            'percentage' => (int) ($this->attributes['discount_percentage'] ?? 0),
-            default => 0,
-        };
+        if ($this->discount_type === 'gratis') {
+            return 0; // Free, no amount needed
+        }
+        return (int) ($this->discount_amount ?? 0);
     }
 
     /**

@@ -45,37 +45,40 @@
 
             <!-- Belt Display -->
             @php
-                $beltColors = [
-                    'White' => 'bg-gray-200',
-                    'Grey' => 'bg-gray-300',
-                    'Yellow' => 'bg-yellow-400',
-                    'Orange' => 'bg-orange-500',
-                    'Green' => 'bg-green-500',
-                    'Blue' => 'bg-blue-600',
-                    'Purple' => 'bg-purple-600',
-                    'Brown' => 'bg-yellow-800',
-                    'Black' => 'bg-black',
-                ];
                 $isBlackBelt = $member->rank === 'Black';
             @endphp
             <div class="flex justify-center mb-4">
-                <div class="w-32 h-6 rounded {{ $beltColors[$member->rank] ?? 'bg-gray-200' }} relative flex items-center justify-end pr-2">
-                    @if($isBlackBelt)
-                        <!-- Red bar for black belt -->
-                        <div class="h-full w-10 bg-red-600 flex items-center justify-around px-1">
+                @if($isBlackBelt)
+                    <!-- Black belt with red bar for stripes -->
+                    <div class="w-32 h-6 rounded bg-black relative flex items-center justify-end">
+                        <div class="h-full w-10 bg-red-600 flex items-center justify-around px-1 rounded-r">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    @else
-                        <!-- Black bar for stripes -->
+                    </div>
+                @else
+                    <!-- Colored belt with black stripe bar -->
+                    <div class="w-32 h-6 rounded relative flex items-center overflow-hidden"
+                         style="background-color: {{ match($member->rank) {
+                            'White' => '#e5e7eb',
+                            'Grey' => '#d1d5db',
+                            'Yellow' => '#facc15',
+                            'Orange' => '#f97316',
+                            'Green' => '#22c55e',
+                            'Blue' => '#2563eb',
+                            'Purple' => '#9333ea',
+                            'Brown' => '#92400e',
+                            default => '#e5e7eb'
+                         } }};">
+                        <div class="flex-1"></div>
                         <div class="h-full w-10 bg-black flex items-center justify-around px-1">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    @endif
-                </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Stats -->
@@ -186,21 +189,22 @@
                             </div>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="discount_type" value="percentage" id="discount_percentage" class="w-4 h-4 text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500" {{ in_array($member->discount_type ?? '', ['percentage', 'half_price']) ? 'checked' : '' }} onchange="toggleDiscountInput()">
+                            <input type="radio" name="discount_type" value="fixed" id="discount_fixed" class="w-4 h-4 text-amber-500 bg-slate-700 border-slate-600 focus:ring-amber-500" {{ in_array($member->discount_type ?? '', ['fixed', 'percentage', 'half_price']) ? 'checked' : '' }} onchange="toggleDiscountInput()">
                             <div class="flex-1">
                                 <span class="text-amber-400">Custom Discount</span>
-                                <p class="text-slate-500 text-xs">Set a specific discount percentage</p>
+                                <p class="text-slate-500 text-xs">Set a specific discount amount</p>
                             </div>
                         </label>
-                        <!-- Discount percentage input -->
-                        <div id="discount_amount_container" class="ml-7 {{ !in_array($member->discount_type ?? 'none', ['percentage', 'half_price']) ? 'hidden' : '' }}">
+                        <!-- Discount amount input -->
+                        <div id="discount_amount_container" class="ml-7 {{ !in_array($member->discount_type ?? 'none', ['fixed', 'percentage', 'half_price']) ? 'hidden' : '' }}">
                             <div class="flex items-center gap-2">
-                                <input type="number" name="discount_percentage" id="discount_percentage_input" 
-                                    value="{{ $member->discount_type === 'half_price' ? 50 : ($member->discount_percentage ?? 0) }}" 
-                                    min="0" max="99" 
-                                    class="w-20 px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-center focus:outline-none focus:border-amber-500 transition-colors"
-                                    placeholder="50">
-                                <span class="text-amber-400 font-bold">% Off</span>
+                                <span class="text-amber-400 font-bold">NT$</span>
+                                <input type="number" name="discount_amount" id="discount_amount_input" 
+                                    value="{{ $member->discount_amount ?? 0 }}" 
+                                    min="0" max="100000" 
+                                    class="w-28 px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-center focus:outline-none focus:border-amber-500 transition-colors"
+                                    placeholder="500">
+                                <span class="text-slate-400 text-sm">Off</span>
                             </div>
                         </div>
                         <label class="flex items-center gap-3 cursor-pointer">
@@ -216,8 +220,8 @@
                 <script>
                     function toggleDiscountInput() {
                         const container = document.getElementById('discount_amount_container');
-                        const percentageRadio = document.getElementById('discount_percentage');
-                        if (percentageRadio.checked) {
+                        const fixedRadio = document.getElementById('discount_fixed');
+                        if (fixedRadio.checked) {
                             container.classList.remove('hidden');
                         } else {
                             container.classList.add('hidden');

@@ -350,7 +350,7 @@ class AdminController extends Controller
         
         // Gratis members
         $gratisMembers = User::where('is_admin', false)->where('discount_type', 'gratis')->count();
-        $discountedMembers = User::where('is_admin', false)->where('discount_type', 'percentage')->where('discount_percentage', '>', 0)->count();
+        $discountedMembers = User::where('is_admin', false)->where('discount_type', 'fixed')->where('discount_amount', '>', 0)->count();
         
         // Calculate estimated monthly revenue from active memberships
         $estimatedRevenue = 0;
@@ -377,11 +377,11 @@ class AdminController extends Controller
             }
         }
         
-        // Discounted members (percentage discount)
+        // Discounted members (fixed discount)
         $discountedUsers = User::where('is_admin', false)
             ->where('membership_status', 'active')
-            ->where('discount_type', 'percentage')
-            ->where('discount_percentage', '>', 0)
+            ->where('discount_type', 'fixed')
+            ->where('discount_amount', '>', 0)
             ->whereNotNull('membership_package_id')
             ->with('membershipPackage')
             ->get();
@@ -389,14 +389,16 @@ class AdminController extends Controller
         foreach ($discountedUsers as $user) {
             if ($user->membershipPackage) {
                 $package = $user->membershipPackage;
-                $discountMultiplier = (100 - $user->discount_percentage) / 100;
-                $monthlyValue = $package->price * $discountMultiplier;
+                $basePrice = $package->price - ($user->discount_amount ?? 0);
+                if ($basePrice < 0) $basePrice = 0;
+                
+                $monthlyValue = $basePrice;
                 if ($package->duration_type === 'months' && $package->duration_value > 1) {
-                    $monthlyValue = ($package->price / $package->duration_value) * $discountMultiplier;
+                    $monthlyValue = $basePrice / $package->duration_value;
                 } elseif ($package->duration_type === 'years') {
-                    $monthlyValue = ($package->price / ($package->duration_value * 12)) * $discountMultiplier;
+                    $monthlyValue = $basePrice / ($package->duration_value * 12);
                 } elseif ($package->duration_type === 'weeks') {
-                    $monthlyValue = (($package->price / $package->duration_value) * 4.33) * $discountMultiplier;
+                    $monthlyValue = ($basePrice / $package->duration_value) * 4.33;
                 }
                 $estimatedRevenue += $monthlyValue;
             }
@@ -548,21 +550,20 @@ class AdminController extends Controller
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
             'is_coach' => 'boolean',
-            'discount_type' => 'required|in:none,gratis,percentage,half_price',
-            'discount_percentage' => 'nullable|integer|min:0|max:99',
+            'discount_type' => 'required|in:none,gratis,fixed,percentage,half_price',
+            'discount_amount' => 'nullable|integer|min:0|max:100000',
         ]);
 
         $validated['is_coach'] = $request->has('is_coach');
         
-        // Convert old 'half_price' to new 'percentage' format
-        if ($validated['discount_type'] === 'half_price') {
-            $validated['discount_type'] = 'percentage';
-            $validated['discount_percentage'] = 50;
+        // Handle backward compatibility - convert old types to 'fixed'
+        if (in_array($validated['discount_type'], ['half_price', 'percentage'])) {
+            $validated['discount_type'] = 'fixed';
         }
         
-        // Set discount_percentage to 0 if not using percentage discount
-        if ($validated['discount_type'] !== 'percentage') {
-            $validated['discount_percentage'] = 0;
+        // Set discount_amount to 0 if not using fixed discount
+        if ($validated['discount_type'] !== 'fixed') {
+            $validated['discount_amount'] = 0;
         }
 
         $member->update($validated);
