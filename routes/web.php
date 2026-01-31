@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/members', [AdminController::class, 'storeMember'])->name('members.store');
         Route::get('/members/{id}', [AdminController::class, 'showMember'])->name('members.show');
         Route::put('/members/{id}', [AdminController::class, 'updateMember'])->name('members.update');
+        Route::delete('/members/{id}', [AdminController::class, 'deleteMember'])->name('members.delete');
         
         // Classes Management
         Route::get('/classes', [AdminController::class, 'classes'])->name('classes');

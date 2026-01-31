@@ -315,8 +315,13 @@ class AdminController extends Controller
             });
         }
 
-        // Category filter (for future use - can add member_type field)
-        // For now, we'll just show all members
+        // Age group filter
+        if ($filter === 'Adults') {
+            $query->where('age_group', 'Adults');
+        } elseif ($filter === 'Kids') {
+            $query->where('age_group', 'Kids');
+        }
+        // 'All' and 'Competitors' show all for now
 
         $members = $query->orderBy('first_name')->orderBy('last_name')->get();
 
@@ -415,6 +420,23 @@ class AdminController extends Controller
         ]);
 
         return redirect()->route('admin.members')->with('success', 'Member added successfully.');
+    }
+
+    /**
+     * Delete a member.
+     */
+    public function deleteMember($id)
+    {
+        $member = User::where('is_admin', false)->findOrFail($id);
+        
+        // Delete related records
+        $member->bookings()->delete();
+        $member->payments()->delete();
+        
+        // Delete the member
+        $member->delete();
+        
+        return redirect()->route('admin.members')->with('success', 'Member deleted successfully.');
     }
 
     /**

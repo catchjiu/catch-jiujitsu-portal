@@ -190,5 +190,24 @@
             @endif
         </div>
     </div>
+
+    <!-- Delete Member -->
+    <div class="glass rounded-2xl p-5 relative overflow-hidden border border-red-500/20">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-red-500/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <h3 class="text-lg font-bold text-red-400 mb-2" style="font-family: 'Bebas Neue', sans-serif;">Danger Zone</h3>
+            <p class="text-slate-500 text-sm mb-4">Permanently delete this member and all their data (bookings, payments).</p>
+            
+            <form action="{{ route('admin.members.delete', $member->id) }}" method="POST" 
+                  onsubmit="return confirm('Are you sure you want to delete {{ $member->name }}? This action cannot be undone.')">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                    class="w-full py-3 rounded-lg border border-red-500/50 text-red-400 font-bold uppercase text-sm tracking-wider hover:bg-red-500/10 transition-colors">
+                    Delete Member
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection
