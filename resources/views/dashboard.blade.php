@@ -239,10 +239,22 @@
                         </span>
                     </div>
                     <h4 class="text-xl font-bold text-white mb-1">{{ $nextClass->title }}</h4>
-                    <p class="text-slate-400 text-sm mb-4">Instructor: {{ $nextClass->instructor_name }}</p>
-                    <div class="text-center text-slate-500 text-xs">
+                    <p class="text-slate-400 text-sm mb-3">Instructor: {{ $nextClass->instructor_name }}</p>
+                    <div class="text-center text-slate-500 text-xs mb-4">
                         {{ $nextClass->start_time->format('l, F j') }}
                     </div>
+                    
+                    @if($nextBooking)
+                        <form action="{{ route('booking.destroy', $nextClass->id) }}" method="POST" 
+                              onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full py-2 rounded-lg border border-red-500/50 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-lg">event_busy</span>
+                                Cancel Booking
+                            </button>
+                        </form>
+                    @endif
                 </div>
             </div>
         @else
