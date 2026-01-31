@@ -83,6 +83,45 @@
             <p class="text-slate-500 text-xs mt-1">Currently {{ $class->bookings()->count() }} booked</p>
         </div>
 
+        <!-- Cancel Class -->
+        <div class="glass rounded-xl p-4">
+            <label class="flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg {{ $class->is_cancelled ? 'bg-red-500/20' : 'bg-slate-700/50' }} flex items-center justify-center transition-colors">
+                        <span class="material-symbols-outlined {{ $class->is_cancelled ? 'text-red-500' : 'text-slate-400' }}">event_busy</span>
+                    </div>
+                    <div>
+                        <span class="text-white font-medium">Class Cancelled</span>
+                        <p class="text-slate-500 text-xs">Mark this class as cancelled</p>
+                    </div>
+                </div>
+                <input type="checkbox" name="is_cancelled" value="1" {{ old('is_cancelled', $class->is_cancelled) ? 'checked' : '' }}
+                    class="w-5 h-5 rounded bg-slate-700 border-slate-600 text-red-500 focus:ring-red-500 focus:ring-offset-slate-900 cursor-pointer"
+                    onchange="showCancelWarning(this)">
+            </label>
+            @if($class->bookings()->count() > 0)
+                <div id="cancelWarning" class="{{ $class->is_cancelled ? '' : 'hidden' }} mt-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <p class="text-amber-400 text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">warning</span>
+                        {{ $class->bookings()->count() }} member(s) have booked this class. They will see it as cancelled.
+                    </p>
+                </div>
+            @endif
+        </div>
+        
+        <script>
+            function showCancelWarning(checkbox) {
+                const warning = document.getElementById('cancelWarning');
+                if (warning) {
+                    if (checkbox.checked) {
+                        warning.classList.remove('hidden');
+                    } else {
+                        warning.classList.add('hidden');
+                    }
+                }
+            }
+        </script>
+
         <!-- Submit Button -->
         <button type="submit"
             class="w-full py-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold transition-colors shadow-lg shadow-blue-500/20">

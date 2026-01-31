@@ -60,7 +60,7 @@
     </div>
 
     <!-- Add New Class Button -->
-    <a href="{{ route('admin.classes.create') }}" 
+    <a href="{{ route('admin.classes.create', ['date' => $selectedDate->format('Y-m-d')]) }}" 
        class="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-blue-500/50 text-blue-500 hover:bg-blue-500/10 transition-colors font-semibold">
         <span class="material-symbols-outlined">add</span>
         Add New Class
@@ -87,15 +87,21 @@
                     @php
                         $capacityPercent = $class->capacity > 0 ? ($class->bookings_count / $class->capacity) * 100 : 0;
                         $isFull = $class->bookings_count >= $class->capacity;
+                        $isCancelled = $class->is_cancelled ?? false;
                     @endphp
                     
-                    <div class="glass rounded-2xl p-4 relative overflow-hidden">
+                    <div class="glass rounded-2xl p-4 relative overflow-hidden {{ $isCancelled ? 'opacity-60' : '' }}">
                         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                        @if($isCancelled)
+                            <div class="absolute top-2 right-2 px-2 py-1 rounded bg-red-500/20 text-red-400 text-[10px] font-bold uppercase z-20">
+                                Cancelled
+                            </div>
+                        @endif
                         <div class="relative z-10">
                             <div class="flex gap-4">
                                 <!-- Time Column -->
                                 <div class="flex flex-col items-center text-center min-w-[50px]">
-                                    <span class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">
+                                    <span class="text-2xl font-bold {{ $isCancelled ? 'text-slate-500 line-through' : 'text-white' }}" style="font-family: 'Bebas Neue', sans-serif;">
                                         {{ $class->start_time->format('H:i') }}
                                     </span>
                                     <span class="text-[10px] text-slate-500 uppercase">
@@ -108,7 +114,7 @@
                                     <div class="flex items-start justify-between mb-2">
                                         <div>
                                             <div class="flex items-center gap-2">
-                                                <h3 class="text-white font-semibold">{{ $class->title }}</h3>
+                                                <h3 class="{{ $isCancelled ? 'text-slate-500 line-through' : 'text-white' }} font-semibold">{{ $class->title }}</h3>
                                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($class->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : (($class->age_group ?? 'Adults') === 'All' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-700/50 text-slate-400') }}">
                                                     {{ $class->age_group ?? 'Adults' }}
                                                 </span>
@@ -129,12 +135,12 @@
                                         <span class="text-xs text-slate-500">Capacity</span>
                                         <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
                                             <div class="h-full transition-all duration-500 rounded-full
-                                                {{ $isFull ? 'bg-red-500' : ($capacityPercent > 80 ? 'bg-amber-500' : 'bg-emerald-500') }}"
+                                                {{ $isCancelled ? 'bg-slate-600' : ($isFull ? 'bg-red-500' : ($capacityPercent > 80 ? 'bg-amber-500' : 'bg-emerald-500')) }}"
                                                  style="width: {{ min($capacityPercent, 100) }}%"></div>
                                         </div>
                                         <span class="text-xs {{ $isFull ? 'text-red-400' : 'text-slate-400' }}">
                                             {{ $class->bookings_count }}/{{ $class->capacity }}
-                                            @if($isFull) <span class="text-red-400 font-medium">Full</span> @endif
+                                            @if($isFull && !$isCancelled) <span class="text-red-400 font-medium">Full</span> @endif
                                         </span>
                                     </div>
 

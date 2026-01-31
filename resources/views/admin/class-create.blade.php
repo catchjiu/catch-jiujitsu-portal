@@ -81,7 +81,7 @@
                 <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Date</label>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">calendar_today</span>
-                    <input type="date" name="date" value="{{ old('date', now()->format('Y-m-d')) }}" required
+                    <input type="date" name="date" value="{{ old('date', request('date', now()->format('Y-m-d'))) }}" required
                         class="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
             </div>

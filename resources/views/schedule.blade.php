@@ -101,9 +101,12 @@
                 $capacityPercent = ($class->bookings_count / $class->capacity) * 100;
                 $isBooked = $class->is_booked_by_user;
                 $isPastClass = $class->start_time->isPast();
+                $isCancelled = $class->is_cancelled ?? false;
                 
                 // Capacity bar color
-                if ($capacityPercent >= 100) {
+                if ($isCancelled) {
+                    $capacityColor = 'bg-slate-600';
+                } elseif ($capacityPercent >= 100) {
                     $capacityColor = 'bg-red-500';
                 } elseif ($capacityPercent >= 80) {
                     $capacityColor = 'bg-amber-500';
@@ -112,16 +115,22 @@
                 }
             @endphp
             
-            <div class="glass rounded-2xl p-5 relative overflow-hidden transition-all duration-300 {{ $isPastClass ? 'opacity-50' : 'hover:bg-slate-800/60' }}">
+            <div class="glass rounded-2xl p-5 relative overflow-hidden transition-all duration-300 {{ $isPastClass || $isCancelled ? 'opacity-60' : 'hover:bg-slate-800/60' }}">
                 <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                @if($isCancelled)
+                    <div class="absolute top-3 left-3 px-2 py-1 rounded bg-red-500/20 text-red-400 text-[10px] font-bold uppercase z-20 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">cancel</span>
+                        Cancelled
+                    </div>
+                @endif
                 <div class="relative z-10">
                     <!-- Date & Type Row -->
-                    <div class="flex justify-between items-start mb-2">
+                    <div class="flex justify-between items-start mb-2 {{ $isCancelled ? 'mt-6' : '' }}">
                         <div class="flex flex-col">
                             <span class="text-amber-500 text-xs font-bold uppercase tracking-wider mb-0.5">
                                 {{ $class->start_time->format('l') }}
                             </span>
-                            <span class="text-3xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">
+                            <span class="text-3xl font-bold {{ $isCancelled ? 'text-slate-500 line-through' : 'text-white' }}" style="font-family: 'Bebas Neue', sans-serif;">
                                 {{ $class->start_time->format('H:i') }}
                             </span>
                             <span class="text-slate-400 text-xs">{{ $class->duration_minutes }} Minutes</span>
@@ -140,7 +149,7 @@
 
                     <!-- Title & Instructor -->
                     <div class="mb-4">
-                        <h3 class="text-lg font-bold text-slate-100">{{ $class->title }}</h3>
+                        <h3 class="text-lg font-bold {{ $isCancelled ? 'text-slate-500 line-through' : 'text-slate-100' }}">{{ $class->title }}</h3>
                         @if($class->instructor)
                             <div class="flex items-center gap-2 mt-2">
                                 <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
@@ -194,7 +203,12 @@
                     @endif
 
                     <!-- Action Button -->
-                    @if($isPastClass)
+                    @if($isCancelled)
+                        <div class="w-full py-2.5 rounded bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-sm text-center uppercase tracking-wide flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-lg">event_busy</span>
+                            Class Cancelled
+                        </div>
+                    @elseif($isPastClass)
                         <div class="w-full py-2.5 rounded bg-slate-700 text-slate-500 font-bold text-sm text-center uppercase tracking-wide">
                             Class Ended
                         </div>

@@ -23,10 +23,12 @@ class ClassSession extends Model
         'instructor_id',
         'instructor_name', // Kept for backward compatibility
         'capacity',
+        'is_cancelled',
     ];
 
     protected $casts = [
         'start_time' => 'datetime',
+        'is_cancelled' => 'boolean',
     ];
 
     /**

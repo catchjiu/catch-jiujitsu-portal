@@ -219,9 +219,11 @@ class AdminController extends Controller
             'age_group' => 'required|in:Kids,Adults,All',
             'instructor_id' => 'required|exists:users,id',
             'capacity' => 'required|integer|min:1|max:100',
+            'is_cancelled' => 'nullable|boolean',
         ]);
         
         $instructor = User::find($validated['instructor_id']);
+        $isCancelled = $request->has('is_cancelled');
 
         $class->update([
             'title' => $validated['title'],
@@ -230,9 +232,15 @@ class AdminController extends Controller
             'instructor_id' => $validated['instructor_id'],
             'instructor_name' => $instructor->name,
             'capacity' => $validated['capacity'],
+            'is_cancelled' => $isCancelled,
         ]);
 
-        return redirect()->route('admin.classes')->with('success', 'Class updated successfully.');
+        $message = 'Class updated successfully.';
+        if ($isCancelled && $class->bookings()->count() > 0) {
+            $message .= ' ' . $class->bookings()->count() . ' member(s) will see this class as cancelled.';
+        }
+
+        return redirect()->route('admin.classes')->with('success', $message);
     }
 
     /**
