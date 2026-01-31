@@ -244,9 +244,4 @@
     </div>
 </div>
 
-<!-- Floating Add Button -->
-<a href="{{ route('admin.classes.create') }}" 
-   class="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30 flex items-center justify-center transition-all hover:scale-105 z-40">
-    <span class="material-symbols-outlined text-3xl">add</span>
-</a>
 @endsection

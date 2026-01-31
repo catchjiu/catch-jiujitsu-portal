@@ -492,15 +492,6 @@ class AdminController extends Controller
     {
         $member = User::where('is_admin', false)->findOrFail($id);
 
-        // Merge null values for empty strings before validation
-        $request->merge([
-            'membership_package_id' => $request->membership_package_id ?: null,
-            'membership_expires_at' => $request->membership_expires_at ?: null,
-            'classes_remaining' => $request->classes_remaining !== null && $request->classes_remaining !== '' 
-                ? (int) $request->classes_remaining 
-                : null,
-        ]);
-
         $validated = $request->validate([
             'membership_package_id' => 'nullable|exists:membership_packages,id',
             'membership_status' => 'required|in:none,pending,active,expired',
@@ -536,11 +527,12 @@ class AdminController extends Controller
             }
         }
 
-        $member->membership_package_id = $validated['membership_package_id'];
-        $member->membership_status = $validated['membership_status'];
-        $member->membership_expires_at = $validated['membership_expires_at'];
-        $member->classes_remaining = $validated['classes_remaining'];
-        $member->save();
+        $member->update([
+            'membership_package_id' => $validated['membership_package_id'],
+            'membership_status' => $validated['membership_status'],
+            'membership_expires_at' => $validated['membership_expires_at'],
+            'classes_remaining' => $validated['classes_remaining'],
+        ]);
 
         return redirect()->route('admin.members.show', $member->id)->with('success', 'Membership updated successfully.');
     }

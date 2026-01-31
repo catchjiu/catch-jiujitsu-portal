@@ -29,10 +29,10 @@
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
     <!-- Slide-out Menu Overlay -->
-    <div id="menuOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300"></div>
+    <div id="menuOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden opacity-0 transition-opacity duration-300"></div>
 
     <!-- Slide-out Menu -->
-    <div id="slideMenu" class="fixed top-0 left-0 h-full w-72 bg-slate-900 z-[60] transition-transform duration-300 shadow-2xl" style="transform: translateX(-100%)">
+    <div id="slideMenu" class="fixed top-0 left-0 h-full w-72 bg-slate-900 z-[110] transition-transform duration-300 shadow-2xl" style="transform: translateX(-100%)">
         <div class="p-5">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8">
