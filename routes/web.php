@@ -8,6 +8,7 @@ use App\Http\Controllers\GoalsController;
 use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\MembershipPackageController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -94,5 +95,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/payments', [AdminController::class, 'payments'])->name('payments');
         Route::post('/payments/{id}/approve', [AdminController::class, 'approvePayment'])->name('payments.approve');
         Route::post('/payments/{id}/reject', [AdminController::class, 'rejectPayment'])->name('payments.reject');
+
+        // Membership Packages
+        Route::get('/packages', [MembershipPackageController::class, 'index'])->name('packages.index');
+        Route::get('/packages/create', [MembershipPackageController::class, 'create'])->name('packages.create');
+        Route::post('/packages', [MembershipPackageController::class, 'store'])->name('packages.store');
+        Route::get('/packages/{id}/edit', [MembershipPackageController::class, 'edit'])->name('packages.edit');
+        Route::put('/packages/{id}', [MembershipPackageController::class, 'update'])->name('packages.update');
+        Route::delete('/packages/{id}', [MembershipPackageController::class, 'destroy'])->name('packages.destroy');
+        Route::post('/packages/{id}/toggle', [MembershipPackageController::class, 'toggleStatus'])->name('packages.toggle');
     });
 });

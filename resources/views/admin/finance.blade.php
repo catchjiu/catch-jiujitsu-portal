@@ -7,7 +7,9 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-slate-400">menu</span>
+            <button onclick="openMenu()" class="text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
             <h1 class="text-lg font-bold text-white">Apex Financials</h1>
         </div>
         <div class="flex items-center gap-3">

@@ -24,6 +24,55 @@
     </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    <!-- Slide-out Menu Overlay -->
+    <div id="menuOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+    <!-- Slide-out Menu -->
+    <div id="slideMenu" class="fixed top-0 left-0 h-full w-72 bg-slate-900 z-50 transform -translate-x-full transition-transform duration-300 shadow-2xl">
+        <div class="p-5">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Admin Menu</h2>
+                <button onclick="closeMenu()" class="text-slate-400 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Menu Items -->
+            <nav class="space-y-2">
+                <a href="{{ route('admin.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.index') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span class="font-medium">Dashboard</span>
+                </a>
+                <a href="{{ route('admin.members') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.members*') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">groups</span>
+                    <span class="font-medium">Members</span>
+                </a>
+                <a href="{{ route('admin.classes') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.classes*') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">calendar_today</span>
+                    <span class="font-medium">Classes</span>
+                </a>
+                <a href="{{ route('admin.finance') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.finance') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">account_balance</span>
+                    <span class="font-medium">Finance</span>
+                </a>
+                <a href="{{ route('admin.payments') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.payments') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">payments</span>
+                    <span class="font-medium">Payment Verification</span>
+                </a>
+
+                <div class="border-t border-slate-700 my-4"></div>
+                
+                <p class="px-4 text-xs text-slate-500 uppercase tracking-wider font-bold mb-2">Settings</p>
+                
+                <a href="{{ route('admin.packages.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.packages*') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                    <span class="font-medium">Membership Packages</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
     <!-- Main Content -->
     <main class="pb-20 px-4 max-w-lg mx-auto pt-4">
         <!-- Flash Messages -->
@@ -70,6 +119,19 @@
         </div>
     </nav>
 
+    <script>
+        function openMenu() {
+            document.getElementById('slideMenu').classList.remove('-translate-x-full');
+            document.getElementById('menuOverlay').classList.remove('opacity-0', 'pointer-events-none');
+        }
+        
+        function closeMenu() {
+            document.getElementById('slideMenu').classList.add('-translate-x-full');
+            document.getElementById('menuOverlay').classList.add('opacity-0', 'pointer-events-none');
+        }
+        
+        document.getElementById('menuOverlay').addEventListener('click', closeMenu);
+    </script>
     @yield('scripts')
 </body>
 </html>
