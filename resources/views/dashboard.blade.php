@@ -124,6 +124,14 @@
                         <h3 class="text-2xl font-bold text-emerald-400 uppercase" style="font-family: 'Bebas Neue', sans-serif;">Gratis</h3>
                     @elseif($user->membershipPackage)
                         <h3 class="text-2xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membershipPackage->name }}</h3>
+                        <p class="text-slate-400 text-sm mt-1">
+                            @if($user->hasFixedDiscount())
+                                <span class="line-through text-slate-500">NT${{ number_format($user->membershipPackage->price) }}</span>
+                                <span class="text-emerald-400 font-bold ml-2">NT${{ number_format($user->membershipPackage->price - $user->discount_amount) }}</span>
+                            @else
+                                NT${{ number_format($user->membershipPackage->price) }}
+                            @endif
+                        </p>
                     @else
                         <h3 class="text-2xl font-bold text-slate-500 uppercase" style="font-family: 'Bebas Neue', sans-serif;">No Package</h3>
                     @endif
