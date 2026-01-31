@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', "Catch Jiu Jitsu - Taiwan's Premier Jiu Jitsu Academy"),
 
     /*
     |--------------------------------------------------------------------------
