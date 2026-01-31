@@ -34,7 +34,7 @@
             @php
                 $beltColors = [
                     'White' => 'bg-gray-100 border-gray-300',
-                    'Grey' => 'bg-slate-400 border-slate-300',
+                    'Grey' => 'bg-gray-300 border-gray-200',
                     'Yellow' => 'bg-yellow-400 border-yellow-300',
                     'Orange' => 'bg-orange-500 border-orange-400',
                     'Green' => 'bg-green-500 border-green-400',

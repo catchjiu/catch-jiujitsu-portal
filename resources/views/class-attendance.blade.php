@@ -76,7 +76,7 @@
                             $member = $booking->user;
                             $beltColors = [
                                 'White' => 'bg-gray-200',
-                                'Grey' => 'bg-slate-400',
+                                'Grey' => 'bg-gray-300',
                                 'Yellow' => 'bg-yellow-400',
                                 'Orange' => 'bg-orange-500',
                                 'Green' => 'bg-green-500',

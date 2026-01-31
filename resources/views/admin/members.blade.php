@@ -45,7 +45,7 @@
             @php
                 $beltColors = [
                     'White' => ['bg' => 'bg-gray-200', 'text' => 'White Belt'],
-                    'Grey' => ['bg' => 'bg-slate-400', 'text' => 'Grey Belt'],
+                    'Grey' => ['bg' => 'bg-gray-300', 'text' => 'Grey Belt'],
                     'Yellow' => ['bg' => 'bg-yellow-400', 'text' => 'Yellow Belt'],
                     'Orange' => ['bg' => 'bg-orange-500', 'text' => 'Orange Belt'],
                     'Green' => ['bg' => 'bg-green-500', 'text' => 'Green Belt'],
