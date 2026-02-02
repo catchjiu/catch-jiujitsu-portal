@@ -458,16 +458,6 @@
                                 </div>
                             @endif
                             
-                            @if($payment->proof_image_path)
-                                <div class="mb-2">
-                                    <a href="{{ Storage::url($payment->proof_image_path) }}" target="_blank" 
-                                       class="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs">
-                                        <span class="material-symbols-outlined text-sm">image</span>
-                                        View Payment Proof
-                                    </a>
-                                </div>
-                            @endif
-                            
                             @if($payment->submitted_at)
                                 <p class="text-xs text-slate-500">Submitted {{ $payment->submitted_at->diffForHumans() }}</p>
                             @endif

@@ -56,9 +56,8 @@
         <div class="relative z-10">
             <h3 class="text-lg font-bold text-white mb-4">Submit Payment</h3>
             
-            <form action="{{ route('payments.submit') }}" method="POST" enctype="multipart/form-data" 
+            <form action="{{ route('payments.submit') }}" method="POST" 
                   x-data="{ 
-                      fileName: '', 
                       paymentMethod: 'bank',
                       paymentDate: '{{ now()->format('Y-m-d') }}',
                       paymentAmount: '',
@@ -111,25 +110,10 @@
                     <p class="text-xs text-slate-500 mt-1">Enter the last 5 digits of your bank account for verification</p>
                 </div>
 
-                <!-- Upload Proof Image -->
-                <div class="mb-4">
-                    <label class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Payment Proof</label>
-                    <label class="block w-full cursor-pointer">
-                        <input type="file" name="proof_image" accept="image/*" class="hidden" required
-                               @change="fileName = $event.target.files[0]?.name || ''"
-                               x-ref="fileInput">
-                        <div @click="$refs.fileInput.click()" 
-                             class="w-full h-20 border-2 border-dashed border-emerald-500 rounded-lg flex flex-col items-center justify-center bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
-                            <span class="material-symbols-outlined text-emerald-500">cloud_upload</span>
-                            <span class="text-xs text-emerald-500 mt-1 font-bold" x-text="fileName || 'Tap to Upload Screenshot/Slip'"></span>
-                        </div>
-                    </label>
-                </div>
-
                 <button type="submit" 
                         class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-xs tracking-wider rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        :disabled="!fileName || !paymentDate || !paymentAmount || (paymentMethod === 'bank' && accountLast5.length !== 5)">
-                    <span class="material-symbols-outlined text-sm">upload_file</span>
+                        :disabled="!paymentDate || !paymentAmount || (paymentMethod === 'bank' && accountLast5.length !== 5)">
+                    <span class="material-symbols-outlined text-sm">send</span>
                     Submit Payment
                 </button>
             </form>
@@ -164,15 +148,15 @@
                         </span>
                     </div>
 
-                    @if($payment->status !== 'Paid' && $payment->status !== 'Pending Verification')
+                    @if($payment->status === 'Rejected')
                         <div class="mt-2 pt-4 border-t border-white/5">
-                            <form action="{{ route('payments.upload', $payment->id) }}" method="POST" enctype="multipart/form-data" 
+                            <p class="text-xs text-red-400 mb-3">Payment was rejected. Please resubmit with correct details.</p>
+                            <form action="{{ route('payments.upload', $payment->id) }}" method="POST" 
                                   x-data="{ 
-                                      fileName: '', 
-                                      paymentMethod: 'bank',
-                                      paymentDate: '{{ now()->format('Y-m-d') }}',
-                                      paymentAmount: '',
-                                      accountLast5: ''
+                                      paymentMethod: '{{ $payment->payment_method ?? 'bank' }}',
+                                      paymentDate: '{{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : now()->format('Y-m-d') }}',
+                                      paymentAmount: '{{ $payment->amount }}',
+                                      accountLast5: '{{ $payment->account_last_5 ?? '' }}'
                                   }">
                                 @csrf
                                 
@@ -218,29 +202,13 @@
                                            :required="paymentMethod === 'bank'"
                                            placeholder="e.g. 12345"
                                            class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 font-mono tracking-widest text-center">
-                                    <p class="text-xs text-slate-500 mt-1">Enter the last 5 digits of your bank account for verification</p>
-                                </div>
-
-                                <!-- Upload Proof Image -->
-                                <div class="mb-4">
-                                    <label class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Payment Proof</label>
-                                    <label class="block w-full cursor-pointer">
-                                        <input type="file" name="proof_image" accept="image/*" class="hidden" required
-                                               @change="fileName = $event.target.files[0]?.name || ''"
-                                               x-ref="fileInput">
-                                        <div @click="$refs.fileInput.click()" 
-                                             class="w-full h-20 border-2 border-dashed border-blue-500 rounded-lg flex flex-col items-center justify-center bg-blue-500/5 hover:bg-blue-500/10 transition-colors">
-                                            <span class="material-symbols-outlined text-blue-500">cloud_upload</span>
-                                            <span class="text-xs text-blue-500 mt-1 font-bold" x-text="fileName || 'Tap to Upload Screenshot/Slip'"></span>
-                                        </div>
-                                    </label>
                                 </div>
 
                                 <button type="submit" 
                                         class="w-full py-3 bg-slate-100 text-slate-900 font-bold uppercase text-xs tracking-wider rounded hover:bg-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        :disabled="!fileName || !paymentDate || !paymentAmount || (paymentMethod === 'bank' && accountLast5.length !== 5)">
-                                    <span class="material-symbols-outlined text-sm">upload_file</span>
-                                    Submit Payment Proof
+                                        :disabled="!paymentDate || !paymentAmount || (paymentMethod === 'bank' && accountLast5.length !== 5)">
+                                    <span class="material-symbols-outlined text-sm">refresh</span>
+                                    Resubmit Payment
                                 </button>
                             </form>
                         </div>
