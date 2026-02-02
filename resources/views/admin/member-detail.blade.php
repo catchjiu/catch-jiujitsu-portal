@@ -6,11 +6,23 @@
 <div class="space-y-6">
     <!-- Back Button & Header -->
     <div class="flex items-center gap-4">
-        <a href="{{ route('admin.members') }}" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+        <button onclick="goBackToMembers()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
             <span class="material-symbols-outlined">arrow_back</span>
-        </a>
+        </button>
         <h1 class="text-xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Member Profile</h1>
     </div>
+    
+    <script>
+        function goBackToMembers() {
+            // Try to go back in history first (preserves filters via sessionStorage)
+            if (document.referrer.includes('/admin/members')) {
+                window.history.back();
+            } else {
+                // Fallback to members page
+                window.location.href = '{{ route('admin.members') }}';
+            }
+        }
+    </script>
 
     <!-- Profile Card -->
     <div class="glass rounded-2xl p-6 text-center relative overflow-hidden">

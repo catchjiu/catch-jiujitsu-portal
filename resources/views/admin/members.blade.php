@@ -249,30 +249,61 @@
 
 @section('scripts')
 <script>
-    // Save scroll position before navigating away
+    // Save scroll position and filters before navigating to member detail
     document.querySelectorAll('a[href*="members/"]').forEach(link => {
         link.addEventListener('click', function() {
             sessionStorage.setItem('membersScrollPosition', window.scrollY);
+            sessionStorage.setItem('membersFilters', JSON.stringify({
+                age: document.getElementById('ageFilter').value,
+                status: document.getElementById('statusFilter').value,
+                search: document.querySelector('input[name="search"]').value
+            }));
         });
     });
     
-    // Restore scroll position when page loads
+    // Restore scroll position and filters when page loads
     document.addEventListener('DOMContentLoaded', function() {
         const savedPosition = sessionStorage.getItem('membersScrollPosition');
+        const savedFilters = sessionStorage.getItem('membersFilters');
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Only restore filters if coming back (URL has no params but we have saved filters)
+        if (savedFilters && !urlParams.has('age') && !urlParams.has('status') && !urlParams.has('search')) {
+            const filters = JSON.parse(savedFilters);
+            if (filters.age || filters.status || filters.search) {
+                // Redirect with saved filters
+                const newUrl = new URL(window.location.href);
+                if (filters.age) newUrl.searchParams.set('age', filters.age);
+                if (filters.status) newUrl.searchParams.set('status', filters.status);
+                if (filters.search) newUrl.searchParams.set('search', filters.search);
+                window.location.href = newUrl.toString();
+                return;
+            }
+        }
+        
+        // Restore scroll position
         if (savedPosition) {
             window.scrollTo(0, parseInt(savedPosition));
-            // Clear after restoring so it doesn't affect fresh visits
-            // Only clear if we came back from a member detail page
         }
     });
     
-    // Clear scroll position if navigating to a different section
-    window.addEventListener('beforeunload', function() {
-        // Keep the position if going to member detail, clear otherwise
-        const currentUrl = window.location.href;
-        if (!currentUrl.includes('/admin/members')) {
+    // Clear saved state when navigating away from members section
+    const originalPushState = history.pushState;
+    const clearIfLeavingMembers = function(url) {
+        if (typeof url === 'string' && !url.includes('/admin/members')) {
             sessionStorage.removeItem('membersScrollPosition');
+            sessionStorage.removeItem('membersFilters');
         }
+    };
+    
+    // Also handle clicking on menu items or other links
+    document.querySelectorAll('a:not([href*="members"])').forEach(link => {
+        link.addEventListener('click', function() {
+            if (!this.href.includes('/admin/members')) {
+                sessionStorage.removeItem('membersScrollPosition');
+                sessionStorage.removeItem('membersFilters');
+            }
+        });
     });
 </script>
 @endsection
