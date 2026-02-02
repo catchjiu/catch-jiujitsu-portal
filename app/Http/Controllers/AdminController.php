@@ -889,7 +889,7 @@ class AdminController extends Controller
      */
     public function payments()
     {
-        $pendingPayments = Payment::with('user')
+        $pendingPayments = Payment::with(['user', 'user.membershipPackage'])
             ->where('status', 'Pending Verification')
             ->orderBy('submitted_at')
             ->get();
@@ -906,11 +906,14 @@ class AdminController extends Controller
                 ->whereMonth('updated_at', now()->month)
                 ->count(),
         ];
+        
+        $packages = MembershipPackage::active()->ordered()->get();
 
         return view('admin.payments', [
             'pendingPayments' => $pendingPayments,
             'allPayments' => $allPayments,
             'stats' => $stats,
+            'packages' => $packages,
         ]);
     }
 
