@@ -27,6 +27,7 @@ class User extends Authenticatable
         'email',
         'password',
         'rank',
+        'belt_variation',
         'belt_color',
         'stripes',
         'mat_hours',

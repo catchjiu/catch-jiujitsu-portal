@@ -22,6 +22,21 @@
                 window.location.href = '{{ route('admin.members') }}';
             }
         }
+        
+        function toggleBeltVariation() {
+            const rankSelect = document.getElementById('rankSelect');
+            const container = document.getElementById('beltVariationContainer');
+            const kidsBelts = ['Grey', 'Yellow', 'Orange', 'Green'];
+            
+            if (kidsBelts.includes(rankSelect.value)) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+        
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', toggleBeltVariation);
     </script>
 
     <!-- Profile Card -->
@@ -90,37 +105,101 @@
                         </div>
                     </div>
                 @elseif($member->rank === 'Green')
-                    <div class="w-32 h-6 rounded bg-green-500 relative flex items-center">
-                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                    @if($member->belt_variation === 'solid')
+                        <div class="w-32 h-6 rounded bg-green-500 relative flex items-center justify-start gap-1 px-2">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    </div>
+                    @elseif($member->belt_variation === 'white')
+                        <div class="w-32 h-6 rounded bg-green-500 relative flex items-center">
+                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-green-500"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @else
+                        <div class="w-32 h-6 rounded bg-green-500 relative flex items-center">
+                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-white"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @endif
                 @elseif($member->rank === 'Orange')
-                    <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center">
-                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                    @if($member->belt_variation === 'solid')
+                        <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center justify-start gap-1 px-2">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    </div>
+                    @elseif($member->belt_variation === 'white')
+                        <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center">
+                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-orange-500"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @else
+                        <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center">
+                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-white"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @endif
                 @elseif($member->rank === 'Yellow')
-                    <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center">
-                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                    @if($member->belt_variation === 'solid')
+                        <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center justify-start gap-1 px-2">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    </div>
+                    @elseif($member->belt_variation === 'white')
+                        <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center">
+                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-yellow-400"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @else
+                        <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center">
+                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-white"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @endif
                 @elseif($member->rank === 'Grey')
-                    <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center">
-                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                    @if($member->belt_variation === 'solid')
+                        <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center justify-start gap-1 px-2">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    </div>
+                    @elseif($member->belt_variation === 'white')
+                        <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center">
+                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-slate-300"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @else
+                        <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center">
+                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
+                                @for ($i = 0; $i < $member->stripes; $i++)
+                                    <div class="w-1.5 h-full bg-white"></div>
+                                @endfor
+                            </div>
+                        </div>
+                    @endif
                 @else
                     <!-- White Belt (default) -->
                     <div class="w-32 h-6 rounded bg-gray-100 relative flex items-center">
@@ -199,8 +278,9 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Belt Rank</label>
-                        <select name="rank" required
-                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        <select name="rank" id="rankSelect" required
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                            onchange="toggleBeltVariation()">
                             @foreach(['White', 'Grey', 'Yellow', 'Orange', 'Green', 'Blue', 'Purple', 'Brown', 'Black'] as $rank)
                                 <option value="{{ $rank }}" {{ $member->rank === $rank ? 'selected' : '' }}>{{ $rank }}</option>
                             @endforeach
@@ -215,6 +295,18 @@
                             @endfor
                         </select>
                     </div>
+                </div>
+
+                <!-- Belt Variation (for kids belts) -->
+                <div id="beltVariationContainer" class="hidden">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Belt Variation</label>
+                    <select name="belt_variation" id="beltVariationSelect"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        <option value="white" {{ $member->belt_variation === 'white' ? 'selected' : '' }}>White Bar (e.g., Grey-White)</option>
+                        <option value="solid" {{ $member->belt_variation === 'solid' ? 'selected' : '' }}>Solid (No Bar)</option>
+                        <option value="black" {{ $member->belt_variation === 'black' ? 'selected' : '' }}>Black Bar (e.g., Grey-Black)</option>
+                    </select>
+                    <p class="text-slate-500 text-xs mt-1">Kids belts have 3 progressions: White bar → Solid → Black bar</p>
                 </div>
 
                 <!-- Coach Toggle -->

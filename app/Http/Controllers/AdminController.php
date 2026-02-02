@@ -683,6 +683,7 @@ class AdminController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'age_group' => 'required|in:Kids,Adults',
             'rank' => 'required|in:White,Grey,Yellow,Orange,Green,Blue,Purple,Brown,Black',
+            'belt_variation' => 'nullable|in:white,solid,black',
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
             'is_coach' => 'boolean',
@@ -700,6 +701,12 @@ class AdminController extends Controller
         // Set discount_amount to 0 if not using fixed discount
         if ($validated['discount_type'] !== 'fixed') {
             $validated['discount_amount'] = 0;
+        }
+        
+        // Clear belt_variation for non-kids belts
+        $kidsBelts = ['Grey', 'Yellow', 'Orange', 'Green'];
+        if (!in_array($validated['rank'], $kidsBelts)) {
+            $validated['belt_variation'] = null;
         }
 
         $member->update($validated);
