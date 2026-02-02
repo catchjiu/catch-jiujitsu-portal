@@ -233,6 +233,68 @@
         </div>
     </div>
 
+    <!-- Next Class (moved here, under membership) -->
+    <div>
+        <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
+            <span class="material-symbols-outlined text-amber-500">event</span>
+            MY NEXT CLASS
+        </h3>
+        @if($nextClass)
+            <div class="glass rounded-2xl p-5 bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider">
+                            {{ $nextClass->type }}
+                        </span>
+                        <span class="text-slate-400 text-xs font-mono">
+                            {{ $nextClass->start_time->format('H:i') }}
+                        </span>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-1">{{ $nextClass->title }}</h4>
+                    
+                    <!-- Instructor with Profile Picture -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
+                            @if($nextClass->instructor && $nextClass->instructor->avatar)
+                                <img src="{{ $nextClass->instructor->avatar }}" alt="{{ $nextClass->instructor_display_name }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
+                                    {{ substr($nextClass->instructor_display_name, 0, 1) }}
+                                </div>
+                            @endif
+                        </div>
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ $nextClass->instructor_display_name }}</p>
+                            <p class="text-slate-500 text-xs">Instructor</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center text-slate-500 text-xs mb-4">
+                        {{ $nextClass->start_time->format('l, F j') }}
+                    </div>
+                    
+                    @if($nextBooking)
+                        <form action="{{ route('book.destroy', $nextClass->id) }}" method="POST" 
+                              onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full py-2 rounded-lg border border-red-500/50 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-lg">event_busy</span>
+                                Cancel Booking
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+        @else
+            <div class="p-6 rounded-2xl border-2 border-dashed border-slate-700 text-center text-slate-500">
+                <p>No upcoming classes booked.</p>
+                <a href="{{ route('schedule') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">Browse schedule</a>
+            </div>
+        @endif
+    </div>
+
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 gap-4">
         <div class="glass rounded-2xl p-5 relative overflow-hidden">
@@ -301,64 +363,55 @@
         </div>
     </a>
 
-    <!-- Next Class -->
+    <!-- Previous Classes -->
     <div>
         <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
-            <span class="material-symbols-outlined text-amber-500">event</span>
-            MY NEXT CLASS
+            <span class="material-symbols-outlined text-slate-400">history</span>
+            PREVIOUS CLASSES
         </h3>
-        @if($nextClass)
-            <div class="glass rounded-2xl p-5 bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-                <div class="relative z-10">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider">
-                            {{ $nextClass->type }}
-                        </span>
-                        <span class="text-slate-400 text-xs font-mono">
-                            {{ $nextClass->start_time->format('H:i') }}
-                        </span>
-                    </div>
-                    <h4 class="text-xl font-bold text-white mb-1">{{ $nextClass->title }}</h4>
-                    
-                    <!-- Instructor with Profile Picture -->
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
-                            @if($nextClass->instructor && $nextClass->instructor->avatar)
-                                <img src="{{ $nextClass->instructor->avatar }}" alt="{{ $nextClass->instructor_display_name }}" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
-                                    {{ substr($nextClass->instructor_display_name, 0, 1) }}
+        @if($previousClasses->count() > 0)
+            <div class="space-y-3">
+                @foreach($previousClasses as $class)
+                    <div class="glass rounded-xl p-4 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                        <div class="relative z-10 flex items-center gap-4">
+                            <!-- Instructor Avatar -->
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 border border-slate-600 flex-shrink-0">
+                                @if($class->instructor && $class->instructor->avatar)
+                                    <img src="{{ $class->instructor->avatar }}" alt="{{ $class->instructor_display_name }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-500 text-sm font-bold">
+                                        {{ substr($class->instructor_display_name, 0, 1) }}
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- Class Info -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-white font-semibold text-sm truncate">{{ $class->title }}</h4>
+                                    <span class="px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 text-xs uppercase flex-shrink-0">
+                                        {{ $class->type }}
+                                    </span>
                                 </div>
-                            @endif
-                        </div>
-                        <div>
-                            <p class="text-white text-sm font-medium">{{ $nextClass->instructor_display_name }}</p>
-                            <p class="text-slate-500 text-xs">Instructor</p>
+                                <p class="text-slate-500 text-xs mt-0.5">
+                                    {{ $class->start_time->format('D, M j') }} at {{ $class->start_time->format('H:i') }}
+                                    • {{ $class->instructor_display_name }}
+                                </p>
+                            </div>
+                            
+                            <!-- Check mark -->
+                            <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                                <span class="material-symbols-outlined text-emerald-400 text-sm">check</span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="text-center text-slate-500 text-xs mb-4">
-                        {{ $nextClass->start_time->format('l, F j') }}
-                    </div>
-                    
-                    @if($nextBooking)
-                        <form action="{{ route('book.destroy', $nextClass->id) }}" method="POST" 
-                              onsubmit="return confirm('Are you sure you want to cancel this booking?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="w-full py-2 rounded-lg border border-red-500/50 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2">
-                                <span class="material-symbols-outlined text-lg">event_busy</span>
-                                Cancel Booking
-                            </button>
-                        </form>
-                    @endif
-                </div>
+                @endforeach
             </div>
         @else
             <div class="p-6 rounded-2xl border-2 border-dashed border-slate-700 text-center text-slate-500">
-                <p>No upcoming classes booked.</p>
-                <a href="{{ route('schedule') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">Browse schedule</a>
+                <p>No previous classes yet.</p>
+                <a href="{{ route('schedule') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">Book your first class</a>
             </div>
         @endif
     </div>

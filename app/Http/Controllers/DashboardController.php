@@ -29,12 +29,21 @@ class DashboardController extends Controller
                       ->whereYear('start_time', now()->year);
             })
             ->count();
+        
+        // Get previous classes (past classes the user attended)
+        $previousClasses = $user->bookedClasses()
+            ->with('instructor')
+            ->where('start_time', '<', now())
+            ->orderBy('start_time', 'desc')
+            ->take(5)
+            ->get();
 
         return view('dashboard', [
             'user' => $user,
             'nextClass' => $nextClass,
             'nextBooking' => $nextBooking,
             'classesThisMonth' => $classesThisMonth,
+            'previousClasses' => $previousClasses,
         ]);
     }
 }
