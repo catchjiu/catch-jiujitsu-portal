@@ -17,11 +17,15 @@ class Payment extends Model
         'status',
         'proof_image_path',
         'submitted_at',
+        'payment_method',
+        'payment_date',
+        'account_last_5',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'submitted_at' => 'datetime',
+        'payment_date' => 'date',
     ];
 
     /**

@@ -28,9 +28,19 @@ class PaymentController extends Controller
      */
     public function uploadProof(Request $request, $paymentId)
     {
-        $request->validate([
+        $rules = [
             'proof_image' => 'required|image|max:2048', // Max 2MB
-        ]);
+            'payment_method' => 'required|in:bank,linepay',
+            'payment_date' => 'required|date',
+            'payment_amount' => 'required|numeric|min:1',
+        ];
+
+        // Add account_last_5 validation only for bank transfers
+        if ($request->input('payment_method') === 'bank') {
+            $rules['account_last_5'] = 'required|string|size:5';
+        }
+
+        $request->validate($rules);
 
         $payment = Payment::where('user_id', Auth::id())
             ->findOrFail($paymentId);
@@ -47,6 +57,10 @@ class PaymentController extends Controller
                 'proof_image_path' => $path,
                 'status' => 'Pending Verification',
                 'submitted_at' => now(),
+                'payment_method' => $request->input('payment_method'),
+                'payment_date' => $request->input('payment_date'),
+                'amount' => $request->input('payment_amount'),
+                'account_last_5' => $request->input('payment_method') === 'bank' ? $request->input('account_last_5') : null,
             ]);
 
             return back()->with('success', 'Payment proof uploaded successfully. Waiting for admin approval.');
