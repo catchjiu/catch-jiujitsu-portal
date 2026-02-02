@@ -113,11 +113,11 @@
                         </div>
                         <div class="text-right">
                             @php
-                                $daysLeft = now()->diffInDays($member->membership_expires_at, false);
+                                $daysLeft = (int) now()->startOfDay()->diffInDays($member->membership_expires_at->startOfDay(), false);
                             @endphp
                             <p class="text-amber-400 font-bold text-sm">{{ $member->membership_expires_at->format('M j') }}</p>
                             <p class="text-slate-500 text-xs">
-                                @if($daysLeft == 0)
+                                @if($daysLeft <= 0)
                                     Today
                                 @elseif($daysLeft == 1)
                                     Tomorrow
