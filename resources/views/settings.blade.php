@@ -238,7 +238,7 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-slate-500">Total Mat Hours</span>
-                    <span class="text-white">{{ $user->mat_hours }} hours</span>
+                    <span class="text-white">{{ $user->calculated_mat_hours }} hours</span>
                 </div>
             </div>
         </div>

@@ -324,4 +324,22 @@ class User extends Authenticatable
 
         return round($totalMinutes / 60, 1);
     }
+
+    /**
+     * Get calculated mat hours (total hours from all past attended classes).
+     */
+    public function getCalculatedMatHoursAttribute(): int
+    {
+        $totalMinutes = $this->bookings()
+            ->whereHas('classSession', function($query) {
+                $query->where('start_time', '<', now()); // Only count past classes
+            })
+            ->with('classSession')
+            ->get()
+            ->sum(function($booking) {
+                return $booking->classSession->duration_minutes ?? 0;
+            });
+
+        return (int) round($totalMinutes / 60);
+    }
 }
