@@ -53,7 +53,7 @@
                                 <div>
                                     <p class="text-xs text-slate-400 uppercase font-bold mb-1">{{ $payment->user->name }}</p>
                                     <p class="text-white font-bold">{{ $payment->month }}</p>
-                                    <p class="text-xl text-amber-500 font-mono">฿{{ number_format($payment->amount) }}</p>
+                                    <p class="text-xl text-amber-500 font-mono">NT${{ number_format($payment->amount) }}</p>
                                 </div>
                                 <div class="text-right text-xs text-slate-500">
                                     {{ $payment->submitted_at?->format('M j, Y') }}

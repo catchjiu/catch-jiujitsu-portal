@@ -61,7 +61,7 @@
 
                 <!-- Price -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Price (฿)</label>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Price (NT$)</label>
                     <input type="number" name="price" value="{{ old('price') }}" min="0" step="0.01" required
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                         placeholder="0.00">

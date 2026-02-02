@@ -59,7 +59,7 @@
                                     <span class="material-symbols-outlined text-sm align-middle mr-1">schedule</span>
                                     {{ $package->duration_label }}
                                 </span>
-                                <span class="text-emerald-400 font-semibold">฿{{ number_format($package->price) }}</span>
+                                <span class="text-emerald-400 font-semibold">NT${{ number_format($package->price) }}</span>
                             </div>
                             @if($package->description)
                                 <p class="text-slate-500 text-xs mt-2">{{ $package->description }}</p>
