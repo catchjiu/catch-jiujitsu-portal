@@ -154,31 +154,55 @@
             <div class="flex justify-between items-start mb-4">
                 <div>
                     <h3 class="text-white font-semibold">Today's Attendance</h3>
-                    <p class="text-slate-500 text-xs">Peak hours: 6pm - 8pm</p>
+                    <p class="text-slate-500 text-xs">Peak: {{ $peakHoursText }}</p>
                 </div>
                 <div class="text-right">
                     <p class="text-3xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ $todayCheckIns }}</p>
-                    <p class="text-slate-500 text-xs uppercase">Check-ins</p>
+                    <p class="text-slate-500 text-xs uppercase">Bookings</p>
                 </div>
             </div>
             
-            <!-- Simple Chart Visualization -->
-            <div class="relative h-32 flex items-end justify-between gap-1 mt-4 border-b border-slate-700/50 pb-2">
-                @foreach($hourlyData as $data)
+            <!-- Chart Visualization -->
+            <div class="relative h-32 flex items-end justify-between gap-0.5 mt-4 border-b border-slate-700/50 pb-2">
+                @php
+                    $maxHeight = collect($hourlyData)->max('height');
+                    $peakIndex = collect($hourlyData)->search(function($item) use ($maxHeight) {
+                        return $item['height'] == $maxHeight && $item['count'] > 0;
+                    });
+                @endphp
+                @foreach($hourlyData as $index => $data)
                     @php
-                        $height = ($data['count'] / 50) * 100;
-                        $isPeak = $data['hour'] >= 18 && $data['hour'] <= 20;
+                        $isPeak = $data['height'] == $maxHeight && $data['count'] > 0;
+                        $hasClasses = $data['count'] > 0;
                     @endphp
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full rounded-t {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-slate-700' }}" 
-                             style="height: {{ $height }}%"></div>
+                    <div class="flex-1 flex flex-col items-center group relative">
+                        <div class="w-full rounded-t transition-all duration-300 min-h-[2px]
+                            {{ $hasClasses ? ($isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70') : 'bg-slate-700/50' }}" 
+                             style="height: {{ max($data['height'], 2) }}%"></div>
+                        
+                        @if($hasClasses)
+                            <!-- Tooltip on hover -->
+                            <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 px-2 py-1 rounded text-[10px] text-white border border-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
+                                @foreach($data['classes'] as $class)
+                                    <div>{{ $class['time'] }}: {{ $class['count'] }} booked</div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 @endforeach
                 
-                <!-- Peak indicator tooltip -->
-                <div class="absolute top-0 right-1/4 bg-slate-800 px-2 py-1 rounded text-[10px] text-slate-300 border border-slate-700">
-                    12:00 PM: 18 students
-                </div>
+                @if($peakIndex !== false && $hourlyData[$peakIndex]['count'] > 0)
+                    <!-- Peak indicator tooltip -->
+                    @php
+                        $peakData = $hourlyData[$peakIndex];
+                        $peakClass = $peakData['classes'][0] ?? null;
+                    @endphp
+                    @if($peakClass)
+                        <div class="absolute top-0 left-1/2 -translate-x-1/2 bg-slate-800 px-2 py-1 rounded text-[10px] text-slate-300 border border-slate-700 whitespace-nowrap">
+                            {{ $peakClass['time'] }}: {{ $peakData['count'] }} students
+                        </div>
+                    @endif
+                @endif
             </div>
             
             <!-- Time labels -->
@@ -190,6 +214,10 @@
                 <span>6pm</span>
                 <span>9pm</span>
             </div>
+            
+            @if($todayCheckIns == 0)
+                <p class="text-center text-slate-500 text-xs mt-3">No classes scheduled for today</p>
+            @endif
         </div>
     </div>
 

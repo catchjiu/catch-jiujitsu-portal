@@ -29,17 +29,61 @@ class AdminController extends Controller
         // Today's attendance (bookings for today's classes)
         $todayStart = Carbon::today();
         $todayEnd = Carbon::today()->endOfDay();
-        $todayClasses = ClassSession::whereBetween('start_time', [$todayStart, $todayEnd])->get();
-        $todayCheckIns = Booking::whereIn('class_id', $todayClasses->pluck('id'))->count();
+        $todayClasses = ClassSession::whereBetween('start_time', [$todayStart, $todayEnd])
+            ->where(function($q) {
+                $q->where('is_cancelled', false)->orWhereNull('is_cancelled');
+            })
+            ->withCount('bookings')
+            ->get();
+        $todayCheckIns = $todayClasses->sum('bookings_count');
         
-        // Hourly attendance data for chart (mock for now)
+        // Hourly attendance data for chart (real data from today's classes)
         $hourlyData = [];
+        $maxCount = 1; // Prevent division by zero
+        
+        // Initialize all hours with 0
         for ($h = 6; $h <= 21; $h++) {
-            $hourlyData[] = [
+            $hourlyData[$h] = [
                 'hour' => $h,
-                'count' => rand(5, 45)
+                'count' => 0,
+                'classes' => []
             ];
         }
+        
+        // Populate with real class data
+        foreach ($todayClasses as $class) {
+            $hour = (int) $class->start_time->format('G');
+            if ($hour >= 6 && $hour <= 21) {
+                $hourlyData[$hour]['count'] += $class->bookings_count;
+                $hourlyData[$hour]['classes'][] = [
+                    'time' => $class->start_time->format('g:i A'),
+                    'title' => $class->title,
+                    'count' => $class->bookings_count
+                ];
+                if ($hourlyData[$hour]['count'] > $maxCount) {
+                    $maxCount = $hourlyData[$hour]['count'];
+                }
+            }
+        }
+        
+        // Find peak hour
+        $peakHour = null;
+        $peakCount = 0;
+        foreach ($hourlyData as $hour => $data) {
+            if ($data['count'] > $peakCount) {
+                $peakCount = $data['count'];
+                $peakHour = $hour;
+            }
+        }
+        
+        // Convert to indexed array and add normalized height
+        $hourlyData = array_values(array_map(function($data) use ($maxCount) {
+            $data['height'] = $maxCount > 0 ? ($data['count'] / $maxCount) * 100 : 0;
+            return $data;
+        }, $hourlyData));
+        
+        // Peak hours text
+        $peakHoursText = $peakHour !== null ? Carbon::createFromTime($peakHour)->format('ga') . ' - ' . Carbon::createFromTime($peakHour + 1)->format('ga') : 'No classes today';
         
         // Recent activity (recent bookings)
         $recentActivity = Booking::with(['user', 'classSession'])
@@ -78,6 +122,7 @@ class AdminController extends Controller
             'activeBookings' => $activeBookings,
             'todayCheckIns' => $todayCheckIns,
             'hourlyData' => $hourlyData,
+            'peakHoursText' => $peakHoursText,
             'recentActivity' => $recentActivity,
             'recentSignups' => $recentSignups,
             'expiringMemberships' => $expiringMemberships,
