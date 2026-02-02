@@ -219,10 +219,15 @@
 </div>
 
 <script>
+    let currentMemberExpiresAt = '';
+    
     function openApproveModal(paymentId, userId, packageId, status, expiresAt, classesRemaining) {
         const modal = document.getElementById('approveModal');
         const form = document.getElementById('approvePaymentForm');
         form.action = '{{ url("admin/payments") }}/' + paymentId + '/approve-with-membership';
+        
+        // Store the member's current expiry date for calculation
+        currentMemberExpiresAt = expiresAt || '';
         
         // Set current values
         document.getElementById('modal_package_select').value = packageId || '';
@@ -259,16 +264,28 @@
             
             if (durationType && durationValue > 0) {
                 const today = new Date();
-                let expiryDate = new Date(today);
+                today.setHours(0, 0, 0, 0);
+                
+                // Start from member's previous expiry date if it exists and is in the future
+                let startDate = new Date(today);
+                if (currentMemberExpiresAt) {
+                    const prevExpiry = new Date(currentMemberExpiresAt);
+                    prevExpiry.setHours(0, 0, 0, 0);
+                    if (prevExpiry > today) {
+                        startDate = prevExpiry;
+                    }
+                }
+                
+                let expiryDate = new Date(startDate);
                 
                 if (durationType === 'days') {
-                    expiryDate.setDate(today.getDate() + durationValue);
+                    expiryDate.setDate(startDate.getDate() + durationValue);
                 } else if (durationType === 'weeks') {
-                    expiryDate.setDate(today.getDate() + (durationValue * 7));
+                    expiryDate.setDate(startDate.getDate() + (durationValue * 7));
                 } else if (durationType === 'months') {
-                    expiryDate.setMonth(today.getMonth() + durationValue);
+                    expiryDate.setMonth(startDate.getMonth() + durationValue);
                 } else if (durationType === 'years') {
-                    expiryDate.setFullYear(today.getFullYear() + durationValue);
+                    expiryDate.setFullYear(startDate.getFullYear() + durationValue);
                 }
                 
                 const year = expiryDate.getFullYear();
