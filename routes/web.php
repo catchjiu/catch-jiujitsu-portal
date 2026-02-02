@@ -45,6 +45,7 @@ Route::middleware(['auth', 'member'])->group(function () {
 
     // Payments
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
+    Route::post('/payments/submit', [PaymentController::class, 'submitPayment'])->name('payments.submit');
     Route::post('/payments/{payment}/upload', [PaymentController::class, 'uploadProof'])->name('payments.upload');
 
     // Goals

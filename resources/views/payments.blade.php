@@ -50,6 +50,92 @@
         </div>
     </div>
 
+    <!-- Submit New Payment -->
+    <div class="glass rounded-2xl p-5 border-emerald-500/30 bg-slate-800/80 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <h3 class="text-lg font-bold text-white mb-4">Submit Payment</h3>
+            
+            <form action="{{ route('payments.submit') }}" method="POST" enctype="multipart/form-data" 
+                  x-data="{ 
+                      fileName: '', 
+                      paymentMethod: 'bank',
+                      paymentDate: '{{ now()->format('Y-m-d') }}',
+                      paymentAmount: '',
+                      accountLast5: ''
+                  }">
+                @csrf
+                
+                <!-- Payment Method Selection -->
+                <div class="mb-4">
+                    <label class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Payment Method</label>
+                    <div class="flex space-x-2">
+                        <button type="button" @click="paymentMethod = 'bank'" 
+                                :class="paymentMethod === 'bank' ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-800 text-slate-400 border-slate-600'"
+                                class="flex-1 py-2 px-3 text-sm font-bold rounded border transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-base">account_balance</span>
+                            Bank Transfer
+                        </button>
+                        <button type="button" @click="paymentMethod = 'linepay'" 
+                                :class="paymentMethod === 'linepay' ? 'bg-green-600 text-white border-green-600' : 'bg-slate-800 text-slate-400 border-slate-600'"
+                                class="flex-1 py-2 px-3 text-sm font-bold rounded border transition-colors flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-base">qr_code_2</span>
+                            LinePay
+                        </button>
+                    </div>
+                    <input type="hidden" name="payment_method" :value="paymentMethod">
+                </div>
+
+                <!-- Payment Date -->
+                <div class="mb-4">
+                    <label class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Payment Date</label>
+                    <input type="date" name="payment_date" x-model="paymentDate" required
+                           class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                </div>
+
+                <!-- Payment Amount -->
+                <div class="mb-4">
+                    <label class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Amount Paid (NT$)</label>
+                    <input type="number" name="payment_amount" x-model="paymentAmount" required min="1"
+                           placeholder="Enter amount"
+                           class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                </div>
+
+                <!-- Last 5 Digits (Bank Transfer Only) -->
+                <div class="mb-4" x-show="paymentMethod === 'bank'" x-transition>
+                    <label class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Last 5 Digits of Your Account</label>
+                    <input type="text" name="account_last_5" x-model="accountLast5" maxlength="5" 
+                           :required="paymentMethod === 'bank'"
+                           placeholder="e.g. 12345"
+                           class="w-full bg-slate-800 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 font-mono tracking-widest text-center">
+                    <p class="text-xs text-slate-500 mt-1">Enter the last 5 digits of your bank account for verification</p>
+                </div>
+
+                <!-- Upload Proof Image -->
+                <div class="mb-4">
+                    <label class="block text-xs text-slate-400 uppercase tracking-wider mb-2">Payment Proof</label>
+                    <label class="block w-full cursor-pointer">
+                        <input type="file" name="proof_image" accept="image/*" class="hidden" required
+                               @change="fileName = $event.target.files[0]?.name || ''"
+                               x-ref="fileInput">
+                        <div @click="$refs.fileInput.click()" 
+                             class="w-full h-20 border-2 border-dashed border-emerald-500 rounded-lg flex flex-col items-center justify-center bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
+                            <span class="material-symbols-outlined text-emerald-500">cloud_upload</span>
+                            <span class="text-xs text-emerald-500 mt-1 font-bold" x-text="fileName || 'Tap to Upload Screenshot/Slip'"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <button type="submit" 
+                        class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-xs tracking-wider rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :disabled="!fileName || !paymentDate || !paymentAmount || (paymentMethod === 'bank' && accountLast5.length !== 5)">
+                    <span class="material-symbols-outlined text-sm">upload_file</span>
+                    Submit Payment
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Payment History -->
     <div class="space-y-4">
         <h3 class="text-lg font-bold text-white px-2" style="font-family: 'Bebas Neue', sans-serif;">History & Status</h3>
