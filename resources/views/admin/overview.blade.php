@@ -163,6 +163,62 @@
         </div>
     </div>
 
+    <!-- Pending Payments Card -->
+    @if($pendingPayments->count() > 0)
+        <div class="glass rounded-2xl p-5 relative overflow-hidden border-l-4 border-l-amber-500">
+            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-amber-500">pending_actions</span>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-semibold">Pending Payments</h3>
+                            <p class="text-amber-400 text-xs">{{ $pendingPayments->count() }} payment(s) awaiting verification</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('admin.payments') }}" class="text-amber-400 hover:text-amber-300 text-xs font-bold uppercase">
+                        Review
+                    </a>
+                </div>
+                
+                <div class="space-y-2">
+                    @foreach($pendingPayments->take(3) as $payment)
+                        <a href="{{ route('admin.members.show', $payment->user->id) }}" 
+                           class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 flex-shrink-0">
+                                    @if($payment->user->avatar)
+                                        <img src="{{ $payment->user->avatar }}" alt="" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">
+                                            {{ substr($payment->user->name, 0, 1) }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div>
+                                    <p class="text-white text-sm font-medium">{{ $payment->user->name }}</p>
+                                    <p class="text-slate-500 text-xs">{{ $payment->month }}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-amber-400 font-bold">NT${{ number_format($payment->amount) }}</p>
+                                <p class="text-slate-500 text-xs">{{ $payment->submitted_at?->diffForHumans(null, true) ?? 'Just now' }}</p>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+                
+                @if($pendingPayments->count() > 3)
+                    <a href="{{ route('admin.payments') }}" class="block text-center text-amber-400 hover:text-amber-300 text-xs mt-3 py-2">
+                        View all {{ $pendingPayments->count() }} pending payments →
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <!-- Today's Attendance Card -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
