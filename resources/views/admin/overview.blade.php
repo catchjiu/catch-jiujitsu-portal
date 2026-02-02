@@ -55,6 +55,22 @@
                             No new notifications
                         </div>
                     @else
+                        <!-- Pending Payments -->
+                        @foreach($pendingPayments as $payment)
+                            <a href="{{ route('admin.members.show', $payment->user->id) }}" 
+                               class="flex items-center gap-3 p-3 hover:bg-slate-700/50 transition-colors border-b border-slate-700/50">
+                                <div class="w-9 h-9 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                    <span class="material-symbols-outlined text-blue-500 text-lg">payments</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-white text-sm font-medium truncate">{{ $payment->user->name }}</p>
+                                    <p class="text-blue-400 text-xs">
+                                        Payment pending - NT${{ number_format($payment->amount) }}
+                                    </p>
+                                </div>
+                            </a>
+                        @endforeach
+                        
                         <!-- Expiring Memberships -->
                         @foreach($expiringMemberships as $member)
                             <a href="{{ route('admin.members.show', $member->id) }}" 
@@ -262,8 +278,22 @@
                     <span class="text-emerald-400 text-xs flex-shrink-0">{{ $signup->created_at->diffForHumans(null, true) }}</span>
                 </a>
             @endforeach
+
+            @foreach($pendingPayments->take(5) as $payment)
+                <a href="{{ route('admin.members.show', $payment->user->id) }}" 
+                   class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-blue-500/30 hover:bg-slate-700/50 transition-colors">
+                    <div class="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-500 flex-shrink-0 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-white text-lg">payments</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white text-sm font-medium truncate">Payment Pending</p>
+                        <p class="text-slate-500 text-xs truncate">{{ $payment->user->name }} - NT${{ number_format($payment->amount) }}</p>
+                    </div>
+                    <span class="text-blue-400 text-xs flex-shrink-0">{{ $payment->submitted_at ? $payment->submitted_at->diffForHumans(null, true) : 'New' }}</span>
+                </a>
+            @endforeach
             
-            @if($recentActivity->isEmpty() && $recentSignups->isEmpty())
+            @if($recentActivity->isEmpty() && $recentSignups->isEmpty() && $pendingPayments->isEmpty())
                 <div class="text-center py-6 text-slate-500 text-sm">
                     No recent activity
                 </div>

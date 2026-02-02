@@ -423,24 +423,73 @@
             <h3 class="text-lg font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">Payment History</h3>
             
             @if($payments->count() > 0)
-                <div class="space-y-2">
+                <div class="space-y-3">
                     @foreach($payments as $payment)
                         @php
                             $statusColors = [
-                                'Paid' => 'text-emerald-400 bg-emerald-400/10',
-                                'Pending Verification' => 'text-amber-500 bg-amber-500/10',
-                                'Overdue' => 'text-red-400 bg-red-400/10',
-                                'Rejected' => 'text-red-400 bg-red-400/10',
+                                'Paid' => 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+                                'Pending Verification' => 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+                                'Overdue' => 'text-red-400 bg-red-400/10 border-red-400/20',
+                                'Rejected' => 'text-red-400 bg-red-400/10 border-red-400/20',
                             ];
                         @endphp
-                        <div class="flex justify-between items-center py-2 border-b border-slate-700/50 last:border-0">
-                            <div>
-                                <p class="text-white text-sm">{{ $payment->month }}</p>
-                                <p class="text-slate-500 text-xs">฿{{ number_format($payment->amount) }}</p>
+                        <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="text-white font-medium">{{ $payment->month }}</p>
+                                    <p class="text-lg font-bold text-amber-500">NT${{ number_format($payment->amount) }}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase border {{ $statusColors[$payment->status] ?? 'text-slate-400' }}">
+                                    {{ $payment->status }}
+                                </span>
                             </div>
-                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase {{ $statusColors[$payment->status] ?? 'text-slate-400' }}">
-                                {{ $payment->status }}
-                            </span>
+                            
+                            @if($payment->payment_method || $payment->payment_date || $payment->account_last_5)
+                                <div class="text-xs text-slate-400 space-y-1 mb-2 pt-2 border-t border-slate-700/50">
+                                    @if($payment->payment_method)
+                                        <p><span class="text-slate-500">Method:</span> {{ $payment->payment_method === 'bank' ? 'Bank Transfer' : 'LinePay' }}</p>
+                                    @endif
+                                    @if($payment->payment_date)
+                                        <p><span class="text-slate-500">Paid on:</span> {{ \Carbon\Carbon::parse($payment->payment_date)->format('M d, Y') }}</p>
+                                    @endif
+                                    @if($payment->account_last_5)
+                                        <p><span class="text-slate-500">Account (last 5):</span> {{ $payment->account_last_5 }}</p>
+                                    @endif
+                                </div>
+                            @endif
+                            
+                            @if($payment->proof_image_path)
+                                <div class="mb-2">
+                                    <a href="{{ Storage::url($payment->proof_image_path) }}" target="_blank" 
+                                       class="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs">
+                                        <span class="material-symbols-outlined text-sm">image</span>
+                                        View Payment Proof
+                                    </a>
+                                </div>
+                            @endif
+                            
+                            @if($payment->submitted_at)
+                                <p class="text-xs text-slate-500">Submitted {{ $payment->submitted_at->diffForHumans() }}</p>
+                            @endif
+                            
+                            @if($payment->status === 'Pending Verification')
+                                <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700/50">
+                                    <form action="{{ route('admin.payments.approve', $payment->id) }}" method="POST" class="flex-1">
+                                        @csrf
+                                        <button type="submit" class="w-full py-2 rounded bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">check</span>
+                                            Confirm
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('admin.payments.reject', $payment->id) }}" method="POST" class="flex-1">
+                                        @csrf
+                                        <button type="submit" class="w-full py-2 rounded border border-red-500/50 text-red-400 hover:bg-red-500/10 text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">close</span>
+                                            Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
                         </div>
                     @endforeach
                 </div>

@@ -113,8 +113,14 @@ class AdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
+        // Pending payment verifications (for notifications and live feed)
+        $pendingPayments = Payment::with('user')
+            ->where('status', 'Pending Verification')
+            ->orderBy('submitted_at', 'desc')
+            ->get();
+        
         // Total notification count
-        $notificationCount = $expiringMemberships->count() + $newSignupsToday->count();
+        $notificationCount = $expiringMemberships->count() + $newSignupsToday->count() + $pendingPayments->count();
 
         return view('admin.overview', [
             'user' => $user,
@@ -127,6 +133,7 @@ class AdminController extends Controller
             'recentSignups' => $recentSignups,
             'expiringMemberships' => $expiringMemberships,
             'newSignupsToday' => $newSignupsToday,
+            'pendingPayments' => $pendingPayments,
             'notificationCount' => $notificationCount,
         ]);
     }
