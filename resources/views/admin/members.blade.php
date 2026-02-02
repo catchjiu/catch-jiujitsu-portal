@@ -131,7 +131,7 @@
                         <!-- Belt bar with stripes -->
                         <div class="flex items-center">
                             @if($member->rank === 'Black')
-                                <div class="w-16 h-4 rounded-sm bg-black relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-black relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-red-600 flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -139,7 +139,7 @@
                                     </div>
                                 </div>
                             @elseif($member->rank === 'Brown')
-                                <div class="w-16 h-4 rounded-sm bg-yellow-900 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-yellow-900 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -147,7 +147,7 @@
                                     </div>
                                 </div>
                             @elseif($member->rank === 'Purple')
-                                <div class="w-16 h-4 rounded-sm bg-purple-600 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-purple-600 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -155,7 +155,7 @@
                                     </div>
                                 </div>
                             @elseif($member->rank === 'Blue')
-                                <div class="w-16 h-4 rounded-sm bg-blue-600 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-blue-600 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -163,7 +163,7 @@
                                     </div>
                                 </div>
                             @elseif($member->rank === 'Green')
-                                <div class="w-16 h-4 rounded-sm bg-green-500 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-green-500 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -171,7 +171,7 @@
                                     </div>
                                 </div>
                             @elseif($member->rank === 'Orange')
-                                <div class="w-16 h-4 rounded-sm bg-orange-500 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-orange-500 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -179,7 +179,7 @@
                                     </div>
                                 </div>
                             @elseif($member->rank === 'Yellow')
-                                <div class="w-16 h-4 rounded-sm bg-yellow-400 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-yellow-400 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -187,7 +187,7 @@
                                     </div>
                                 </div>
                             @elseif($member->rank === 'Grey')
-                                <div class="w-16 h-4 rounded-sm bg-slate-300 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-slate-300 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>
@@ -196,7 +196,7 @@
                                 </div>
                             @else
                                 <!-- White Belt (default) -->
-                                <div class="w-16 h-4 rounded-sm bg-gray-100 relative flex items-center justify-end pr-1">
+                                <div class="w-16 h-4 rounded-sm bg-gray-100 relative flex items-center pl-1">
                                     <div class="h-full w-6 bg-black flex items-center justify-around px-0.5">
                                         @for ($i = 0; $i < $member->stripes; $i++)
                                             <div class="w-1 h-full bg-white"></div>

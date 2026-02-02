@@ -58,64 +58,64 @@
             <!-- Belt Display -->
             <div class="flex justify-center mb-4">
                 @if($member->rank === 'Black')
-                    <div class="w-32 h-6 rounded bg-black relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-red-600 flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-black relative flex items-center">
+                        <div class="h-full w-10 bg-red-600 flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
                     </div>
                 @elseif($member->rank === 'Brown')
-                    <div class="w-32 h-6 rounded bg-yellow-900 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-yellow-900 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
                     </div>
                 @elseif($member->rank === 'Purple')
-                    <div class="w-32 h-6 rounded bg-purple-600 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-purple-600 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
                     </div>
                 @elseif($member->rank === 'Blue')
-                    <div class="w-32 h-6 rounded bg-blue-600 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-blue-600 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
                     </div>
                 @elseif($member->rank === 'Green')
-                    <div class="w-32 h-6 rounded bg-green-500 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-green-500 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
                     </div>
                 @elseif($member->rank === 'Orange')
-                    <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
                     </div>
                 @elseif($member->rank === 'Yellow')
-                    <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
                     </div>
                 @elseif($member->rank === 'Grey')
-                    <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
@@ -123,8 +123,8 @@
                     </div>
                 @else
                     <!-- White Belt (default) -->
-                    <div class="w-32 h-6 rounded bg-gray-100 relative flex items-center justify-end">
-                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-r">
+                    <div class="w-32 h-6 rounded bg-gray-100 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-around px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
