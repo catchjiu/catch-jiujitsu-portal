@@ -489,11 +489,14 @@ class AdminController extends Controller
         }
         
         // Memberships expiring soon (next 7 days)
-        $expiringSoon = User::where('is_admin', false)
+        $expiringMembersList = User::where('is_admin', false)
             ->where('membership_status', 'active')
             ->where('membership_expires_at', '>=', now())
             ->where('membership_expires_at', '<=', now()->addDays(7))
-            ->count();
+            ->with('membershipPackage')
+            ->orderBy('membership_expires_at')
+            ->get();
+        $expiringSoon = $expiringMembersList->count();
         
         // Classes data for this month
         $classesThisMonth = ClassSession::whereMonth('start_time', now()->month)
@@ -538,6 +541,7 @@ class AdminController extends Controller
             'monthLabels' => json_encode($monthLabels),
             'memberGrowth' => json_encode($memberGrowth),
             'expiringSoon' => $expiringSoon,
+            'expiringMembersList' => $expiringMembersList,
             'classesThisMonth' => $classesThisMonth,
             'totalBookingsThisMonth' => $totalBookingsThisMonth,
             'recentPayments' => $recentPayments,

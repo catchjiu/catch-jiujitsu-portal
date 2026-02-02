@@ -65,19 +65,88 @@
         </div>
         
         <!-- Expiring Soon -->
-        <div class="glass rounded-2xl p-4 relative overflow-hidden">
+        <div class="glass rounded-2xl p-4 relative overflow-hidden {{ $expiringSoon > 0 ? 'cursor-pointer hover:bg-slate-800/60' : '' }} transition-colors" 
+             @if($expiringSoon > 0) onclick="toggleExpiringList()" @endif>
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-1">
+                <div class="flex items-center justify-between mb-1">
                     <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
                         <span class="material-symbols-outlined text-amber-500 text-lg">schedule</span>
                     </div>
+                    @if($expiringSoon > 0)
+                        <span class="material-symbols-outlined text-slate-500 text-lg transition-transform" id="expiringArrow">expand_more</span>
+                    @endif
                 </div>
                 <p class="text-xs text-slate-400 uppercase">Expiring (7 days)</p>
                 <p class="text-2xl font-bold {{ $expiringSoon > 0 ? 'text-amber-400' : 'text-white' }}" style="font-family: 'Bebas Neue', sans-serif;">{{ $expiringSoon }}</p>
             </div>
         </div>
     </div>
+    
+    <!-- Expiring Members List (Hidden by default) -->
+    @if($expiringSoon > 0)
+    <div id="expiringMembersList" class="hidden glass rounded-2xl p-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <h3 class="text-sm font-bold text-amber-400 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg">warning</span>
+                Memberships Expiring Soon
+            </h3>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+                @foreach($expiringMembersList as $member)
+                    <a href="{{ route('admin.members.show', $member->id) }}" 
+                       class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 flex-shrink-0">
+                                @if($member->avatar)
+                                    <img src="{{ $member->avatar }}" alt="" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
+                                        {{ substr($member->first_name, 0, 1) }}{{ substr($member->last_name, 0, 1) }}
+                                    </div>
+                                @endif
+                            </div>
+                            <div>
+                                <p class="text-white font-medium text-sm">{{ $member->name }}</p>
+                                <p class="text-slate-500 text-xs">{{ $member->membershipPackage->name ?? 'Unknown Package' }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            @php
+                                $daysLeft = now()->diffInDays($member->membership_expires_at, false);
+                            @endphp
+                            <p class="text-amber-400 font-bold text-sm">{{ $member->membership_expires_at->format('M j') }}</p>
+                            <p class="text-slate-500 text-xs">
+                                @if($daysLeft == 0)
+                                    Today
+                                @elseif($daysLeft == 1)
+                                    Tomorrow
+                                @else
+                                    {{ $daysLeft }} days
+                                @endif
+                            </p>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleExpiringList() {
+            const list = document.getElementById('expiringMembersList');
+            const arrow = document.getElementById('expiringArrow');
+            
+            if (list.classList.contains('hidden')) {
+                list.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                list.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
+    @endif
 
     <!-- Member Growth Chart -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
