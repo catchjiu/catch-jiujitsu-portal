@@ -120,12 +120,63 @@
     <div class="flex items-center justify-between">
         <div>
             <h2 class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Overview</h2>
-            <p class="text-slate-400 text-sm">Today, {{ now()->format('M d') }}</p>
+            <p class="text-slate-400 text-sm" id="dateRangeLabel">{{ $dateLabel }}</p>
         </div>
-        <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 text-slate-400 hover:text-white transition-colors text-sm">
-            Filter
-            <span class="material-symbols-outlined text-lg">tune</span>
-        </button>
+        <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 text-slate-400 hover:text-white transition-colors text-sm">
+                Filter
+                <span class="material-symbols-outlined text-lg">tune</span>
+            </button>
+            
+            <!-- Filter Dropdown -->
+            <div x-show="open" 
+                 @click.away="open = false"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="absolute right-0 top-12 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden"
+                 style="display: none;">
+                
+                <div class="p-3 border-b border-slate-700">
+                    <h4 class="text-white font-semibold text-sm">Filter Options</h4>
+                </div>
+                
+                <form action="{{ route('admin.index') }}" method="GET" class="p-3 space-y-4">
+                    <!-- Date Range -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Date Range</label>
+                        <select name="date_range" class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
+                            <option value="today" {{ request('date_range', 'today') === 'today' ? 'selected' : '' }}>Today</option>
+                            <option value="yesterday" {{ request('date_range') === 'yesterday' ? 'selected' : '' }}>Yesterday</option>
+                            <option value="week" {{ request('date_range') === 'week' ? 'selected' : '' }}>This Week</option>
+                            <option value="month" {{ request('date_range') === 'month' ? 'selected' : '' }}>This Month</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Age Group -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Age Group</label>
+                        <select name="age_group" class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
+                            <option value="all" {{ request('age_group', 'all') === 'all' ? 'selected' : '' }}>All Classes</option>
+                            <option value="Adults" {{ request('age_group') === 'Adults' ? 'selected' : '' }}>Adults Only</option>
+                            <option value="Kids" {{ request('age_group') === 'Kids' ? 'selected' : '' }}>Kids Only</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-2 pt-2">
+                        <a href="{{ route('admin.index') }}" class="flex-1 py-2 text-center rounded-lg border border-slate-600 text-slate-400 text-xs font-bold uppercase hover:bg-slate-700 transition-colors">
+                            Reset
+                        </a>
+                        <button type="submit" class="flex-1 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold uppercase transition-colors">
+                            Apply
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Stats Cards -->
@@ -219,13 +270,13 @@
         </div>
     @endif
 
-    <!-- Today's Attendance Card -->
+    <!-- Attendance Card -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div class="relative z-10">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h3 class="text-white font-semibold">Today's Attendance</h3>
+                    <h3 class="text-white font-semibold">{{ request('date_range', 'today') === 'today' ? "Today's" : (request('date_range') === 'yesterday' ? "Yesterday's" : ucfirst(request('date_range', 'Today'))) }} Attendance</h3>
                     <p class="text-slate-500 text-xs">Peak: {{ $peakHoursText }}</p>
                 </div>
                 <div class="text-right">

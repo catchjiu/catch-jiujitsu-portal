@@ -16,9 +16,37 @@ class AdminController extends Controller
     /**
      * Display admin overview dashboard.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        
+        // Get filter parameters
+        $dateRange = $request->get('date_range', 'today');
+        $ageGroup = $request->get('age_group', 'all');
+        
+        // Calculate date range
+        switch ($dateRange) {
+            case 'yesterday':
+                $startDate = Carbon::yesterday();
+                $endDate = Carbon::yesterday()->endOfDay();
+                $dateLabel = 'Yesterday, ' . $startDate->format('M d');
+                break;
+            case 'week':
+                $startDate = Carbon::now()->startOfWeek();
+                $endDate = Carbon::now()->endOfWeek();
+                $dateLabel = 'This Week, ' . $startDate->format('M d') . ' - ' . $endDate->format('M d');
+                break;
+            case 'month':
+                $startDate = Carbon::now()->startOfMonth();
+                $endDate = Carbon::now()->endOfMonth();
+                $dateLabel = now()->format('F Y');
+                break;
+            default: // today
+                $startDate = Carbon::today();
+                $endDate = Carbon::today()->endOfDay();
+                $dateLabel = 'Today, ' . now()->format('M d');
+                break;
+        }
         
         // Stats
         $totalMembers = User::where('is_admin', false)->count();
@@ -26,18 +54,24 @@ class AdminController extends Controller
             $q->where('start_time', '>', now());
         })->count();
         
-        // Today's attendance (bookings for today's classes)
-        $todayStart = Carbon::today();
-        $todayEnd = Carbon::today()->endOfDay();
-        $todayClasses = ClassSession::whereBetween('start_time', [$todayStart, $todayEnd])
+        // Attendance query with filters
+        $classesQuery = ClassSession::whereBetween('start_time', [$startDate, $endDate])
             ->where(function($q) {
                 $q->where('is_cancelled', false)->orWhereNull('is_cancelled');
-            })
-            ->withCount('bookings')
-            ->get();
-        $todayCheckIns = $todayClasses->sum('bookings_count');
+            });
         
-        // Hourly attendance data for chart (real data from today's classes)
+        // Apply age group filter
+        if ($ageGroup !== 'all') {
+            $classesQuery->where(function($q) use ($ageGroup) {
+                $q->where('age_group', $ageGroup)
+                  ->orWhere('age_group', 'All');
+            });
+        }
+        
+        $filteredClasses = $classesQuery->withCount('bookings')->get();
+        $todayCheckIns = $filteredClasses->sum('bookings_count');
+        
+        // Hourly attendance data for chart
         $hourlyData = [];
         $maxCount = 1; // Prevent division by zero
         
@@ -51,7 +85,7 @@ class AdminController extends Controller
         }
         
         // Populate with real class data
-        foreach ($todayClasses as $class) {
+        foreach ($filteredClasses as $class) {
             $hour = (int) $class->start_time->format('G');
             if ($hour >= 6 && $hour <= 21) {
                 $hourlyData[$hour]['count'] += $class->bookings_count;
@@ -83,7 +117,7 @@ class AdminController extends Controller
         }, $hourlyData));
         
         // Peak hours text
-        $peakHoursText = $peakHour !== null ? Carbon::createFromTime($peakHour)->format('ga') . ' - ' . Carbon::createFromTime($peakHour + 1)->format('ga') : 'No classes today';
+        $peakHoursText = $peakHour !== null ? Carbon::createFromTime($peakHour)->format('ga') . ' - ' . Carbon::createFromTime($peakHour + 1)->format('ga') : 'No classes in range';
         
         // Recent activity (recent bookings)
         $recentActivity = Booking::with(['user', 'classSession'])
@@ -129,6 +163,7 @@ class AdminController extends Controller
             'todayCheckIns' => $todayCheckIns,
             'hourlyData' => $hourlyData,
             'peakHoursText' => $peakHoursText,
+            'dateLabel' => $dateLabel,
             'recentActivity' => $recentActivity,
             'recentSignups' => $recentSignups,
             'expiringMemberships' => $expiringMemberships,
