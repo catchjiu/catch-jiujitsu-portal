@@ -32,9 +32,9 @@
             <div id="bank-details" class="space-y-4">
                 <div class="text-center p-4 bg-slate-900 rounded border border-slate-700">
                     <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">account_balance</span>
-                    <p class="text-slate-400 text-xs uppercase tracking-widest mb-1">Kasikorn Bank</p>
-                    <p class="text-xl font-mono text-amber-500 select-all cursor-pointer">012-3-45678-9</p>
-                    <p class="text-slate-500 text-xs mt-1">Account Name: Catch Jiu Jitsu Co.</p>
+                    <p class="text-slate-400 text-xs uppercase tracking-widest mb-1">CTBC Bank</p>
+                    <p class="text-xl font-mono text-amber-500 select-all cursor-pointer">822 037540606649</p>
+                    <p class="text-slate-500 text-xs mt-1">Account Name: Catch Jiu Jitsu</p>
                 </div>
                 <div class="text-center p-4 bg-slate-900 rounded border border-slate-700">
                     <span class="material-symbols-outlined text-4xl text-green-500 mb-2">qr_code_2</span>
