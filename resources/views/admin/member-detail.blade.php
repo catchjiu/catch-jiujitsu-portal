@@ -105,101 +105,59 @@
                         </div>
                     </div>
                 @elseif($member->rank === 'Green')
-                    @if($member->belt_variation === 'solid')
-                        <div class="w-32 h-6 rounded bg-green-500 relative flex items-center justify-start gap-1 px-2">
+                    <div class="w-32 h-6 rounded bg-green-500 relative flex items-center">
+                        <!-- Black bar for stripes on left -->
+                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    @elseif($member->belt_variation === 'white')
-                        <div class="w-32 h-6 rounded bg-green-500 relative flex items-center">
-                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-green-500"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @else
-                        <div class="w-32 h-6 rounded bg-green-500 relative flex items-center">
-                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-white"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @endif
+                        <!-- Center stripe based on variation -->
+                        @if($member->belt_variation === 'white')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-white"></div>
+                        @elseif($member->belt_variation === 'black')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-black"></div>
+                        @endif
+                    </div>
                 @elseif($member->rank === 'Orange')
-                    @if($member->belt_variation === 'solid')
-                        <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center justify-start gap-1 px-2">
+                    <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    @elseif($member->belt_variation === 'white')
-                        <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center">
-                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-orange-500"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @else
-                        <div class="w-32 h-6 rounded bg-orange-500 relative flex items-center">
-                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-white"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @endif
+                        @if($member->belt_variation === 'white')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-white"></div>
+                        @elseif($member->belt_variation === 'black')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-black"></div>
+                        @endif
+                    </div>
                 @elseif($member->rank === 'Yellow')
-                    @if($member->belt_variation === 'solid')
-                        <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center justify-start gap-1 px-2">
+                    <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    @elseif($member->belt_variation === 'white')
-                        <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center">
-                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-yellow-400"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @else
-                        <div class="w-32 h-6 rounded bg-yellow-400 relative flex items-center">
-                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-white"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @endif
+                        @if($member->belt_variation === 'white')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-white"></div>
+                        @elseif($member->belt_variation === 'black')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-black"></div>
+                        @endif
+                    </div>
                 @elseif($member->rank === 'Grey')
-                    @if($member->belt_variation === 'solid')
-                        <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center justify-start gap-1 px-2">
+                    <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center">
+                        <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
                             @for ($i = 0; $i < $member->stripes; $i++)
                                 <div class="w-1.5 h-full bg-white"></div>
                             @endfor
                         </div>
-                    @elseif($member->belt_variation === 'white')
-                        <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center">
-                            <div class="h-full w-10 bg-white flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-slate-300"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @else
-                        <div class="w-32 h-6 rounded bg-slate-300 relative flex items-center">
-                            <div class="h-full w-10 bg-black flex items-center justify-start gap-1 px-1 rounded-l">
-                                @for ($i = 0; $i < $member->stripes; $i++)
-                                    <div class="w-1.5 h-full bg-white"></div>
-                                @endfor
-                            </div>
-                        </div>
-                    @endif
+                        @if($member->belt_variation === 'white')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-white"></div>
+                        @elseif($member->belt_variation === 'black')
+                            <div class="absolute left-1/2 transform -translate-x-1/2 w-3 h-full bg-black"></div>
+                        @endif
+                    </div>
                 @else
                     <!-- White Belt (default) -->
                     <div class="w-32 h-6 rounded bg-gray-100 relative flex items-center">
