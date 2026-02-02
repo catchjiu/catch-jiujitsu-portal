@@ -98,6 +98,7 @@ Route::middleware('auth')->group(function () {
         // Payments (Settings)
         Route::get('/payments', [AdminController::class, 'payments'])->name('payments');
         Route::post('/payments/{id}/approve', [AdminController::class, 'approvePayment'])->name('payments.approve');
+        Route::post('/payments/{id}/approve-with-membership', [AdminController::class, 'approvePaymentWithMembership'])->name('payments.approve.membership');
         Route::post('/payments/{id}/reject', [AdminController::class, 'rejectPayment'])->name('payments.reject');
 
         // Membership Packages

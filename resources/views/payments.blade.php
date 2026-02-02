@@ -141,7 +141,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <p class="text-sm text-slate-400 uppercase font-bold">{{ $payment->month }}</p>
-                            <p class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">฿{{ number_format($payment->amount) }}</p>
+                            <p class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">NT${{ number_format($payment->amount) }}</p>
                         </div>
                         <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border {{ $statusColor }}">
                             {{ $payment->status }}

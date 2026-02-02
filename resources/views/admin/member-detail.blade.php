@@ -464,13 +464,10 @@
                             
                             @if($payment->status === 'Pending Verification')
                                 <div class="flex gap-2 mt-3 pt-3 border-t border-slate-700/50">
-                                    <form action="{{ route('admin.payments.approve', $payment->id) }}" method="POST" class="flex-1">
-                                        @csrf
-                                        <button type="submit" class="w-full py-2 rounded bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1">
-                                            <span class="material-symbols-outlined text-sm">check</span>
-                                            Confirm
-                                        </button>
-                                    </form>
+                                    <button type="button" onclick="openApproveModal({{ $payment->id }})" class="flex-1 py-2 rounded bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1">
+                                        <span class="material-symbols-outlined text-sm">check</span>
+                                        Confirm
+                                    </button>
                                     <form action="{{ route('admin.payments.reject', $payment->id) }}" method="POST" class="flex-1">
                                         @csrf
                                         <button type="submit" class="w-full py-2 rounded border border-red-500/50 text-red-400 hover:bg-red-500/10 text-xs font-bold uppercase transition-colors flex items-center justify-center gap-1">
@@ -508,4 +505,140 @@
         </div>
     </div>
 </div>
+
+<!-- Approve Payment Modal -->
+<div id="approveModal" class="fixed inset-0 z-50 hidden">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-black/70" onclick="closeApproveModal()"></div>
+    
+    <!-- Modal Content -->
+    <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="p-4 border-b border-slate-700 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Confirm Payment & Update Membership</h3>
+            <button onclick="closeApproveModal()" class="text-slate-400 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div class="p-4 overflow-y-auto flex-1">
+            <form id="approvePaymentForm" method="POST" class="space-y-4">
+                @csrf
+                
+                <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center mb-4">
+                    <span class="material-symbols-outlined text-emerald-400 text-2xl">check_circle</span>
+                    <p class="text-emerald-400 text-sm font-medium mt-1">Payment will be marked as PAID</p>
+                </div>
+                
+                <p class="text-slate-400 text-sm mb-4">Update membership information for this member:</p>
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Package</label>
+                    <select name="membership_package_id" id="modal_package_select"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                        onchange="modalAutoSetExpiry()">
+                        <option value="" data-duration-type="" data-duration-value="">No Package</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}" 
+                                data-duration-type="{{ $package->duration_type }}" 
+                                data-duration-value="{{ $package->duration_value }}"
+                                {{ $member->membership_package_id == $package->id ? 'selected' : '' }}>
+                                {{ $package->name }} - NT${{ number_format($package->price) }} ({{ $package->duration_label }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Status</label>
+                        <select name="membership_status" id="modal_status_select"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:border-emerald-500 transition-colors">
+                            <option value="none">None</option>
+                            <option value="pending">Pending</option>
+                            <option value="active" selected>Active</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Expires At</label>
+                        <input type="date" name="membership_expires_at" id="modal_expires_at" value="{{ $member->membership_expires_at?->format('Y-m-d') }}"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:border-emerald-500 transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Classes Remaining (for class packages)</label>
+                    <input type="number" name="classes_remaining" value="{{ $member->classes_remaining }}" min="0"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                        placeholder="Leave empty for time-based packages">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeApproveModal()" 
+                        class="flex-1 py-3 rounded-lg border border-slate-600 text-slate-400 font-bold uppercase text-sm tracking-wider hover:bg-slate-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-sm tracking-wider transition-colors flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-sm">check</span>
+                        Confirm & Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openApproveModal(paymentId) {
+        const modal = document.getElementById('approveModal');
+        const form = document.getElementById('approvePaymentForm');
+        form.action = '{{ url("admin/payments") }}/' + paymentId + '/approve-with-membership';
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Auto-set expiry when modal opens if package is already selected
+        modalAutoSetExpiry();
+    }
+    
+    function closeApproveModal() {
+        const modal = document.getElementById('approveModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    function modalAutoSetExpiry() {
+        const packageSelect = document.getElementById('modal_package_select');
+        const statusSelect = document.getElementById('modal_status_select');
+        const expiryInput = document.getElementById('modal_expires_at');
+        
+        if (packageSelect.value) {
+            statusSelect.value = 'active';
+            
+            const selectedOption = packageSelect.options[packageSelect.selectedIndex];
+            const durationType = selectedOption.dataset.durationType;
+            const durationValue = parseInt(selectedOption.dataset.durationValue) || 0;
+            
+            if (durationType && durationValue > 0) {
+                const today = new Date();
+                let expiryDate = new Date(today);
+                
+                if (durationType === 'days') {
+                    expiryDate.setDate(today.getDate() + durationValue);
+                } else if (durationType === 'weeks') {
+                    expiryDate.setDate(today.getDate() + (durationValue * 7));
+                } else if (durationType === 'months') {
+                    expiryDate.setMonth(today.getMonth() + durationValue);
+                } else if (durationType === 'years') {
+                    expiryDate.setFullYear(today.getFullYear() + durationValue);
+                }
+                
+                const year = expiryDate.getFullYear();
+                const month = String(expiryDate.getMonth() + 1).padStart(2, '0');
+                const day = String(expiryDate.getDate()).padStart(2, '0');
+                expiryInput.value = `${year}-${month}-${day}`;
+            }
+        }
+    }
+</script>
 @endsection

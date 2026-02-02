@@ -926,6 +926,64 @@ class AdminController extends Controller
     }
 
     /**
+     * Approve a payment and update membership.
+     */
+    public function approvePaymentWithMembership(Request $request, $id)
+    {
+        $payment = Payment::with('user')->findOrFail($id);
+        
+        // Approve the payment
+        $payment->update(['status' => 'Paid']);
+        
+        // Update membership if data provided
+        $member = $payment->user;
+        
+        $validated = $request->validate([
+            'membership_package_id' => 'nullable|exists:membership_packages,id',
+            'membership_status' => 'required|in:none,pending,active,expired',
+            'membership_expires_at' => 'nullable|date',
+            'classes_remaining' => 'nullable|integer|min:0',
+        ]);
+        
+        // Calculate expiration if package selected and not provided
+        if ($validated['membership_package_id'] && $validated['membership_status'] === 'active' && !$validated['membership_expires_at']) {
+            $package = MembershipPackage::find($validated['membership_package_id']);
+            if ($package && $package->duration_type !== 'classes') {
+                $expiresAt = now();
+                switch ($package->duration_type) {
+                    case 'days':
+                        $expiresAt = $expiresAt->addDays($package->duration_value);
+                        break;
+                    case 'weeks':
+                        $expiresAt = $expiresAt->addWeeks($package->duration_value);
+                        break;
+                    case 'months':
+                        $expiresAt = $expiresAt->addMonths($package->duration_value);
+                        break;
+                    case 'years':
+                        $expiresAt = $expiresAt->addYears($package->duration_value);
+                        break;
+                }
+                $validated['membership_expires_at'] = $expiresAt;
+            }
+
+            // Set classes remaining for class-based packages
+            if ($package && $package->duration_type === 'classes' && empty($validated['classes_remaining'])) {
+                $validated['classes_remaining'] = $package->duration_value;
+            }
+        }
+        
+        $member->update([
+            'membership_package_id' => $validated['membership_package_id'],
+            'membership_status' => $validated['membership_status'],
+            'membership_expires_at' => $validated['membership_expires_at'],
+            'classes_remaining' => $validated['classes_remaining'],
+        ]);
+
+        return back()->with('success', 'Payment approved and membership updated successfully.');
+    }
+
+    /**
      * Reject a payment.
      */
     public function rejectPayment($id)
