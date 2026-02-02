@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Settings')
+@section('title', __('app.settings.settings'))
 
 @section('content')
 <div class="space-y-6">
@@ -9,7 +9,7 @@
         <a href="{{ route('dashboard') }}" class="text-slate-400 hover:text-white transition-colors">
             <span class="material-symbols-outlined">arrow_back</span>
         </a>
-        <h1 class="text-xl font-bold text-white">Settings</h1>
+        <h1 class="text-xl font-bold text-white">{{ __('app.settings.settings') }}</h1>
     </div>
 
     @if(session('success'))
@@ -21,8 +21,8 @@
     <!-- Profile Picture -->
     <div class="space-y-3">
         <div>
-            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Profile Picture</h2>
-            <p class="text-slate-500 text-sm">Upload a photo for your profile</p>
+            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.settings.profile') }}</h2>
+            <p class="text-slate-500 text-sm">{{ __('app.settings.tap_to_change') }}</p>
         </div>
 
         <div class="glass rounded-2xl p-5 relative overflow-hidden">
@@ -64,12 +64,12 @@
                                     hover:file:bg-blue-600
                                     file:cursor-pointer cursor-pointer">
                         </label>
-                        <p class="text-slate-500 text-xs mt-2">JPG, PNG, GIF or WebP. Max 2MB (auto-compressed).</p>
+                        <p class="text-slate-500 text-xs mt-2">JPG, PNG, GIF or WebP. Max 2MB.</p>
                         @error('avatar')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                         <button type="submit" class="mt-3 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors">
-                            Upload Photo
+                            {{ __('app.settings.change_photo') }}
                         </button>
                     </form>
                 </div>
@@ -80,8 +80,8 @@
     <!-- Profile Settings -->
     <div class="space-y-3">
         <div>
-            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Profile</h2>
-            <p class="text-slate-500 text-sm">Update your personal information</p>
+            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.settings.profile') }}</h2>
+            <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '更新您的個人資訊' : 'Update your personal information' }}</p>
         </div>
 
         <form action="{{ route('settings.profile') }}" method="POST">
@@ -93,7 +93,7 @@
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.settings.first_name') }}</label>
                             <input type="text" name="first_name" value="{{ old('first_name', $user->first_name) }}" required
                                 class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                             @error('first_name')
@@ -101,7 +101,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last Name</label>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.settings.last_name') }}</label>
                             <input type="text" name="last_name" value="{{ old('last_name', $user->last_name) }}" required
                                 class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                             @error('last_name')
@@ -111,7 +111,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.settings.email') }}</label>
                         <input type="email" name="email" value="{{ old('email', $user->email) }}" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                         @error('email')
@@ -123,8 +123,8 @@
                     <div class="pt-4 border-t border-slate-700/50 space-y-3">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-white font-medium">Public Profile</p>
-                                <p class="text-slate-500 text-xs">Show on leaderboard</p>
+                                <p class="text-white font-medium">{{ app()->getLocale() === 'zh-TW' ? '公開個人資料' : 'Public Profile' }}</p>
+                                <p class="text-slate-500 text-xs">{{ app()->getLocale() === 'zh-TW' ? '顯示在排行榜上' : 'Show on leaderboard' }}</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="public_profile" value="1" class="sr-only peer" 
@@ -135,8 +135,8 @@
 
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-white font-medium">Class Reminders</p>
-                                <p class="text-slate-500 text-xs">Get notified about upcoming classes</p>
+                                <p class="text-white font-medium">{{ app()->getLocale() === 'zh-TW' ? '課程提醒' : 'Class Reminders' }}</p>
+                                <p class="text-slate-500 text-xs">{{ app()->getLocale() === 'zh-TW' ? '接收即將到來的課程通知' : 'Get notified about upcoming classes' }}</p>
                             </div>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="reminders_enabled" value="1" class="sr-only peer" 
@@ -148,7 +148,7 @@
 
                     <button type="submit"
                         class="w-full py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">
-                        Save Profile
+                        {{ __('app.settings.save_profile') }}
                     </button>
                 </div>
             </div>
@@ -158,8 +158,8 @@
     <!-- Change Password -->
     <div class="space-y-3">
         <div>
-            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Change Password</h2>
-            <p class="text-slate-500 text-sm">Update your account password</p>
+            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.settings.change_password') }}</h2>
+            <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '更新您的帳號密碼' : 'Update your account password' }}</p>
         </div>
 
         <form action="{{ route('settings.password') }}" method="POST">
@@ -170,35 +170,35 @@
                 <div class="relative z-10 space-y-4">
                     
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Current Password</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.settings.current_password') }}</label>
                         <input type="password" name="current_password" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                            placeholder="Enter current password">
+                            placeholder="{{ app()->getLocale() === 'zh-TW' ? '輸入目前密碼' : 'Enter current password' }}">
                         @error('current_password')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">New Password</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.settings.new_password') }}</label>
                         <input type="password" name="password" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                            placeholder="Minimum 8 characters">
+                            placeholder="{{ app()->getLocale() === 'zh-TW' ? '最少8個字元' : 'Minimum 8 characters' }}">
                         @error('password')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Confirm New Password</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.settings.confirm_password') }}</label>
                         <input type="password" name="password_confirmation" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                            placeholder="Confirm new password">
+                            placeholder="{{ app()->getLocale() === 'zh-TW' ? '確認新密碼' : 'Confirm new password' }}">
                     </div>
 
                     <button type="submit"
                         class="w-full py-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">
-                        Update Password
+                        {{ __('app.settings.update_password') }}
                     </button>
                 </div>
             </div>
@@ -265,8 +265,8 @@
                     <span class="material-symbols-outlined text-amber-500">emoji_events</span>
                 </div>
                 <div class="flex-1">
-                    <h3 class="text-white font-semibold">Training Goals</h3>
-                    <p class="text-slate-500 text-xs">Set your monthly targets</p>
+                    <h3 class="text-white font-semibold">{{ app()->getLocale() === 'zh-TW' ? '訓練目標' : 'Training Goals' }}</h3>
+                    <p class="text-slate-500 text-xs">{{ app()->getLocale() === 'zh-TW' ? '設定每月目標' : 'Set your monthly targets' }}</p>
                 </div>
                 <span class="material-symbols-outlined text-slate-500">chevron_right</span>
             </div>
@@ -277,19 +277,19 @@
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div class="relative z-10">
-            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Account Info</h3>
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">{{ app()->getLocale() === 'zh-TW' ? '帳號資訊' : 'Account Info' }}</h3>
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Member Since</span>
+                    <span class="text-slate-500">{{ app()->getLocale() === 'zh-TW' ? '會員自' : 'Member Since' }}</span>
                     <span class="text-white">{{ $user->created_at->format('M d, Y') }}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Belt Rank</span>
-                    <span class="text-white">{{ $user->rank }} Belt ({{ $user->stripes }} stripes)</span>
+                    <span class="text-slate-500">{{ app()->getLocale() === 'zh-TW' ? '腰帶等級' : 'Belt Rank' }}</span>
+                    <span class="text-white">{{ $user->rank }} {{ app()->getLocale() === 'zh-TW' ? '帶' : 'Belt' }} ({{ $user->stripes }} {{ app()->getLocale() === 'zh-TW' ? '條紋' : 'stripes' }})</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">Total Mat Hours</span>
-                    <span class="text-white">{{ $user->calculated_mat_hours }} hours</span>
+                    <span class="text-slate-500">{{ __('app.settings.total_mat_hours') }}</span>
+                    <span class="text-white">{{ $user->calculated_mat_hours }} {{ __('app.settings.hours') }}</span>
                 </div>
             </div>
         </div>

@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', app()->getLocale() === 'zh-TW' ? '首頁' : 'Dashboard')
 
 @section('content')
 <div class="space-y-6">
     <!-- Welcome Header -->
     <div class="space-y-1">
         <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">
-            Welcome Back, <span class="text-blue-500">{{ explode(' ', $user->name)[0] }}</span>
+            {{ __('app.dashboard.welcome_back') }}, <span class="text-blue-500">{{ explode(' ', $user->name)[0] }}</span>
         </h2>
-        <p class="text-slate-400 text-sm">Ready to hit the mats?</p>
+        <p class="text-slate-400 text-sm">{{ __('app.dashboard.ready_to_train') }}</p>
     </div>
 
     <!-- Rank Card -->
@@ -18,8 +18,14 @@
         <div class="relative z-10">
             <div class="flex justify-between items-end">
                 <div>
-                    <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Current Rank</p>
-                    <h3 class="text-3xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->rank }} Belt</h3>
+                    <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">{{ __('app.dashboard.current_rank') }}</p>
+                    <h3 class="text-3xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">
+                        @if(app()->getLocale() === 'zh-TW')
+                            {{ __('app.belts.' . strtolower($user->rank)) }}
+                        @else
+                            {{ $user->rank }} {{ __('app.dashboard.belt') }}
+                        @endif
+                    </h3>
                 </div>
                 <div class="text-right">
                     <div class="flex space-x-1">
@@ -65,13 +71,11 @@
                 </div>
             @elseif($user->rank === 'Green')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center bg-green-500 overflow-hidden">
-                    <!-- Horizontal band through middle (white/black/none) -->
                     @if($user->belt_variation === 'white')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-white"></div></div>
                     @elseif($user->belt_variation === 'black')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-black"></div></div>
                     @endif
-                    <!-- Black bar for stripes on left (on top) -->
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4 z-10">
                         @for ($i = 0; $i < $user->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
@@ -141,9 +145,9 @@
         <div class="relative z-10">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Membership</p>
+                    <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">{{ __('app.dashboard.membership') }}</p>
                     @if($user->isGratis())
-                        <h3 class="text-2xl font-bold text-emerald-400 uppercase" style="font-family: 'Bebas Neue', sans-serif;">Gratis</h3>
+                        <h3 class="text-2xl font-bold text-emerald-400 uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.gratis') }}</h3>
                     @elseif($user->membershipPackage)
                         <h3 class="text-2xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membershipPackage->name }}</h3>
                         <p class="text-slate-400 text-sm mt-1">
@@ -155,13 +159,13 @@
                             @endif
                         </p>
                     @else
-                        <h3 class="text-2xl font-bold text-slate-500 uppercase" style="font-family: 'Bebas Neue', sans-serif;">No Package</h3>
+                        <h3 class="text-2xl font-bold text-slate-500 uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.no_package') }}</h3>
                     @endif
                 </div>
                 <div class="text-right flex flex-col gap-1">
                     @if($user->isGratis())
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-emerald-500/20 text-emerald-400">
-                            Active
+                            {{ __('app.common.active') }}
                         </span>
                     @elseif($user->hasFixedDiscount())
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-amber-500/20 text-amber-400">
@@ -176,9 +180,15 @@
                                 'none' => 'bg-slate-700/50 text-slate-400',
                             ];
                             $statusColor = $statusColors[$user->membership_status] ?? $statusColors['none'];
+                            $statusTexts = [
+                                'active' => __('app.common.active'),
+                                'pending' => __('app.common.pending'),
+                                'expired' => __('app.common.expired'),
+                                'none' => __('app.common.none'),
+                            ];
                         @endphp
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ $statusColor }}">
-                            {{ $user->membership_status ?? 'None' }}
+                            {{ $statusTexts[$user->membership_status] ?? __('app.common.none') }}
                         </span>
                     @endif
                 </div>
@@ -189,35 +199,35 @@
                 @if($user->isGratis())
                     <p class="text-emerald-400 text-sm text-center">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">verified</span>
-                        Complimentary membership - Unlimited access
+                        {{ __('app.dashboard.complimentary_membership') }}
                     </p>
                 @elseif($user->membership_status === 'active')
                     @if($user->membershipPackage && $user->membershipPackage->duration_type === 'classes')
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-400 text-sm">Classes Remaining</span>
+                            <span class="text-slate-400 text-sm">{{ __('app.dashboard.classes_remaining') }}</span>
                             <span class="text-white font-bold text-lg" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->classes_remaining ?? 0 }}</span>
                         </div>
                     @elseif($user->membership_expires_at)
                         <div class="flex justify-between items-center">
-                            <span class="text-slate-400 text-sm">Valid Until</span>
+                            <span class="text-slate-400 text-sm">{{ __('app.dashboard.valid_until') }}</span>
                             <span class="text-white font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membership_expires_at->format('M d, Y') }}</span>
                         </div>
                     @else
-                        <p class="text-slate-400 text-sm text-center">Unlimited access</p>
+                        <p class="text-slate-400 text-sm text-center">{{ __('app.dashboard.unlimited_access') }}</p>
                     @endif
                 @elseif($user->membership_status === 'pending')
                     <p class="text-amber-400 text-sm text-center">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">hourglass_top</span>
-                        Payment pending verification
+                        {{ __('app.dashboard.payment_pending') }}
                     </p>
                 @elseif($user->membership_status === 'expired')
                     <p class="text-red-400 text-sm text-center">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">warning</span>
-                        Membership expired. Please renew.
+                        {{ __('app.dashboard.membership_expired') }}
                     </p>
                 @else
                     <p class="text-slate-500 text-sm text-center">
-                        Contact the gym to get started.
+                        {{ __('app.dashboard.contact_gym') }}
                     </p>
                 @endif
             </div>
@@ -227,7 +237,7 @@
                 <a href="{{ route('payments') }}" 
                    class="mt-3 w-full py-2.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 font-semibold text-sm text-center hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-lg">payments</span>
-                    Update Payment
+                    {{ __('app.dashboard.update_payment') }}
                 </a>
             @endif
         </div>
@@ -237,7 +247,7 @@
     <div>
         <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
             <span class="material-symbols-outlined text-amber-500">event</span>
-            MY NEXT CLASS
+            {{ __('app.dashboard.my_next_class') }}
         </h3>
         @if($nextClass)
             <div class="glass rounded-2xl p-5 bg-gradient-to-br from-slate-800 to-slate-900 relative overflow-hidden">
@@ -251,7 +261,7 @@
                             {{ $nextClass->start_time->format('H:i') }}
                         </span>
                     </div>
-                    <h4 class="text-xl font-bold text-white mb-1">{{ $nextClass->title }}</h4>
+                    <h4 class="text-xl font-bold text-white mb-1">{{ $nextClass->localized_title }}</h4>
                     
                     <!-- Instructor with Profile Picture -->
                     <div class="flex items-center gap-3 mb-3">
@@ -266,7 +276,7 @@
                         </div>
                         <div>
                             <p class="text-white text-sm font-medium">{{ $nextClass->instructor_display_name }}</p>
-                            <p class="text-slate-500 text-xs">Instructor</p>
+                            <p class="text-slate-500 text-xs">{{ __('app.dashboard.instructor') }}</p>
                         </div>
                     </div>
                     
@@ -276,12 +286,12 @@
                     
                     @if($nextBooking)
                         <form action="{{ route('book.destroy', $nextClass->id) }}" method="POST" 
-                              onsubmit="return confirm('Are you sure you want to cancel this booking?')">
+                              onsubmit="return confirm('{{ __('app.messages.confirm_cancel') }}')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-full py-2 rounded-lg border border-red-500/50 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2">
                                 <span class="material-symbols-outlined text-lg">event_busy</span>
-                                Cancel Booking
+                                {{ __('app.dashboard.cancel_booking') }}
                             </button>
                         </form>
                     @endif
@@ -289,8 +299,8 @@
             </div>
         @else
             <div class="p-6 rounded-2xl border-2 border-dashed border-slate-700 text-center text-slate-500">
-                <p>No upcoming classes booked.</p>
-                <a href="{{ route('schedule') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">Browse schedule</a>
+                <p>{{ __('app.dashboard.no_upcoming_classes') }}</p>
+                <a href="{{ route('schedule') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">{{ __('app.dashboard.browse_schedule') }}</a>
             </div>
         @endif
     </div>
@@ -301,14 +311,14 @@
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex flex-col items-center justify-center py-2">
                 <span class="text-4xl font-bold text-amber-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->calculated_mat_hours }}</span>
-                <span class="text-xs text-slate-400 uppercase tracking-wider mt-1">Mat Hours</span>
+                <span class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('app.dashboard.mat_hours') }}</span>
             </div>
         </div>
         <div class="glass rounded-2xl p-5 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex flex-col items-center justify-center py-2">
                 <span class="text-4xl font-bold text-blue-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $classesThisMonth }}</span>
-                <span class="text-xs text-slate-400 uppercase tracking-wider mt-1">Classes / Mo</span>
+                <span class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('app.dashboard.classes_mo') }}</span>
             </div>
         </div>
     </div>
@@ -321,7 +331,7 @@
                 <div class="flex justify-between items-center mb-3">
                     <h3 class="text-lg font-bold text-white flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
                         <span class="material-symbols-outlined text-blue-500">emoji_events</span>
-                        MONTHLY GOALS
+                        {{ __('app.dashboard.monthly_goals') }}
                     </h3>
                     <span class="text-slate-500 text-xs">{{ now()->format('F') }}</span>
                 </div>
@@ -333,7 +343,7 @@
                 <div class="flex items-center gap-3">
                     <div class="flex-1">
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-slate-400">Classes</span>
+                            <span class="text-slate-400">{{ __('app.dashboard.classes') }}</span>
                             <span class="text-slate-300">{{ $classesAttended }} / {{ $classGoal }}</span>
                         </div>
                         <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
@@ -355,8 +365,8 @@
                     <span class="material-symbols-outlined text-white text-2xl">leaderboard</span>
                 </div>
                 <div class="flex-1">
-                    <h3 class="text-white font-semibold">Leaderboard</h3>
-                    <p class="text-slate-500 text-xs">See top trainers this month</p>
+                    <h3 class="text-white font-semibold">{{ __('app.dashboard.leaderboard') }}</h3>
+                    <p class="text-slate-500 text-xs">{{ __('app.dashboard.see_top_trainers') }}</p>
                 </div>
                 <span class="material-symbols-outlined text-slate-600">chevron_right</span>
             </div>
@@ -367,7 +377,7 @@
     <div>
         <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
             <span class="material-symbols-outlined text-slate-400">history</span>
-            PREVIOUS CLASSES
+            {{ __('app.dashboard.previous_classes') }}
         </h3>
         @if($previousClasses->count() > 0)
             <div class="space-y-3">
@@ -389,7 +399,7 @@
                             <!-- Class Info -->
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
-                                    <h4 class="text-white font-semibold text-sm truncate">{{ $class->title }}</h4>
+                                    <h4 class="text-white font-semibold text-sm truncate">{{ $class->localized_title }}</h4>
                                     <span class="px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 text-xs uppercase flex-shrink-0">
                                         {{ $class->type }}
                                     </span>
@@ -410,8 +420,8 @@
             </div>
         @else
             <div class="p-6 rounded-2xl border-2 border-dashed border-slate-700 text-center text-slate-500">
-                <p>No previous classes yet.</p>
-                <a href="{{ route('schedule') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">Book your first class</a>
+                <p>{{ __('app.dashboard.no_previous_classes') }}</p>
+                <a href="{{ route('schedule') }}" class="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">{{ __('app.dashboard.book_first_class') }}</a>
             </div>
         @endif
     </div>

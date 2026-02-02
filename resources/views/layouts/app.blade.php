@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,10 +10,16 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400" rel="stylesheet">
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
+    @if(app()->getLocale() === 'zh-TW')
+    <style>
+        body { font-family: 'Noto Sans TC', 'Inter', sans-serif; }
+    </style>
+    @endif
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
     <!-- Top Bar -->
@@ -64,25 +70,25 @@
         <div class="flex justify-around items-center h-16 max-w-lg mx-auto">
             <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('dashboard') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">home</span>
-                <span class="text-[10px] font-medium">Home</span>
+                <span class="text-[10px] font-medium">{{ __('app.nav.home') }}</span>
             </a>
             <a href="{{ route('schedule') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('schedule') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">calendar_today</span>
-                <span class="text-[10px] font-medium">Schedule</span>
+                <span class="text-[10px] font-medium">{{ __('app.nav.schedule') }}</span>
             </a>
             <a href="{{ route('settings') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('settings') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">settings</span>
-                <span class="text-[10px] font-medium">Settings</span>
+                <span class="text-[10px] font-medium">{{ __('app.nav.settings') }}</span>
             </a>
             <a href="{{ route('payments') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('payments') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">payments</span>
-                <span class="text-[10px] font-medium">Payments</span>
+                <span class="text-[10px] font-medium">{{ __('app.nav.payments') }}</span>
             </a>
             <form action="{{ route('logout') }}" method="POST" class="w-full h-full">
                 @csrf
                 <button type="submit" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 text-slate-500 hover:text-red-400 transition-colors">
                     <span class="material-symbols-outlined text-2xl">logout</span>
-                    <span class="text-[10px] font-medium">Logout</span>
+                    <span class="text-[10px] font-medium">{{ __('app.nav.logout') }}</span>
                 </button>
             </form>
         </div>

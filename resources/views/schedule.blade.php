@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Schedule')
+@section('title', __('app.schedule.class_schedule'))
 
 @section('content')
 <div class="space-y-5">
@@ -10,20 +10,20 @@
             <div class="flex items-start gap-3">
                 <span class="material-symbols-outlined text-amber-500 text-lg flex-shrink-0 mt-0.5">warning</span>
                 <div>
-                    <p class="text-amber-400 font-semibold text-sm">{{ Auth::user()->membership_issue ?? 'Membership Required' }}</p>
-                    <p class="text-slate-400 text-xs mt-1">Contact the gym to activate your membership.</p>
+                    <p class="text-amber-400 font-semibold text-sm">{{ Auth::user()->membership_issue ?? (app()->getLocale() === 'zh-TW' ? '需要會籍' : 'Membership Required') }}</p>
+                    <p class="text-slate-400 text-xs mt-1">{{ app()->getLocale() === 'zh-TW' ? '請聯繫館方啟用您的會籍。' : 'Contact the gym to activate your membership.' }}</p>
                 </div>
             </div>
         </div>
     @else
         @if(Auth::user()->membershipPackage && Auth::user()->membershipPackage->duration_type === 'classes' && Auth::user()->classes_remaining !== null)
             <div class="rounded-xl p-3 bg-slate-800/50 border border-slate-700/50 flex items-center justify-between">
-                <span class="text-slate-400 text-sm">Classes Remaining</span>
+                <span class="text-slate-400 text-sm">{{ __('app.dashboard.classes_remaining') }}</span>
                 <span class="text-emerald-400 font-bold">{{ Auth::user()->classes_remaining }}</span>
             </div>
         @elseif(Auth::user()->membership_expires_at)
             <div class="rounded-xl p-3 bg-slate-800/50 border border-slate-700/50 flex items-center justify-between">
-                <span class="text-slate-400 text-sm">Membership Expires</span>
+                <span class="text-slate-400 text-sm">{{ app()->getLocale() === 'zh-TW' ? '會籍到期日' : 'Membership Expires' }}</span>
                 <span class="text-emerald-400 font-bold">{{ Auth::user()->membership_expires_at->format('M d, Y') }}</span>
             </div>
         @endif
@@ -31,12 +31,19 @@
 
     <!-- Header with Filter -->
     <div class="flex justify-between items-center">
-        <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">Schedule</h2>
+        <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.schedule.class_schedule') }}</h2>
         <div class="flex bg-slate-800 rounded-lg p-1">
+            @php
+                $filterLabels = [
+                    'All' => __('app.schedule.all'),
+                    'Adults' => __('app.schedule.adults'),
+                    'Kids' => __('app.schedule.kids'),
+                ];
+            @endphp
             @foreach(['All', 'Adults', 'Kids'] as $filter)
                 <a href="{{ route('schedule', ['filter' => $filter, 'date' => $selectedDate->format('Y-m-d')]) }}"
                    class="px-3 py-1 text-xs font-bold rounded-md transition-all {{ $currentFilter === $filter ? 'bg-blue-500 text-white shadow-md' : 'text-slate-400 hover:text-white' }}">
-                    {{ $filter }}
+                    {{ $filterLabels[$filter] }}
                 </a>
             @endforeach
         </div>
@@ -64,6 +71,15 @@
                 $isSelected = $selectedDate->isSameDay($day);
                 $isToday = $day->isToday();
                 $isPast = $day->isPast() && !$day->isToday();
+                $dayNames = [
+                    'Mon' => app()->getLocale() === 'zh-TW' ? '一' : 'Mon',
+                    'Tue' => app()->getLocale() === 'zh-TW' ? '二' : 'Tue',
+                    'Wed' => app()->getLocale() === 'zh-TW' ? '三' : 'Wed',
+                    'Thu' => app()->getLocale() === 'zh-TW' ? '四' : 'Thu',
+                    'Fri' => app()->getLocale() === 'zh-TW' ? '五' : 'Fri',
+                    'Sat' => app()->getLocale() === 'zh-TW' ? '六' : 'Sat',
+                    'Sun' => app()->getLocale() === 'zh-TW' ? '日' : 'Sun',
+                ];
             @endphp
             <a href="{{ route('schedule', ['date' => $day->format('Y-m-d'), 'filter' => $currentFilter]) }}"
                class="flex flex-col items-center justify-center flex-1 min-w-[44px] py-2 px-1 rounded-xl transition-all
@@ -74,7 +90,7 @@
                        : ($isPast 
                            ? 'bg-slate-800/40 text-slate-500 hover:bg-slate-700/60' 
                            : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60')) }}">
-                <span class="text-[10px] font-bold uppercase">{{ $day->format('D') }}</span>
+                <span class="text-[10px] font-bold uppercase">{{ $dayNames[$day->format('D')] ?? $day->format('D') }}</span>
                 <span class="text-lg font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $day->format('d') }}</span>
                 @if($isToday && !$isSelected)
                     <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-0.5"></div>
@@ -88,7 +104,7 @@
         <div class="text-center">
             <a href="{{ route('schedule', ['date' => now()->format('Y-m-d'), 'filter' => $currentFilter]) }}" 
                class="inline-block px-4 py-2 text-xs font-semibold rounded-lg bg-slate-700/50 text-slate-300 hover:bg-slate-700 transition-colors">
-                Back to Today
+                {{ app()->getLocale() === 'zh-TW' ? '回到今天' : 'Back to Today' }}
             </a>
         </div>
     @endif
@@ -120,7 +136,7 @@
                 @if($isCancelled)
                     <div class="absolute top-3 left-3 px-2 py-1 rounded bg-red-500/20 text-red-400 text-[10px] font-bold uppercase z-20 flex items-center gap-1">
                         <span class="material-symbols-outlined text-sm">cancel</span>
-                        Cancelled
+                        {{ __('app.schedule.cancelled') }}
                     </div>
                 @endif
                 <div class="relative z-10">
@@ -133,23 +149,30 @@
                             <span class="text-3xl font-bold {{ $isCancelled ? 'text-slate-500 line-through' : 'text-white' }}" style="font-family: 'Bebas Neue', sans-serif;">
                                 {{ $class->start_time->format('H:i') }}
                             </span>
-                            <span class="text-slate-400 text-xs">{{ $class->duration_minutes }} Minutes</span>
+                            <span class="text-slate-400 text-xs">{{ $class->duration_minutes }} {{ app()->getLocale() === 'zh-TW' ? '分鐘' : 'Minutes' }}</span>
                         </div>
                         <div class="text-right flex flex-col items-end gap-1">
                             <span class="inline-block px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border 
                                 {{ str_contains($class->type, 'No-Gi') ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20' }}">
                                 {{ $class->type }}
                             </span>
+                            @php
+                                $ageGroupLabels = [
+                                    'Kids' => app()->getLocale() === 'zh-TW' ? '兒童' : 'Kids',
+                                    'Adults' => app()->getLocale() === 'zh-TW' ? '成人' : 'Adults',
+                                    'All' => app()->getLocale() === 'zh-TW' ? '全年齡' : 'All',
+                                ];
+                            @endphp
                             <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider 
                                 {{ ($class->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : (($class->age_group ?? 'Adults') === 'All' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-700/50 text-slate-400') }}">
-                                {{ $class->age_group ?? 'Adults' }}
+                                {{ $ageGroupLabels[$class->age_group ?? 'Adults'] ?? ($class->age_group ?? 'Adults') }}
                             </span>
                         </div>
                     </div>
 
                     <!-- Title & Instructor -->
                     <div class="mb-4">
-                        <h3 class="text-lg font-bold {{ $isCancelled ? 'text-slate-500 line-through' : 'text-slate-100' }}">{{ $class->title }}</h3>
+                        <h3 class="text-lg font-bold {{ $isCancelled ? 'text-slate-500 line-through' : 'text-slate-100' }}">{{ $class->localized_title }}</h3>
                         @if($class->instructor)
                             <div class="flex items-center gap-2 mt-2">
                                 <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
@@ -176,14 +199,14 @@
                                 </div>
                             </div>
                         @else
-                            <p class="text-sm text-slate-400">Instructor: {{ $class->instructor_display_name }}</p>
+                            <p class="text-sm text-slate-400">{{ app()->getLocale() === 'zh-TW' ? '教練' : 'Instructor' }}: {{ $class->instructor_display_name }}</p>
                         @endif
                     </div>
 
                     <!-- Capacity Bar -->
                     <div class="mb-4">
                         <div class="flex justify-between text-xs mb-1">
-                            <span class="text-slate-400">Mat Capacity</span>
+                            <span class="text-slate-400">{{ app()->getLocale() === 'zh-TW' ? '名額狀況' : 'Mat Capacity' }}</span>
                             <span class="{{ $isFull ? 'text-red-400' : 'text-slate-300' }}">
                                 {{ $class->bookings_count }} / {{ $class->capacity }}
                             </span>
@@ -198,7 +221,7 @@
                         <a href="{{ route('class.attendance', $class->id) }}" 
                            class="w-full py-2.5 mb-2 rounded bg-amber-500/20 text-amber-400 font-bold text-sm text-center uppercase tracking-wide hover:bg-amber-500/30 transition-colors flex items-center justify-center gap-2">
                             <span class="material-symbols-outlined text-lg">groups</span>
-                            View Attendance ({{ $class->bookings_count }})
+                            {{ __('app.schedule.view_attendance') }} ({{ $class->bookings_count }})
                         </a>
                     @endif
 
@@ -206,24 +229,30 @@
                     @if($isCancelled)
                         <div class="w-full py-2.5 rounded bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-sm text-center uppercase tracking-wide flex items-center justify-center gap-2">
                             <span class="material-symbols-outlined text-lg">event_busy</span>
-                            Class Cancelled
+                            {{ __('app.schedule.class_cancelled') }}
                         </div>
                     @elseif($isPastClass)
                         <div class="w-full py-2.5 rounded bg-slate-700 text-slate-500 font-bold text-sm text-center uppercase tracking-wide">
-                            Class Ended
+                            {{ app()->getLocale() === 'zh-TW' ? '課程已結束' : 'Class Ended' }}
                         </div>
                     @elseif($isBooked)
                         <form action="{{ route('book.destroy', $class->id) }}" method="POST">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-full py-2.5 rounded border border-red-500/50 text-red-400 font-bold text-sm hover:bg-red-500/10 transition-colors uppercase tracking-wide">
-                                Cancel Booking
+                                {{ __('app.dashboard.cancel_booking') }}
                             </button>
                         </form>
                     @else
                         @php
                             $canBook = Auth::user()->hasActiveMembership() && !$isFull;
-                            $buttonText = $isFull ? 'Class Full' : (!Auth::user()->hasActiveMembership() ? 'Membership Required' : 'Book Class');
+                            if ($isFull) {
+                                $buttonText = __('app.schedule.full');
+                            } elseif (!Auth::user()->hasActiveMembership()) {
+                                $buttonText = app()->getLocale() === 'zh-TW' ? '需要會籍' : 'Membership Required';
+                            } else {
+                                $buttonText = __('app.schedule.book_class');
+                            }
                         @endphp
                         <form action="{{ route('book.store') }}" method="POST">
                             @csrf
@@ -240,8 +269,8 @@
         @empty
             <div class="p-10 text-center text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
                 <span class="material-symbols-outlined text-4xl mb-2">event_busy</span>
-                <p>No classes scheduled for {{ $selectedDate->format('l, M j') }}.</p>
-                <p class="text-xs mt-2">Try selecting a different day or changing the filter.</p>
+                <p>{{ __('app.schedule.no_classes') }} {{ $selectedDate->format('l, M j') }}.</p>
+                <p class="text-xs mt-2">{{ app()->getLocale() === 'zh-TW' ? '請選擇其他日期或更改篩選條件。' : 'Try selecting a different day or changing the filter.' }}</p>
             </div>
         @endforelse
     </div>
