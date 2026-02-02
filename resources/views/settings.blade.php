@@ -205,6 +205,57 @@
         </form>
     </div>
 
+    <!-- Language Settings -->
+    <div class="space-y-3">
+        <div>
+            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.settings.language') }}</h2>
+            <p class="text-slate-500 text-sm">{{ __('app.settings.select_language') }}</p>
+        </div>
+
+        <form action="{{ route('settings.locale') }}" method="POST">
+            @csrf
+
+            <div class="glass rounded-2xl p-5 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                <div class="relative z-10 space-y-4">
+                    
+                    <div class="flex gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="locale" value="en" class="sr-only peer" {{ app()->getLocale() === 'en' ? 'checked' : '' }}>
+                            <div class="p-4 rounded-xl border-2 border-slate-700 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 transition-all">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">🇺🇸</span>
+                                    <div>
+                                        <p class="text-white font-semibold">English</p>
+                                        <p class="text-slate-500 text-xs">English (US)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="locale" value="zh-TW" class="sr-only peer" {{ app()->getLocale() === 'zh-TW' ? 'checked' : '' }}>
+                            <div class="p-4 rounded-xl border-2 border-slate-700 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 transition-all">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">🇹🇼</span>
+                                    <div>
+                                        <p class="text-white font-semibold">繁體中文</p>
+                                        <p class="text-slate-500 text-xs">Traditional Chinese</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">
+                        {{ __('app.common.save') }}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <!-- Quick Links -->
     <div class="space-y-3">
         <a href="{{ route('goals') }}" class="glass rounded-2xl p-4 relative overflow-hidden flex items-center gap-4 hover:bg-slate-800/60 transition-colors">

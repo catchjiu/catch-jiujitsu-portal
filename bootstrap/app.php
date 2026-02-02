@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'member' => \App\Http\Middleware\MemberMiddleware::class,
         ]);
+        
+        // Add locale middleware to web group
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

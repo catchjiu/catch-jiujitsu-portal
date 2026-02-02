@@ -35,9 +35,17 @@
 
         <!-- Class Name / Title -->
         <div>
-            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Class Name</label>
+            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Class Name (English)</label>
             <input type="text" name="title" value="{{ old('title', $class->title) }}" required
                 class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors">
+        </div>
+
+        <!-- Class Name (Chinese) -->
+        <div>
+            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Class Name (中文)</label>
+            <input type="text" name="title_zh" value="{{ old('title_zh', $class->title_zh) }}"
+                class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="巴西柔術基礎班">
         </div>
 
         <!-- Class Type -->

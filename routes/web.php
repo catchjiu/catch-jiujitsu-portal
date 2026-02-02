@@ -58,6 +58,7 @@ Route::middleware(['auth', 'member'])->group(function () {
     Route::post('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
     Route::post('/settings/avatar', [SettingsController::class, 'updateAvatar'])->name('settings.avatar');
     Route::delete('/settings/avatar', [SettingsController::class, 'removeAvatar'])->name('settings.avatar.remove');
+    Route::post('/settings/locale', [SettingsController::class, 'updateLocale'])->name('settings.locale');
 
     // Leaderboard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');

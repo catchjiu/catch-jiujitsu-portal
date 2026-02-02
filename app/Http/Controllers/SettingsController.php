@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 
@@ -17,6 +19,31 @@ class SettingsController extends Controller
         return view('settings', [
             'user' => auth()->user(),
         ]);
+    }
+
+    /**
+     * Update user locale/language preference.
+     */
+    public function updateLocale(Request $request)
+    {
+        $validated = $request->validate([
+            'locale' => 'required|in:en,zh-TW',
+        ]);
+
+        $locale = $validated['locale'];
+
+        // Store in session
+        Session::put('locale', $locale);
+
+        // Store in user record if logged in
+        if (auth()->check()) {
+            auth()->user()->update(['locale' => $locale]);
+        }
+
+        // Set cookie for 1 year
+        return back()
+            ->with('success', __('app.messages.saved_successfully'))
+            ->cookie('locale', $locale, 60 * 24 * 365);
     }
 
     /**

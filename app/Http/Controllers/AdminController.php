@@ -235,6 +235,7 @@ class AdminController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_zh' => 'nullable|string|max:255',
             'type' => 'required|in:Gi,No-Gi,Open Mat,Fundamentals',
             'age_group' => 'required|in:Kids,Adults,All',
             'instructor_id' => 'required|exists:users,id',
@@ -251,6 +252,7 @@ class AdminController extends Controller
         // Create the class
         ClassSession::create([
             'title' => $validated['title'],
+            'title_zh' => $validated['title_zh'] ?? null,
             'type' => $validated['type'],
             'age_group' => $validated['age_group'],
             'start_time' => $startTime,
@@ -265,6 +267,7 @@ class AdminController extends Controller
             for ($week = 1; $week <= 4; $week++) {
                 ClassSession::create([
                     'title' => $validated['title'],
+                    'title_zh' => $validated['title_zh'] ?? null,
                     'type' => $validated['type'],
                     'age_group' => $validated['age_group'],
                     'start_time' => $startTime->copy()->addWeeks($week),
@@ -302,6 +305,7 @@ class AdminController extends Controller
         
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'title_zh' => 'nullable|string|max:255',
             'type' => 'required|in:Gi,No-Gi,Open Mat,Fundamentals',
             'age_group' => 'required|in:Kids,Adults,All',
             'instructor_id' => 'required|exists:users,id',
@@ -314,6 +318,7 @@ class AdminController extends Controller
 
         $class->update([
             'title' => $validated['title'],
+            'title_zh' => $validated['title_zh'] ?? null,
             'type' => $validated['type'],
             'age_group' => $validated['age_group'],
             'instructor_id' => $validated['instructor_id'],

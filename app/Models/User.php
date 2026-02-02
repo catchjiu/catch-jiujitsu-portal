@@ -40,6 +40,7 @@ class User extends Authenticatable
         'monthly_hours_goal',
         'reminders_enabled',
         'public_profile',
+        'locale',
         'line_id',
         'gender',
         'age_group',

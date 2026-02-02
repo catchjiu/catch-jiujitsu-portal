@@ -16,6 +16,7 @@ class ClassSession extends Model
 
     protected $fillable = [
         'title',
+        'title_zh',
         'type',
         'age_group',
         'start_time',
@@ -30,6 +31,17 @@ class ClassSession extends Model
         'start_time' => 'datetime',
         'is_cancelled' => 'boolean',
     ];
+
+    /**
+     * Get the localized title based on current locale.
+     */
+    public function getLocalizedTitleAttribute(): string
+    {
+        if (app()->getLocale() === 'zh-TW' && $this->title_zh) {
+            return $this->title_zh;
+        }
+        return $this->title;
+    }
 
     /**
      * Get the instructor (coach) for this class.
