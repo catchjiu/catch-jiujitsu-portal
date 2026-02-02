@@ -199,6 +199,15 @@
                     </p>
                 @endif
             </div>
+            
+            <!-- Update Payment Button -->
+            @if(!$user->isGratis())
+                <a href="{{ route('payments') }}" 
+                   class="mt-3 w-full py-2.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 font-semibold text-sm text-center hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-lg">payments</span>
+                    Update Payment
+                </a>
+            @endif
         </div>
     </div>
 
