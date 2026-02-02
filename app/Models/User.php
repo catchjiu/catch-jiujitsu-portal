@@ -284,6 +284,7 @@ class User extends Authenticatable
     public function nextBookedClass(): ?ClassSession
     {
         return $this->bookedClasses()
+                    ->with('instructor')
                     ->where('start_time', '>', now())
                     ->orderBy('start_time')
                     ->first();

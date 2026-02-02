@@ -298,7 +298,24 @@
                         </span>
                     </div>
                     <h4 class="text-xl font-bold text-white mb-1">{{ $nextClass->title }}</h4>
-                    <p class="text-slate-400 text-sm mb-3">Instructor: {{ $nextClass->instructor_name }}</p>
+                    
+                    <!-- Instructor with Profile Picture -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
+                            @if($nextClass->instructor && $nextClass->instructor->avatar)
+                                <img src="{{ $nextClass->instructor->avatar }}" alt="{{ $nextClass->instructor_display_name }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-slate-400 text-sm font-bold">
+                                    {{ substr($nextClass->instructor_display_name, 0, 1) }}
+                                </div>
+                            @endif
+                        </div>
+                        <div>
+                            <p class="text-white text-sm font-medium">{{ $nextClass->instructor_display_name }}</p>
+                            <p class="text-slate-500 text-xs">Instructor</p>
+                        </div>
+                    </div>
+                    
                     <div class="text-center text-slate-500 text-xs mb-4">
                         {{ $nextClass->start_time->format('l, F j') }}
                     </div>
