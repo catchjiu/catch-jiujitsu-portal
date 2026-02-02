@@ -711,7 +711,7 @@ class AdminController extends Controller
 
         $member->update($validated);
 
-        return back()->with('success', 'Member updated successfully.');
+        return redirect()->route('admin.members.show', $member->id)->with('success', 'Member updated successfully.');
     }
 
     /**
