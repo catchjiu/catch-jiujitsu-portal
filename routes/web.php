@@ -98,6 +98,7 @@ Route::middleware('auth')->group(function () {
         // Attendance
         Route::get('/attendance/{classId}', [AdminController::class, 'attendance'])->name('attendance');
         Route::post('/attendance/{classId}/toggle/{bookingId}', [AdminController::class, 'toggleCheckIn'])->name('attendance.toggle');
+        Route::post('/attendance/{classId}/walk-in', [AdminController::class, 'addWalkIn'])->name('attendance.walkin');
         Route::post('/classes/{classId}/trials', [AdminController::class, 'storeTrial'])->name('classes.trials.store');
 
         // Finance

@@ -143,20 +143,24 @@
             <p class="text-sm text-slate-400 uppercase tracking-wider font-medium mb-3">Available for Walk-in</p>
             <div class="space-y-2" id="walkInList">
                 @foreach($availableMembers as $member)
-                    <div class="walkin-item flex items-center gap-3 p-3 rounded-xl bg-slate-800/20 border border-slate-700/20 opacity-70"
+                    <div class="walkin-item flex items-center gap-3 p-3 rounded-xl bg-slate-800/20 border border-slate-700/20"
                          data-name="{{ strtolower($member->name) }}">
                         <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700">
                             <div class="w-full h-full flex items-center justify-center text-slate-500 text-sm font-bold">
                                 {{ strtoupper(substr($member->name, 0, 2)) }}
                             </div>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="text-slate-400 font-medium">{{ $member->name }}</h3>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-slate-400 font-medium truncate">{{ $member->name }}</h3>
                             <p class="text-slate-600 text-xs">{{ $member->rank }} Belt</p>
                         </div>
-                        <button class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
-                            <span class="material-symbols-outlined text-lg">add</span>
-                        </button>
+                        <form action="{{ route('admin.attendance.walkin', $class->id) }}" method="POST" class="flex-shrink-0">
+                            @csrf
+                            <input type="hidden" name="user_id" value="{{ $member->id }}">
+                            <button type="submit" class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-500 hover:text-white hover:bg-slate-700 transition-colors" title="Add as walk-in">
+                                <span class="material-symbols-outlined text-lg">add</span>
+                            </button>
+                        </form>
                     </div>
                 @endforeach
             </div>

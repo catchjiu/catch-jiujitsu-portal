@@ -196,7 +196,7 @@ class AdminController extends Controller
         $dayStart = $selectedDate->copy()->startOfDay();
         $dayEnd = $selectedDate->copy()->endOfDay();
         
-        $classes = ClassSession::withCount('bookings')
+        $classes = ClassSession::withCount(['bookings', 'trials'])
             ->whereBetween('start_time', [$dayStart, $dayEnd])
             ->orderBy('start_time')
             ->get()
@@ -397,6 +397,42 @@ class AdminController extends Controller
         $booking->save();
 
         return back()->with('success', 'Check-in status updated.');
+    }
+
+    /**
+     * Add a member as walk-in to the class (create booking and mark checked-in).
+     */
+    public function addWalkIn(Request $request, $classId)
+    {
+        $class = ClassSession::withCount('bookings')->with('trials')->findOrFail($classId);
+        $validated = $request->validate(['user_id' => 'required|exists:users,id']);
+        $userId = (int) $validated['user_id'];
+
+        if (Booking::where('class_id', $class->id)->where('user_id', $userId)->exists()) {
+            return back()->with('error', 'Member is already booked for this class.');
+        }
+
+        $totalAttendance = $class->bookings_count + $class->trials->count();
+        if ($totalAttendance >= $class->capacity) {
+            return back()->with('error', 'Class is full.');
+        }
+
+        $user = User::findOrFail($userId);
+        if ($user->is_admin) {
+            return back()->with('error', 'Cannot add admin as walk-in.');
+        }
+
+        Booking::create([
+            'user_id' => $userId,
+            'class_id' => $class->id,
+            'checked_in' => true,
+        ]);
+
+        if ($user->classes_remaining !== null && $user->classes_remaining > 0) {
+            $user->decrementClassesRemaining();
+        }
+
+        return back()->with('success', $user->name . ' added as walk-in.');
     }
 
     /**
