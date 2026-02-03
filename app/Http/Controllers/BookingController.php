@@ -136,6 +136,72 @@ class BookingController extends Controller
     }
 
     /**
+     * Check in for today's classes - book user for all of today's classes.
+     */
+    public function checkInToday(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasActiveMembership()) {
+            return response()->json([
+                'success' => false,
+                'message' => $user->membership_issue ?? __('app.dashboard.membership_expired'),
+            ], 422);
+        }
+
+        $today = Carbon::today();
+        $dayStart = $today->copy()->startOfDay();
+        $dayEnd = $today->copy()->endOfDay();
+
+        $classes = ClassSession::withCount('bookings')
+            ->whereBetween('start_time', [$dayStart, $dayEnd])
+            ->where('is_cancelled', false)
+            ->whereIn('age_group', in_array($user->age_group ?? 'Adults', ['Kids']) ? ['Kids', 'All'] : ['Adults', 'All'])
+            ->orderBy('start_time')
+            ->get();
+
+        if ($classes->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => __('app.dashboard.check_in_no_classes'),
+            ], 422);
+        }
+
+        $booked = 0;
+        $skipped = 0;
+
+        foreach ($classes as $class) {
+            $existing = Booking::where('user_id', $user->id)->where('class_id', $class->id)->exists();
+            if ($existing) {
+                $skipped++;
+                continue;
+            }
+            if ($class->bookings_count >= $class->capacity) {
+                continue;
+            }
+            Booking::create([
+                'user_id' => $user->id,
+                'class_id' => $class->id,
+            ]);
+            $user->decrementClassesRemaining();
+            $booked++;
+        }
+
+        if ($booked === 0 && $skipped > 0) {
+            return response()->json([
+                'success' => true,
+                'message' => __('app.dashboard.already_booked'),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => __('app.dashboard.check_in_success'),
+            'booked' => $booked,
+        ]);
+    }
+
+    /**
      * Show class attendance for coaches.
      */
     public function showAttendance($classId)

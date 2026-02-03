@@ -44,6 +44,15 @@ return [
         'previous_classes' => 'Previous Classes',
         'no_previous_classes' => 'No previous classes yet.',
         'book_first_class' => 'Book your first class',
+        'check_in' => 'Check In',
+        'check_in_subtitle' => 'Sign in for today or scan at kiosk',
+        'check_in_for_today' => 'Check in for today\'s classes',
+        'check_in_today_desc' => 'Automatically book yourself for all of today\'s classes',
+        'scan_at_kiosk' => 'Scan at kiosk',
+        'tap_qr_fullscreen' => 'Tap QR code for fullscreen',
+        'check_in_success' => 'You\'re checked in for today\'s classes!',
+        'check_in_no_classes' => 'No classes scheduled for today.',
+        'already_booked' => 'You\'re already booked for today\'s classes.',
     ],
 
     // Schedule

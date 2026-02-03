@@ -1,7 +1,21 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark" data-locale="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.has('locale')) return;
+            var preferred = (navigator.languages && navigator.languages[0]) || navigator.language || navigator.userLanguage || 'en';
+            var wantZh = /^zh/.test(preferred);
+            var current = document.documentElement.getAttribute('data-locale') || 'en';
+            if (wantZh && current !== 'zh-TW') {
+                window.location.replace(window.location.pathname + '?locale=zh-TW');
+            } else if (!wantZh && current === 'zh-TW') {
+                window.location.replace(window.location.pathname + '?locale=en');
+            }
+        })();
+    </script>
     <meta name="viewport" content="width=1920, height=1080, initial-scale=1">
     <title>{{ __('app.checkin.title') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>

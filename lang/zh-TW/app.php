@@ -44,6 +44,15 @@ return [
         'previous_classes' => '過去課程',
         'no_previous_classes' => '尚無過去課程記錄。',
         'book_first_class' => '預約您的第一堂課',
+        'check_in' => '簽到',
+        'check_in_subtitle' => '今日簽到或至櫃檯掃描',
+        'check_in_for_today' => '簽到今日課程',
+        'check_in_today_desc' => '自動為您預約今日所有課程',
+        'scan_at_kiosk' => '於櫃檯掃描',
+        'tap_qr_fullscreen' => '點擊 QR 碼全螢幕顯示',
+        'check_in_success' => '已為您簽到今日課程！',
+        'check_in_no_classes' => '今日無排定課程。',
+        'already_booked' => '您已預約今日課程。',
     ],
 
     // Schedule

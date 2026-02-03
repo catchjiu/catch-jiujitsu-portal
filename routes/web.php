@@ -45,6 +45,7 @@ Route::middleware(['auth', 'member'])->group(function () {
     // Schedule & Bookings
     Route::get('/schedule', [BookingController::class, 'index'])->name('schedule');
     Route::post('/book', [BookingController::class, 'store'])->name('book.store');
+    Route::post('/check-in/today', [BookingController::class, 'checkInToday'])->name('checkin.today');
     Route::delete('/book/{classId}', [BookingController::class, 'destroy'])->name('book.destroy');
     Route::get('/class/{classId}/attendance', [BookingController::class, 'showAttendance'])->name('class.attendance');
 
