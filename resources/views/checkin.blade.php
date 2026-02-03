@@ -160,10 +160,11 @@
         var styles = getBeltStyles(rank, beltVariation);
         beltEl.className = 'h-14 w-full max-w-md rounded shadow-inner relative flex items-center pl-4 mb-10 overflow-hidden ' + styles.baseColor;
         var stripeBarColor = rank === 'Black' ? 'bg-red-600' : 'bg-black';
-        var stripeBar = '<div class="h-full w-20 ' + stripeBarColor + ' flex items-center justify-start gap-1 px-1 absolute left-4 z-10">' +
-            [0,1,2,3].map(function(i) {
-                return '<div class="w-1.5 h-full rounded-sm ' + (i < (data.stripes || 0) ? 'bg-white' : 'bg-slate-700/50') + '"></div>';
-            }).join('') + '</div>';
+        var stripeCount = data.stripes || 0;
+        var stripeDivs = stripeCount > 0
+            ? Array(stripeCount).fill(0).map(function() { return '<div class="w-1.5 h-full rounded-sm bg-white flex-shrink-0"></div>'; }).join('')
+            : '';
+        var stripeBar = '<div class="h-full w-20 ' + stripeBarColor + ' flex items-center justify-evenly px-1 absolute left-4 z-10">' + stripeDivs + '</div>';
         beltEl.innerHTML = styles.bandHtml + stripeBar;
 
         playSound(data.isActive);
