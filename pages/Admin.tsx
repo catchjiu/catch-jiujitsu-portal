@@ -17,7 +17,7 @@ export const Admin: React.FC<AdminProps> = ({ pendingPayments, onApprove, onReje
       </div>
 
       <a
-        href="/checkin.html"
+        href="checkin.html"
         target="_blank"
         rel="noopener noreferrer"
         className="block"

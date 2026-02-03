@@ -4,11 +4,17 @@ const VIEWPORT = { width: 1920, height: 1080 };
 
 interface QRCheckInScreenProps {
   onScan: (code: string) => void;
+  loading?: boolean;
+  message?: string | null;
 }
 
-export const QRCheckInScreen: React.FC<QRCheckInScreenProps> = ({ onScan }) => {
+export const QRCheckInScreen: React.FC<QRCheckInScreenProps> = ({ onScan, loading = false, message = null }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const bufferRef = useRef('');
+
+  const focusInput = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
 
   const submitCode = useCallback(() => {
     const fromInput = inputRef.current?.value?.trim() ?? '';
@@ -82,9 +88,13 @@ export const QRCheckInScreen: React.FC<QRCheckInScreenProps> = ({ onScan }) => {
         </h1>
       </div>
 
-      {/* Scan area card */}
+      {/* Scan area card - click to focus input so typing works */}
       <div
-        className="relative overflow-hidden rounded-3xl border-2 border-dashed border-slate-600 bg-slate-800/40 backdrop-blur-md border-white/10 p-16 flex flex-col items-center justify-center transition-colors focus-within:border-brand-gold focus-within:bg-slate-800/60"
+        role="button"
+        tabIndex={0}
+        onClick={focusInput}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); focusInput(); } }}
+        className="relative overflow-hidden rounded-3xl border-2 border-dashed border-slate-600 bg-slate-800/40 backdrop-blur-md border-white/10 p-16 flex flex-col items-center justify-center transition-colors focus-within:border-brand-gold focus-within:bg-slate-800/60 cursor-pointer outline-none focus:border-brand-gold"
         style={{ minWidth: 720, minHeight: 360 }}
       >
         <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
@@ -94,6 +104,12 @@ export const QRCheckInScreen: React.FC<QRCheckInScreenProps> = ({ onScan }) => {
         </h2>
         <p className="text-slate-400 text-xl">Position your QR code in front of the scanner</p>
         <p className="text-slate-500 text-sm mt-4">Or type your code and press Enter</p>
+        {loading && (
+          <p className="text-brand-gold text-lg font-medium mt-6 animate-pulse">Looking up...</p>
+        )}
+        {message && (
+          <p className="text-amber-400 text-lg font-medium mt-6">{message}</p>
+        )}
       </div>
 
       <p className="text-slate-500 text-sm mt-10">Ready for the next member</p>

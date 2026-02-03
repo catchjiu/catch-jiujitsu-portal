@@ -1,48 +1,43 @@
 import { CheckInMember } from '../../types';
 
-/** Mock members for QR lookup. In production, replace with API: GET /api/checkin?code=... */
-const MOCK_MEMBERS: CheckInMember[] = [
-  {
-    id: 1,
-    name: "Alex 'The Shark'",
-    rank: 'Blue',
-    stripes: 2,
-    avatarUrl: 'https://picsum.photos/200',
-    hoursThisYear: 42,
-    classesThisMonth: 8,
-    membershipExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    isActive: true,
-  },
-  {
-    id: 2,
-    name: 'Jordan Lee',
-    rank: 'Purple',
-    stripes: 3,
-    avatarUrl: 'https://picsum.photos/201',
-    hoursThisYear: 68,
-    classesThisMonth: 12,
-    membershipExpiresAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    isActive: false,
-  },
-  {
-    id: 3,
-    name: 'Sam Chen',
-    rank: 'White',
-    stripes: 4,
-    hoursThisYear: 24,
-    classesThisMonth: 6,
-    membershipExpiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    isActive: true,
-  },
-];
+/**
+ * API base URL for check-in lookup. Empty = same origin (use when deployed with Laravel).
+ * Set VITE_CHECKIN_API in .env to override (e.g. "https://yoursite.com" for CORS/proxy).
+ */
+const API_BASE = (typeof import.meta !== 'undefined' && (import.meta as unknown as { env?: { VITE_CHECKIN_API?: string } }).env?.VITE_CHECKIN_API) ?? '';
 
-/** Look up member by QR code. QR can contain member id (e.g. "1", "CATCH-1") or a token. */
-export function lookupMemberByCode(code: string): CheckInMember | null {
-  const trimmed = code.trim().toUpperCase().replace(/^CATCH-?/i, '');
-  const id = parseInt(trimmed, 10);
-  if (!Number.isNaN(id)) {
-    const member = MOCK_MEMBERS.find((m) => m.id === id);
-    return member ?? null;
+export type LookupResult = { member: CheckInMember } | { error: 'not_found' } | { error: 'server_error' };
+
+/**
+ * Look up member by QR code. Calls live API when deployed with Laravel.
+ * Code can be numeric id (e.g. "1") or prefixed (e.g. "CATCH-1").
+ */
+export async function lookupMemberByCode(code: string): Promise<LookupResult> {
+  const trimmed = code.trim();
+  if (!trimmed) return { error: 'not_found' };
+
+  const url = `${API_BASE}/api/checkin?code=${encodeURIComponent(trimmed)}`;
+
+  try {
+    const res = await fetch(url);
+    if (res.status === 404) return { error: 'not_found' };
+    if (!res.ok) return { error: 'server_error' };
+    const data = await res.json();
+
+    return {
+      member: {
+        id: data.id,
+        name: data.name ?? '',
+        rank: data.rank ?? 'White',
+        stripes: Number(data.stripes) ?? 0,
+        avatarUrl: data.avatarUrl ?? undefined,
+        hoursThisYear: Number(data.hoursThisYear) ?? 0,
+        classesThisMonth: Number(data.classesThisMonth) ?? 0,
+        membershipExpiresAt: data.membershipExpiresAt ?? null,
+        isActive: Boolean(data.isActive),
+      },
+    };
+  } catch {
+    return { error: 'server_error' };
   }
-  return null;
 }
