@@ -1,6 +1,30 @@
 # Check-in API – deploy and test on live
 
-If the kiosk shows **"Member not found"** for valid IDs, the request often never reaches Laravel. Use this to fix it.
+## If /checkin or /api/checkin returns 404 (but /login works)
+
+**Cause:** Laravel is using **cached routes** from before the check-in route existed.
+
+**Fix on the server** (SSH or your host’s “Run PHP” / terminal):
+
+```bash
+cd /path/to/your/laravel
+php artisan route:clear
+php artisan config:clear
+```
+
+Then open **https://catchjiujitsu.com/checkin** again. To confirm the route is registered:
+
+```bash
+php artisan route:list
+```
+
+You should see `GET|HEAD checkin ... CheckInController@show`.
+
+---
+
+## If the kiosk shows **"Member not found"** for valid IDs
+
+The request often never reaches Laravel. Use the steps below.
 
 ## 1. Deploy these to the live server
 
