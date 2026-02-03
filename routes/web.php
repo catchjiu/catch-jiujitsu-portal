@@ -98,6 +98,8 @@ Route::middleware('auth')->group(function () {
         // Attendance
         Route::get('/attendance/{classId}', [AdminController::class, 'attendance'])->name('attendance');
         Route::post('/attendance/{classId}/toggle/{bookingId}', [AdminController::class, 'toggleCheckIn'])->name('attendance.toggle');
+        Route::delete('/attendance/{classId}/booking/{bookingId}', [AdminController::class, 'removeBooking'])->name('attendance.booking.remove');
+        Route::delete('/attendance/{classId}/trial/{trialId}', [AdminController::class, 'removeTrial'])->name('attendance.trial.remove');
         Route::post('/attendance/{classId}/walk-in', [AdminController::class, 'addWalkIn'])->name('attendance.walkin');
         Route::post('/classes/{classId}/trials', [AdminController::class, 'storeTrial'])->name('classes.trials.store');
 

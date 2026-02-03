@@ -400,6 +400,30 @@ class AdminController extends Controller
     }
 
     /**
+     * Remove a booking from the class (admin remove from attendance).
+     */
+    public function removeBooking($classId, $bookingId)
+    {
+        $booking = Booking::where('class_id', $classId)->findOrFail($bookingId);
+        $user = $booking->user;
+        $booking->delete();
+        if ($user && $user->classes_remaining !== null) {
+            $user->incrementClassesRemaining();
+        }
+        return back()->with('success', 'Removed from class.');
+    }
+
+    /**
+     * Remove a trial from the class.
+     */
+    public function removeTrial($classId, $trialId)
+    {
+        $trial = ClassTrial::where('class_id', $classId)->findOrFail($trialId);
+        $trial->delete();
+        return back()->with('success', 'Trial removed.');
+    }
+
+    /**
      * Add a member as walk-in to the class (create booking and mark checked-in).
      */
     public function addWalkIn(Request $request, $classId)

@@ -65,7 +65,7 @@
         <p class="text-sm text-slate-500">{{ $class->bookings_count + ($trials ?? collect())->count() }} / {{ $class->capacity }} spots filled</p>
     </div>
 
-    <!-- Attendee List -->
+    <!-- Attendee List (slide left to reveal delete) -->
     <div class="space-y-2" id="attendeeList">
         @foreach($bookedUsers as $item)
             @php
@@ -73,59 +73,75 @@
                 $booking = $item['booking'];
                 $isCheckedIn = $booking->checked_in ?? false;
             @endphp
-            <div class="attendee-item flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/30" 
-                 data-name="{{ strtolower($user->name) }}">
-                
-                <!-- Avatar -->
-                <div class="relative flex-shrink-0">
-                    <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
-                        @if($user->avatar)
-                            <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
-                        @else
-                            <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">
-                                {{ strtoupper(substr($user->name, 0, 2)) }}
+            <div class="attendee-item rounded-xl overflow-hidden border border-slate-700/30" data-name="{{ strtolower($user->name) }}">
+                <div class="overflow-x-auto scrollbar-hide" style="-webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;">
+                    <div class="flex flex-shrink-0" style="width: calc(100% + 72px); min-width: calc(100% + 72px); scroll-snap-align: start;">
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 flex-shrink-0" style="width: calc(100% - 72px); min-width: calc(100% - 72px);">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600">
+                                    @if($user->avatar)
+                                        <img src="{{ $user->avatar }}" alt="{{ $user->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">
+                                            {{ strtoupper(substr($user->name, 0, 2)) }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
-                        @endif
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-white font-medium truncate">{{ $user->name }}</h3>
+                                <p class="text-slate-500 text-xs">Joined {{ $user->created_at->format('Y') }} • {{ $user->rank }} Belt</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                @if($isCheckedIn)
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400">Checked in</span>
+                                @endif
+                                <form action="{{ route('admin.attendance.toggle', [$class->id, $booking->id]) }}" method="POST" class="flex-shrink-0">
+                                    @csrf
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer" {{ $isCheckedIn ? 'checked' : '' }} onchange="this.form.submit()">
+                                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                                    </label>
+                                </form>
+                            </div>
+                        </div>
+                        <form action="{{ route('admin.attendance.booking.remove', [$class->id, $booking->id]) }}" method="POST" class="flex-shrink-0 w-[72px] flex items-center justify-center bg-red-500/90 rounded-r-xl" onclick="event.stopPropagation()">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full h-full flex items-center justify-center text-white p-3" title="Remove from class">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </form>
                     </div>
-                </div>
-
-                <!-- Info -->
-                <div class="flex-1 min-w-0">
-                    <h3 class="text-white font-medium truncate">{{ $user->name }}</h3>
-                    <p class="text-slate-500 text-xs">Joined {{ $user->created_at->format('Y') }} • {{ $user->rank }} Belt</p>
-                </div>
-
-                <!-- Status Badge & Toggle -->
-                <div class="flex items-center gap-2">
-                    @if($isCheckedIn)
-                        <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400">
-                            Checked in
-                        </span>
-                    @endif
-                    
-                    <form action="{{ route('admin.attendance.toggle', [$class->id, $booking->id]) }}" method="POST">
-                        @csrf
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" class="sr-only peer" {{ $isCheckedIn ? 'checked' : '' }} onchange="this.form.submit()">
-                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
-                        </label>
-                    </form>
                 </div>
             </div>
         @endforeach
 
         @foreach($trials ?? [] as $trial)
-            <div class="attendee-item flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/30 border-l-4 border-l-amber-500/50" data-name="{{ strtolower($trial->name) }}">
-                <div class="relative flex-shrink-0">
-                    <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold">
-                        {{ strtoupper(substr($trial->name, 0, 2)) }}
+            <div class="attendee-item rounded-xl overflow-hidden border border-slate-700/30 border-l-4 border-l-amber-500/50" data-name="{{ strtolower($trial->name) }}">
+                <div class="overflow-x-auto scrollbar-hide" style="-webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;">
+                    <div class="flex flex-shrink-0" style="width: calc(100% + 72px); min-width: calc(100% + 72px); scroll-snap-align: start;">
+                        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 flex-shrink-0" style="width: calc(100% - 72px); min-width: calc(100% - 72px);">
+                            <div class="relative flex-shrink-0">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold">
+                                    {{ strtoupper(substr($trial->name, 0, 2)) }}
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-white font-medium truncate">{{ $trial->name }}</h3>
+                                <p class="text-slate-500 text-xs">Trial @if($trial->age) • Age {{ $trial->age }} @endif</p>
+                            </div>
+                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400 flex-shrink-0">Trial</span>
+                        </div>
+                        <form action="{{ route('admin.attendance.trial.remove', [$class->id, $trial->id]) }}" method="POST" class="flex-shrink-0 w-[72px] flex items-center justify-center bg-red-500/90 rounded-r-xl" onclick="event.stopPropagation()">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full h-full flex items-center justify-center text-white p-3" title="Remove trial">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <h3 class="text-white font-medium truncate">{{ $trial->name }}</h3>
-                    <p class="text-slate-500 text-xs">Trial @if($trial->age) • Age {{ $trial->age }} @endif</p>
-                </div>
-                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400">Trial</span>
             </div>
         @endforeach
 
