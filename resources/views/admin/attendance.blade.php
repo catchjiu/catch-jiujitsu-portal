@@ -99,7 +99,7 @@
                 <div class="flex items-center gap-2">
                     @if($isCheckedIn)
                         <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400">
-                            Booked
+                            Checked in
                         </span>
                     @endif
                     
@@ -122,13 +122,14 @@
         @endif
     </div>
 
-    <!-- Non-booked members (for walk-ins) -->
+    <!-- Non-booked members (for walk-ins), filtered by class age group -->
     @if($availableMembers->count() > 0)
-        <div class="pt-4 border-t border-slate-800">
+        <div class="pt-4 border-t border-slate-800" id="walkInSection">
             <p class="text-sm text-slate-400 uppercase tracking-wider font-medium mb-3">Available for Walk-in</p>
-            <div class="space-y-2">
-                @foreach($availableMembers->take(5) as $member)
-                    <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/20 border border-slate-700/20 opacity-70">
+            <div class="space-y-2" id="walkInList">
+                @foreach($availableMembers as $member)
+                    <div class="walkin-item flex items-center gap-3 p-3 rounded-xl bg-slate-800/20 border border-slate-700/20 opacity-70"
+                         data-name="{{ strtolower($member->name) }}">
                         <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700">
                             <div class="w-full h-full flex items-center justify-center text-slate-500 text-sm font-bold">
                                 {{ strtoupper(substr($member->name, 0, 2)) }}
@@ -153,16 +154,17 @@
 @section('scripts')
 <script>
 function filterStudents() {
-    const search = document.getElementById('searchInput').value.toLowerCase();
-    const items = document.querySelectorAll('.attendee-item');
-    
-    items.forEach(item => {
-        const name = item.dataset.name;
-        if (name.includes(search)) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const attendeeItems = document.querySelectorAll('.attendee-item');
+    const walkinItems = document.querySelectorAll('.walkin-item');
+
+    attendeeItems.forEach(item => {
+        const name = (item.dataset.name || '').toLowerCase();
+        item.style.display = name.includes(search) ? 'flex' : 'none';
+    });
+    walkinItems.forEach(item => {
+        const name = (item.dataset.name || '').toLowerCase();
+        item.style.display = name.includes(search) ? 'flex' : 'none';
     });
 }
 </script>

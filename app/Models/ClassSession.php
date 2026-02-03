@@ -71,6 +71,14 @@ class ClassSession extends Model
     }
 
     /**
+     * Get all trial members for this class.
+     */
+    public function trials(): HasMany
+    {
+        return $this->hasMany(ClassTrial::class, 'class_id');
+    }
+
+    /**
      * Get all users who booked this class.
      */
     public function users(): BelongsToMany

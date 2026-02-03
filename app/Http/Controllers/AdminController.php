@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\ClassSession;
 use App\Models\Booking;
+use App\Models\ClassTrial;
 use App\Models\MembershipPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -361,10 +362,14 @@ class AdminController extends Controller
             ];
         });
 
-        // Get non-booked members for potential walk-ins
+        // Get non-booked members for potential walk-ins (filter by class age_group: Kids class → kids/all, Adults → adults/all)
         $bookedUserIds = $class->bookings->pluck('user_id');
+        $classAgeGroup = $class->age_group ?? 'Adults';
         $availableMembers = User::where('is_admin', false)
             ->whereNotIn('id', $bookedUserIds)
+            ->when($classAgeGroup === 'Kids', fn ($q) => $q->whereIn('age_group', ['Kids', 'All']))
+            ->when($classAgeGroup === 'Adults', fn ($q) => $q->whereIn('age_group', ['Adults', 'All']))
+            ->orderBy('name')
             ->get();
 
         $waitlistCount = max(0, $class->bookings_count - $class->capacity);
@@ -389,6 +394,24 @@ class AdminController extends Controller
         $booking->save();
 
         return back()->with('success', 'Check-in status updated.');
+    }
+
+    /**
+     * Store a trial member for a class.
+     */
+    public function storeTrial(Request $request, $classId)
+    {
+        $class = ClassSession::findOrFail($classId);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'age'  => 'nullable|integer|min:1|max:120',
+        ]);
+        ClassTrial::create([
+            'class_id' => $class->id,
+            'name'     => $validated['name'],
+            'age'      => $validated['age'] ?? null,
+        ]);
+        return back()->with('success', 'Trial member added.');
     }
 
     /**
