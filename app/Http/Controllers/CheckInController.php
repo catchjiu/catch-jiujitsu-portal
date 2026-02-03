@@ -65,6 +65,7 @@ class CheckInController extends Controller
                 'name' => $user->name,
                 'rank' => $user->rank ?? 'White',
                 'stripes' => (int) ($user->stripes ?? 0),
+                'beltVariation' => $user->belt_variation,
                 'avatarUrl' => $avatarUrl,
                 'hoursThisYear' => $hoursThisYear,
                 'classesThisMonth' => $classesThisMonth,

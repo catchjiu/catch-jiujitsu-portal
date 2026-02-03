@@ -73,9 +73,17 @@
     const DISPLAY_MS = 4000;
     let buffer = '';
 
-    function beltColor(rank) {
-        const map = { White: 'bg-gray-100', Blue: 'bg-blue-600', Purple: 'bg-purple-600', Brown: 'bg-yellow-900', Black: 'bg-slate-900 border-l-8 border-red-600' };
-        return map[rank] || 'bg-gray-100';
+    function getBeltStyles(rank, beltVariation) {
+        const baseColors = { White: 'bg-gray-100', Grey: 'bg-slate-300', Yellow: 'bg-yellow-400', Orange: 'bg-orange-500', Green: 'bg-green-500', Blue: 'bg-blue-600', Purple: 'bg-purple-600', Brown: 'bg-yellow-900', Black: 'bg-black' };
+        const kidsBelts = ['Grey', 'Yellow', 'Orange', 'Green'];
+        const baseColor = baseColors[rank] || 'bg-gray-100';
+        var bandHtml = '';
+        if (kidsBelts.indexOf(rank) >= 0 && beltVariation === 'white') {
+            bandHtml = '<div class="absolute inset-0 flex items-center pointer-events-none"><div class="w-full h-3 bg-white"></div></div>';
+        } else if (kidsBelts.indexOf(rank) >= 0 && beltVariation === 'black') {
+            bandHtml = '<div class="absolute inset-0 flex items-center pointer-events-none"><div class="w-full h-3 bg-black"></div></div>';
+        }
+        return { baseColor: baseColor, bandHtml: bandHtml, isKidsBelt: kidsBelts.indexOf(rank) >= 0 };
     }
 
     function playSound(active) {
@@ -147,11 +155,16 @@
         document.getElementById('welcomeRank').textContent = (data.rank || 'White') + ' Belt' + (data.stripes > 0 ? ' · ' + data.stripes + ' stripe(s)' : '');
 
         var beltEl = document.getElementById('welcomeBelt');
-        beltEl.className = 'h-14 w-full max-w-md rounded shadow-inner relative flex items-center justify-end pr-4 mb-10 ' + beltColor(data.rank || 'White');
-        beltEl.innerHTML = '<div class="h-full w-20 bg-black flex items-center justify-around px-1 absolute right-4">' +
+        var rank = data.rank || 'White';
+        var beltVariation = data.beltVariation || null;
+        var styles = getBeltStyles(rank, beltVariation);
+        beltEl.className = 'h-14 w-full max-w-md rounded shadow-inner relative flex items-center pl-4 mb-10 overflow-hidden ' + styles.baseColor;
+        var stripeBarColor = rank === 'Black' ? 'bg-red-600' : 'bg-black';
+        var stripeBar = '<div class="h-full w-20 ' + stripeBarColor + ' flex items-center justify-start gap-1 px-1 absolute left-4 z-10">' +
             [0,1,2,3].map(function(i) {
-                return '<div class="w-2 h-full rounded-sm ' + (i < (data.stripes || 0) ? 'bg-white' : 'bg-slate-700/50') + '"></div>';
+                return '<div class="w-1.5 h-full rounded-sm ' + (i < (data.stripes || 0) ? 'bg-white' : 'bg-slate-700/50') + '"></div>';
             }).join('') + '</div>';
+        beltEl.innerHTML = styles.bandHtml + stripeBar;
 
         playSound(data.isActive);
         setTimeout(showScan, DISPLAY_MS);
