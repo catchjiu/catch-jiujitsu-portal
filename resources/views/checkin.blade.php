@@ -164,7 +164,7 @@
         var stripeDivs = stripeCount > 0
             ? Array(stripeCount).fill(0).map(function() { return '<div class="w-1.5 h-full rounded-sm bg-white flex-shrink-0"></div>'; }).join('')
             : '';
-        var stripeBar = '<div class="h-full w-20 ' + stripeBarColor + ' flex items-center justify-evenly px-1 absolute left-4 z-10">' + stripeDivs + '</div>';
+        var stripeBar = '<div class="h-full w-20 ' + stripeBarColor + ' flex items-center justify-start gap-1 px-1 absolute left-4 z-10">' + stripeDivs + '</div>';
         beltEl.innerHTML = styles.bandHtml + stripeBar;
 
         playSound(data.isActive);
