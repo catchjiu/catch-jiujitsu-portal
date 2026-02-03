@@ -182,6 +182,7 @@ class BookingController extends Controller
             Booking::create([
                 'user_id' => $user->id,
                 'class_id' => $class->id,
+                'checked_in' => true,
             ]);
             $user->decrementClassesRemaining();
             $booked++;

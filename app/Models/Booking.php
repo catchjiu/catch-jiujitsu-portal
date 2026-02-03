@@ -16,10 +16,12 @@ class Booking extends Model
         'user_id',
         'class_id',
         'booked_at',
+        'checked_in',
     ];
 
     protected $casts = [
         'booked_at' => 'datetime',
+        'checked_in' => 'boolean',
     ];
 
     /**

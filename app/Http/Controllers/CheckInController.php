@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -65,6 +67,15 @@ class CheckInController extends Controller
             if (isset($user->monthly_classes_attended)) {
                 $classesThisMonth = (int) $user->monthly_classes_attended;
             }
+
+            // Mark today's class bookings as checked-in for admin attendance
+            $todayStart = Carbon::today()->startOfDay();
+            $todayEnd = Carbon::today()->endOfDay();
+            Booking::where('user_id', $user->id)
+                ->whereHas('classSession', function ($q) use ($todayStart, $todayEnd) {
+                    $q->whereBetween('start_time', [$todayStart, $todayEnd]);
+                })
+                ->update(['checked_in' => true]);
 
             return response()->json([
                 'id' => $user->id,
