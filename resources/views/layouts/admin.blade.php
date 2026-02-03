@@ -73,6 +73,12 @@
                     <span class="material-symbols-outlined">inventory_2</span>
                     <span class="font-medium">Membership Packages</span>
                 </a>
+
+                <div class="border-t border-slate-700 my-4"></div>
+                <a href="{{ route('checkin') }}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 transition-colors">
+                    <span class="material-symbols-outlined">qr_code_scanner</span>
+                    <span class="font-medium">Check-in Kiosk</span>
+                </a>
             </nav>
         </div>
     </div>

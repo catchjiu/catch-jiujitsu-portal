@@ -9,9 +9,14 @@ use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MembershipPackageController;
+use App\Http\Controllers\CheckInController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
+
+// Check-in kiosk (no auth – open in new tab for monitor)
+Route::get('/checkin', [CheckInController::class, 'show'])->name('checkin');
+Route::get('/api/checkin', [CheckInController::class, 'lookup'])->name('checkin.lookup');
 Route::get('/', function () {
     if (auth()->check()) {
         if (auth()->user()->isAdmin()) {

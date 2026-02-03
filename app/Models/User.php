@@ -343,4 +343,23 @@ class User extends Authenticatable
 
         return (int) round($totalMinutes / 60);
     }
+
+    /**
+     * Get total hours trained this year (from past attended classes).
+     */
+    public function getHoursThisYearAttribute(): float
+    {
+        $totalMinutes = $this->bookings()
+            ->whereHas('classSession', function ($query) {
+                $query->whereYear('start_time', now()->year)
+                    ->where('start_time', '<', now());
+            })
+            ->with('classSession')
+            ->get()
+            ->sum(function ($booking) {
+                return $booking->classSession->duration_minutes ?? 0;
+            });
+
+        return round($totalMinutes / 60, 1);
+    }
 }
