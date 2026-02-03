@@ -1,0 +1,7 @@
+{
+  "name": "Catch Jiu Jitsu Portal",
+  "description": "Premium member portal for BJJ class bookings and manual payments.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
