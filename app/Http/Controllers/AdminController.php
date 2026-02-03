@@ -369,15 +369,18 @@ class AdminController extends Controller
             ->whereNotIn('id', $bookedUserIds)
             ->when($classAgeGroup === 'Kids', fn ($q) => $q->whereIn('age_group', ['Kids', 'All']))
             ->when($classAgeGroup === 'Adults', fn ($q) => $q->whereIn('age_group', ['Adults', 'All']))
-            ->orderBy('name')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
             ->get();
 
+        $class->load('trials');
         $waitlistCount = max(0, $class->bookings_count - $class->capacity);
         $checkedInCount = $class->bookings->where('checked_in', true)->count();
 
         return view('admin.attendance', [
             'class' => $class,
             'bookedUsers' => $bookedUsers,
+            'trials' => $class->trials,
             'availableMembers' => $availableMembers,
             'checkedInCount' => $checkedInCount,
             'waitlistCount' => $waitlistCount,

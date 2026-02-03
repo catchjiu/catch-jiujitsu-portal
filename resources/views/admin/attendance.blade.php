@@ -62,7 +62,7 @@
     <!-- Attendees Header -->
     <div class="flex items-center justify-between">
         <p class="text-sm text-slate-400 uppercase tracking-wider font-medium">Attendees</p>
-        <p class="text-sm text-slate-500">{{ $class->bookings_count }} / {{ $class->capacity }} spots filled</p>
+        <p class="text-sm text-slate-500">{{ $class->bookings_count + ($trials ?? collect())->count() }} / {{ $class->capacity }} spots filled</p>
     </div>
 
     <!-- Attendee List -->
@@ -114,7 +114,22 @@
             </div>
         @endforeach
 
-        @if($bookedUsers->isEmpty())
+        @foreach($trials ?? [] as $trial)
+            <div class="attendee-item flex items-center gap-3 p-3 rounded-xl bg-slate-800/40 border border-slate-700/30 border-l-4 border-l-amber-500/50" data-name="{{ strtolower($trial->name) }}">
+                <div class="relative flex-shrink-0">
+                    <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold">
+                        {{ strtoupper(substr($trial->name, 0, 2)) }}
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-white font-medium truncate">{{ $trial->name }}</h3>
+                    <p class="text-slate-500 text-xs">Trial @if($trial->age) • Age {{ $trial->age }} @endif</p>
+                </div>
+                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-amber-500/20 text-amber-400">Trial</span>
+            </div>
+        @endforeach
+
+        @if($bookedUsers->isEmpty() && ($trials ?? collect())->isEmpty())
             <div class="p-10 text-center text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
                 <span class="material-symbols-outlined text-4xl mb-2">person_off</span>
                 <p>No bookings for this class yet.</p>

@@ -108,7 +108,7 @@
                                         {{ $class->start_time->format('A') }}
                                     </span>
                                     @if(!$isCancelled)
-                                        <button type="button" onclick="document.getElementById('trialModal-{{ $class->id }}').classList.remove('hidden')"
+                                        <button type="button" onclick="openTrialModal(this)" data-action="{{ route('admin.classes.trials.store', $class->id) }}"
                                                 class="mt-2 text-[10px] font-semibold text-blue-400 hover:text-blue-300 transition-colors">
                                             Add trial
                                         </button>
@@ -159,40 +159,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Add Trial Modal -->
-                            <div id="trialModal-{{ $class->id }}" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onclick="if(event.target===this) this.classList.add('hidden')">
-                                <div class="glass rounded-2xl p-6 w-full max-w-sm relative" onclick="event.stopPropagation()">
-                                    <button type="button" onclick="document.getElementById('trialModal-{{ $class->id }}').classList.add('hidden')"
-                                            class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                                        <span class="material-symbols-outlined">close</span>
-                                    </button>
-                                    <h3 class="text-lg font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">Add trial</h3>
-                                    <form action="{{ route('admin.classes.trials.store', $class->id) }}" method="POST" class="space-y-4">
-                                        @csrf
-                                        <div>
-                                            <label for="trial-name-{{ $class->id }}" class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Name</label>
-                                            <input type="text" name="name" id="trial-name-{{ $class->id }}" required maxlength="255"
-                                                   class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                                                   placeholder="Trial member name">
-                                        </div>
-                                        <div>
-                                            <label for="trial-age-{{ $class->id }}" class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Age</label>
-                                            <input type="number" name="age" id="trial-age-{{ $class->id }}" min="1" max="120" placeholder="Optional"
-                                                   class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
-                                        </div>
-                                        <div class="flex gap-2 pt-2">
-                                            <button type="button" onclick="document.getElementById('trialModal-{{ $class->id }}').classList.add('hidden')"
-                                                    class="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">
-                                                Cancel
-                                            </button>
-                                            <button type="submit" class="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors">
-                                                Add trial
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -209,5 +175,49 @@
             </a>
         </div>
     @endif
+
+    <!-- Add Trial Modal - single modal at end so it renders in front of everything -->
+    <div id="trialModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onclick="if(event.target===this) closeTrialModal()">
+        <div class="glass rounded-2xl p-6 w-full max-w-sm relative z-[10000]" onclick="event.stopPropagation()">
+            <button type="button" onclick="closeTrialModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="text-lg font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">Add trial</h3>
+            <form id="trialForm" action="" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label for="trial-name" class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Name</label>
+                    <input type="text" name="name" id="trial-name" required maxlength="255"
+                           class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                           placeholder="Trial member name">
+                </div>
+                <div>
+                    <label for="trial-age" class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">Age</label>
+                    <input type="number" name="age" id="trial-age" min="1" max="120" placeholder="Optional"
+                           class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeTrialModal()"
+                            class="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 text-sm font-semibold rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors">
+                        Add trial
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+function openTrialModal(btn) {
+    var action = btn.getAttribute('data-action');
+    if (action) document.getElementById('trialForm').action = action;
+    document.getElementById('trialModal').classList.remove('hidden');
+}
+function closeTrialModal() {
+    document.getElementById('trialModal').classList.add('hidden');
+}
+</script>
 @endsection
