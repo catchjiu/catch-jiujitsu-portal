@@ -12,6 +12,66 @@
         <p class="text-slate-400 text-sm">{{ __('app.dashboard.ready_to_train') }}</p>
     </div>
 
+    <!-- Check In Module (at front) -->
+    <div id="checkInModule">
+        <button type="button" onclick="document.getElementById('checkInModal').classList.remove('hidden')"
+                class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
+            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+            <div class="relative z-10 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-blue-500 text-2xl">qr_code_scanner</span>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.check_in') }}</h3>
+                    <p class="text-slate-500 text-sm">{{ __('app.dashboard.check_in_subtitle') }}</p>
+                </div>
+                <span class="material-symbols-outlined text-slate-500">chevron_right</span>
+            </div>
+        </button>
+
+        <!-- Check In Modal -->
+        <div id="checkInModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+             onclick="if(event.target===this) this.classList.add('hidden')">
+            <div class="glass rounded-2xl p-6 max-w-sm w-full relative" onclick="event.stopPropagation()">
+                <button type="button" onclick="document.getElementById('checkInModal').classList.add('hidden')"
+                        class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+                <h3 class="text-xl font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.check_in') }}</h3>
+
+                <!-- Check in for today button -->
+                <button type="button" id="checkInTodayBtn"
+                        class="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 mb-4 transition-colors">
+                    <span class="material-symbols-outlined">event_available</span>
+                    {{ __('app.dashboard.check_in_for_today') }}
+                </button>
+                <p class="text-slate-500 text-xs mb-6">{{ __('app.dashboard.check_in_today_desc') }}</p>
+
+                <!-- QR Code for kiosk -->
+                <p class="text-slate-400 text-sm font-semibold mb-2">{{ __('app.dashboard.scan_at_kiosk') }}</p>
+                <button type="button" id="qrFullscreenBtn" class="block w-full"
+                        onclick="document.getElementById('checkInModal').classList.add('hidden'); document.getElementById('qrFullscreen').classList.remove('hidden')">
+                    <div class="p-4 rounded-xl bg-white flex justify-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-{{ $user->id }}"
+                             alt="Check-in QR code" class="w-40 h-40">
+                    </div>
+                    <p class="text-slate-500 text-xs mt-2">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- QR Fullscreen overlay -->
+        <div id="qrFullscreen" class="hidden fixed inset-0 z-[101] bg-black flex flex-col items-center justify-center p-4"
+             onclick="this.classList.add('hidden')">
+            <p class="text-white text-sm mb-4">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
+            <div class="p-6 rounded-2xl bg-white">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=CATCH-{{ $user->id }}"
+                     alt="Check-in QR code" class="w-64 h-64 sm:w-80 sm:h-80">
+            </div>
+            <p class="text-slate-500 text-xs mt-4">CATCH-{{ $user->id }}</p>
+        </div>
+    </div>
+
     <!-- Rank Card -->
     <div class="glass rounded-2xl p-5 border-t-4 border-t-amber-500 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -243,66 +303,6 @@
         </div>
     </div>
 
-    <!-- Check In Module -->
-    <div id="checkInModule">
-        <button type="button" onclick="document.getElementById('checkInModal').classList.remove('hidden')"
-                class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
-            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-            <div class="relative z-10 flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                    <span class="material-symbols-outlined text-blue-500 text-2xl">qr_code_scanner</span>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.check_in') }}</h3>
-                    <p class="text-slate-500 text-sm">{{ __('app.dashboard.check_in_subtitle') }}</p>
-                </div>
-                <span class="material-symbols-outlined text-slate-500">chevron_right</span>
-            </div>
-        </button>
-
-        <!-- Check In Modal -->
-        <div id="checkInModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-             onclick="if(event.target===this) this.classList.add('hidden')">
-            <div class="glass rounded-2xl p-6 max-w-sm w-full relative" onclick="event.stopPropagation()">
-                <button type="button" onclick="document.getElementById('checkInModal').classList.add('hidden')"
-                        class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-                <h3 class="text-xl font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.check_in') }}</h3>
-
-                <!-- Check in for today button -->
-                <button type="button" id="checkInTodayBtn"
-                        class="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 mb-4 transition-colors">
-                    <span class="material-symbols-outlined">event_available</span>
-                    {{ __('app.dashboard.check_in_for_today') }}
-                </button>
-                <p class="text-slate-500 text-xs mb-6">{{ __('app.dashboard.check_in_today_desc') }}</p>
-
-                <!-- QR Code for kiosk -->
-                <p class="text-slate-400 text-sm font-semibold mb-2">{{ __('app.dashboard.scan_at_kiosk') }}</p>
-                <button type="button" id="qrFullscreenBtn" class="block w-full"
-                        onclick="document.getElementById('checkInModal').classList.add('hidden'); document.getElementById('qrFullscreen').classList.remove('hidden')">
-                    <div class="p-4 rounded-xl bg-white flex justify-center">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-{{ $user->id }}"
-                             alt="Check-in QR code" class="w-40 h-40">
-                    </div>
-                    <p class="text-slate-500 text-xs mt-2">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
-                </button>
-            </div>
-        </div>
-
-        <!-- QR Fullscreen overlay -->
-        <div id="qrFullscreen" class="hidden fixed inset-0 z-[101] bg-black flex flex-col items-center justify-center p-4"
-             onclick="this.classList.add('hidden')">
-            <p class="text-white text-sm mb-4">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
-            <div class="p-6 rounded-2xl bg-white">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=CATCH-{{ $user->id }}"
-                     alt="Check-in QR code" class="w-64 h-64 sm:w-80 sm:h-80">
-            </div>
-            <p class="text-slate-500 text-xs mt-4">CATCH-{{ $user->id }}</p>
-        </div>
-    </div>
-
     <!-- Next Class (moved here, under membership) -->
     <div>
         <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
@@ -495,6 +495,10 @@
     btn.addEventListener('click', function() {
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
+        var localDate = (function() {
+            var d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        })();
         fetch('{{ route("checkin.today") }}', {
             method: 'POST',
             headers: {
@@ -502,7 +506,7 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({})
+            body: JSON.stringify({ date: localDate })
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {

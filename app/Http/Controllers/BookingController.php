@@ -149,7 +149,20 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $today = Carbon::today();
+        // Use client's date so "today" matches the member's timezone; fallback to server today
+        $dateInput = $request->input('date');
+        if ($dateInput) {
+            $today = Carbon::parse($dateInput, config('app.timezone'));
+            // Only allow today or past dates (prevent future check-ins)
+            if ($today->isFuture()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => __('app.dashboard.check_in_no_classes'),
+                ], 422);
+            }
+        } else {
+            $today = Carbon::today();
+        }
         $dayStart = $today->copy()->startOfDay();
         $dayEnd = $today->copy()->endOfDay();
 
@@ -168,12 +181,15 @@ class BookingController extends Controller
         }
 
         $booked = 0;
-        $skipped = 0;
+        $checkedIn = 0;
 
         foreach ($classes as $class) {
-            $existing = Booking::where('user_id', $user->id)->where('class_id', $class->id)->exists();
+            $existing = Booking::where('user_id', $user->id)->where('class_id', $class->id)->first();
             if ($existing) {
-                $skipped++;
+                if (!$existing->checked_in) {
+                    $existing->update(['checked_in' => true]);
+                    $checkedIn++;
+                }
                 continue;
             }
             if ($class->bookings_count >= $class->capacity) {
@@ -188,10 +204,10 @@ class BookingController extends Controller
             $booked++;
         }
 
-        if ($booked === 0 && $skipped > 0) {
+        if ($booked === 0 && $checkedIn > 0) {
             return response()->json([
                 'success' => true,
-                'message' => __('app.dashboard.already_booked'),
+                'message' => __('app.dashboard.check_in_success'),
             ]);
         }
 
