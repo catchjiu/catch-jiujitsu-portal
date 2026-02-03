@@ -114,8 +114,13 @@
     }
 
     function hideMessages() {
-        document.getElementById('loadingMsg').classList.add('hidden');
-        document.getElementById('errorMsg').classList.add('hidden').textContent = '';
+        var loadingEl = document.getElementById('loadingMsg');
+        var errorEl = document.getElementById('errorMsg');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) {
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
+        }
     }
 
     function showWelcome(data) {
