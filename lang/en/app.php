@@ -283,6 +283,26 @@ return [
         'december' => 'December',
     ],
 
+    // Check-in kiosk
+    'checkin' => [
+        'title' => 'Check-In – Catch Jiu Jitsu',
+        'scan_to_check_in' => 'Scan to check in',
+        'position_qr' => 'Position your QR code in front of the scanner',
+        'or_type_code' => 'Or type your code and press Enter',
+        'looking_up' => 'Looking up...',
+        'ready_for_next' => 'Ready for the next member',
+        'welcome_back' => 'Welcome back',
+        'active_member' => 'Active member',
+        'membership_expired' => 'Membership expired',
+        'hours_this_year' => 'Hours this year',
+        'classes_this_month' => 'Classes this month',
+        'expires' => 'Expires',
+        'member_not_found' => 'Member not found',
+        'service_unavailable' => 'Check-in service unavailable. Try again.',
+        'belt' => 'Belt',
+        'stripes' => 'stripe(s)',
+    ],
+
     // Messages
     'messages' => [
         'success' => 'Success!',

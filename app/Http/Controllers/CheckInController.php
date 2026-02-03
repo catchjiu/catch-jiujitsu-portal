@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 class CheckInController extends Controller
@@ -12,9 +13,14 @@ class CheckInController extends Controller
     /**
      * Show the check-in kiosk page (full-screen scan + welcome).
      * Public route – no auth required. Open in new tab for monitor.
+     * Supports ?locale=zh-TW or ?locale=en to force language.
      */
-    public function show(): \Illuminate\View\View
+    public function show(Request $request): \Illuminate\View\View
     {
+        $locale = $request->query('locale');
+        if (in_array($locale, ['en', 'zh-TW'])) {
+            App::setLocale($locale);
+        }
         return view('checkin');
     }
 

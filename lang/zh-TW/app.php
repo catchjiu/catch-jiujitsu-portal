@@ -283,6 +283,26 @@ return [
         'december' => '十二月',
     ],
 
+    // Check-in kiosk
+    'checkin' => [
+        'title' => '簽到 – Catch Jiu Jitsu',
+        'scan_to_check_in' => '掃描簽到',
+        'position_qr' => '請將您的 QR 碼對準掃描器',
+        'or_type_code' => '或輸入您的代碼後按 Enter',
+        'looking_up' => '查詢中...',
+        'ready_for_next' => '準備好迎接下一位',
+        'welcome_back' => '歡迎回來',
+        'active_member' => '有效會員',
+        'membership_expired' => '會籍已過期',
+        'hours_this_year' => '今年訓練時數',
+        'classes_this_month' => '本月堂數',
+        'expires' => '到期日',
+        'member_not_found' => '找不到會員',
+        'service_unavailable' => '簽到服務無法使用，請稍後再試。',
+        'belt' => '帶',
+        'stripes' => '條紋',
+    ],
+
     // Messages
     'messages' => [
         'success' => '成功！',
