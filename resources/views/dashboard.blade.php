@@ -501,37 +501,6 @@
         @endif
     </div>
 
-    <!-- Private Class Modal -->
-    <div id="privateClassModal" class="hidden fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-         onclick="if(event.target===this) closePrivateClassModal()">
-        <div class="glass rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-hidden flex flex-col relative" onclick="event.stopPropagation()">
-            <button type="button" onclick="closePrivateClassModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-            <h3 class="text-xl font-bold text-white mb-4 pr-8" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '預約私教課' : 'Book private class' }}</h3>
-            <div id="privateClassStep1" class="space-y-3 overflow-y-auto flex-1 min-h-0">
-                <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '選擇教練' : 'Choose a coach' }}</p>
-                <div id="privateClassCoaches" class="space-y-2"></div>
-                <p id="privateClassCoachesLoading" class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '載入中…' : 'Loading…' }}</p>
-                <p id="privateClassCoachesEmpty" class="hidden text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '目前沒有教練開放私教預約' : 'No coaches accepting private classes right now.' }}</p>
-            </div>
-            <div id="privateClassStep2" class="hidden flex flex-col flex-1 min-h-0">
-                <button type="button" onclick="privateClassBackToCoaches()" class="text-slate-400 hover:text-white text-sm mb-2 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-lg">arrow_back</span> {{ app()->getLocale() === 'zh-TW' ? '返回教練列表' : 'Back to coaches' }}
-                </button>
-                <div id="privateClassCoachInfo" class="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 mb-4"></div>
-                <p class="text-slate-500 text-sm mb-2">{{ app()->getLocale() === 'zh-TW' ? '選擇時段' : 'Choose a time slot' }}</p>
-                <div id="privateClassSlots" class="space-y-2 overflow-y-auto flex-1 min-h-0 mb-4"></div>
-                <form id="privateClassRequestForm" action="{{ route('private-class.request') }}" method="POST" class="hidden">
-                    @csrf
-                    <input type="hidden" name="coach_id" id="privateClassCoachId">
-                    <input type="hidden" name="scheduled_at" id="privateClassScheduledAt">
-                    <input type="hidden" name="duration_minutes" value="60">
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- Check In Modal - at end of content with high z-index so it sits above all cards -->
     <div id="checkInModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
          onclick="if(event.target===this) this.classList.add('hidden')">
@@ -609,100 +578,6 @@
             btn.innerHTML = originalHtml;
         });
     });
-})();
-
-(function() {
-    var modal = document.getElementById('privateClassModal');
-    if (!modal) return;
-    var coachesEl = document.getElementById('privateClassCoaches');
-    var loadingEl = document.getElementById('privateClassCoachesLoading');
-    var emptyEl = document.getElementById('privateClassCoachesEmpty');
-    var step1 = document.getElementById('privateClassStep1');
-    var step2 = document.getElementById('privateClassStep2');
-    var coachInfoEl = document.getElementById('privateClassCoachInfo');
-    var slotsEl = document.getElementById('privateClassSlots');
-    var form = document.getElementById('privateClassRequestForm');
-    var coachIdInput = document.getElementById('privateClassCoachId');
-    var scheduledAtInput = document.getElementById('privateClassScheduledAt');
-    var csrf = document.querySelector('meta[name="csrf-token"]').content;
-
-    window.closePrivateClassModal = function() {
-        modal.classList.add('hidden');
-        step1.classList.remove('hidden');
-        step2.classList.add('hidden');
-    };
-
-    window.privateClassBackToCoaches = function() {
-        step2.classList.add('hidden');
-        step1.classList.remove('hidden');
-    };
-
-    modal.querySelector('button[onclick="closePrivateClassModal()"]').onclick = closePrivateClassModal;
-
-    document.getElementById('openPrivateClassModal')?.addEventListener('click', function() {
-        modal.classList.remove('hidden');
-        loadingEl.classList.remove('hidden');
-        emptyEl.classList.add('hidden');
-        coachesEl.innerHTML = '';
-        fetch('{{ route("private-class.coaches") }}', { headers: { 'Accept': 'application/json' } })
-            .then(function(r) { return r.json(); })
-            .then(function(coaches) {
-                loadingEl.classList.add('hidden');
-                if (!coaches || coaches.length === 0) {
-                    emptyEl.classList.remove('hidden');
-                    return;
-                }
-                coaches.forEach(function(c) {
-                    var card = document.createElement('button');
-                    card.type = 'button';
-                    card.className = 'w-full flex items-center gap-4 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800/80 hover:border-violet-500/50 transition-colors text-left';
-                    card.innerHTML = (c.avatar ? '<img src="' + c.avatar + '" alt="" class="w-14 h-14 rounded-full object-cover border-2 border-slate-600 flex-shrink-0">' : '<div class="w-14 h-14 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold text-lg flex-shrink-0">' + (c.name ? c.name.substring(0, 2).toUpperCase() : '?') + '</div>') +
-                        '<div class="flex-1 min-w-0"><p class="text-white font-semibold truncate">' + (c.name || '') + '</p><p class="text-slate-500 text-sm">' + (c.price ? 'NT$' + c.price.toLocaleString() + ' / session' : '') + '</p></div><span class="material-symbols-outlined text-slate-500">chevron_right</span>';
-                    card.onclick = function() { loadCoachAvailability(c.id); };
-                    coachesEl.appendChild(card);
-                });
-            })
-            .catch(function() {
-                loadingEl.classList.add('hidden');
-                emptyEl.textContent = '{{ app()->getLocale() === "zh-TW" ? "載入失敗" : "Failed to load." }}';
-                emptyEl.classList.remove('hidden');
-            });
-    });
-
-    function loadCoachAvailability(coachId) {
-        step1.classList.add('hidden');
-        step2.classList.remove('hidden');
-        slotsEl.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === "zh-TW" ? "載入時段…" : "Loading slots…" }}</p>';
-        fetch('{{ url("/private-class/coach") }}/' + coachId + '/availability', { headers: { 'Accept': 'application/json' } })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                coachIdInput.value = data.coach.id;
-                coachInfoEl.innerHTML = (data.coach.avatar ? '<img src="' + data.coach.avatar + '" alt="" class="w-12 h-12 rounded-full object-cover border-2 border-slate-600">' : '<div class="w-12 h-12 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold">' + (data.coach.name ? data.coach.name.substring(0, 2).toUpperCase() : '') + '</div>') +
-                    '<div><p class="text-white font-semibold">' + (data.coach.name || '') + '</p><p class="text-slate-500 text-sm">' + (data.coach.price ? 'NT$' + data.coach.price.toLocaleString() : '') + '</p></div>';
-                var slots = data.slots || {};
-                var keys = Object.keys(slots).sort();
-                slotsEl.innerHTML = '';
-                if (keys.length === 0) {
-                    slotsEl.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === "zh-TW" ? "暫無可預約時段" : "No available slots." }}</p>';
-                    return;
-                }
-                keys.forEach(function(k) {
-                    var s = slots[k];
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'w-full p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-violet-500/20 hover:border-violet-500/50 text-white text-sm text-left transition-colors';
-                    btn.textContent = s.label || k;
-                    btn.onclick = function() {
-                        scheduledAtInput.value = s.datetime ? s.datetime.replace('Z', '').replace(/\.[0-9]+/, '').slice(0, 19) : k.replace(' ', 'T');
-                        form.submit();
-                    };
-                    slotsEl.appendChild(btn);
-                });
-            })
-            .catch(function() {
-                slotsEl.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === "zh-TW" ? "載入失敗" : "Failed to load." }}</p>';
-            });
-    }
 })();
 </script>
 @endsection

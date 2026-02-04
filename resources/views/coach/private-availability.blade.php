@@ -19,6 +19,23 @@
         <div class="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">{{ session('success') }}</div>
     @endif
 
+    <!-- Private class price -->
+    <div class="glass rounded-2xl p-5 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <h2 class="text-lg font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '私教課價格' : 'Private class price' }}</h2>
+            <form action="{{ route('settings.private-class') }}" method="POST" class="flex gap-3 items-end">
+                @csrf
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{{ app()->getLocale() === 'zh-TW' ? '每節價格 (NT$)' : 'Price per session (NT$)' }}</label>
+                    <input type="number" name="private_class_price" value="{{ old('private_class_price', auth()->user()->private_class_price) }}" min="0" step="1" placeholder="e.g. 1500"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+                <button type="submit" class="px-4 py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">{{ __('app.common.save') }}</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Recurring weekly availability -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>

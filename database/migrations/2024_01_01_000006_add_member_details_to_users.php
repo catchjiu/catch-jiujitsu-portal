@@ -11,12 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('chinese_name')->nullable()->after('name');
-            $table->string('belt_color')->nullable()->after('rank');
-            $table->string('line_id')->nullable()->after('avatar_url');
-            $table->string('gender')->nullable()->after('line_id');
-            $table->date('dob')->nullable()->after('gender');
+        $afterName = Schema::hasColumn('users', 'name') ? 'name' : 'first_name';
+
+        Schema::table('users', function (Blueprint $table) use ($afterName) {
+            if (!Schema::hasColumn('users', 'chinese_name')) {
+                $table->string('chinese_name')->nullable()->after($afterName);
+            }
+            if (!Schema::hasColumn('users', 'belt_color')) {
+                $table->string('belt_color')->nullable()->after('rank');
+            }
+            if (!Schema::hasColumn('users', 'line_id')) {
+                $table->string('line_id')->nullable()->after('avatar_url');
+            }
+            if (!Schema::hasColumn('users', 'gender')) {
+                $table->string('gender')->nullable()->after('line_id');
+            }
+            if (!Schema::hasColumn('users', 'dob')) {
+                $table->date('dob')->nullable()->after('gender');
+            }
         });
     }
 

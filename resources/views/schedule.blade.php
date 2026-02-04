@@ -50,6 +50,19 @@
         @endif
     @endif
 
+    <!-- Book Private Class (on schedule page – modal and script are in layout) -->
+    <button type="button" id="openPrivateClassModalSchedule"
+            class="w-full rounded-xl p-4 bg-violet-500/20 border border-violet-500/40 hover:bg-violet-500/30 transition-colors text-left flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-violet-500/30 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-violet-500 text-2xl">person_search</span>
+        </div>
+        <div class="flex-1">
+            <p class="text-white font-bold">{{ app()->getLocale() === 'zh-TW' ? '預約私教課' : 'Book private class' }}</p>
+            <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '選擇教練與時段' : 'Choose a coach and time slot' }}</p>
+        </div>
+        <span class="material-symbols-outlined text-slate-500">chevron_right</span>
+    </button>
+
     <!-- Header with Filter -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.schedule.class_schedule') }}</h2>
