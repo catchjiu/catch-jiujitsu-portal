@@ -66,6 +66,33 @@
         Add New Class
     </a>
 
+    <!-- Private Classes (selected date) -->
+    @if($privateClasses->count() > 0)
+    <div class="space-y-3">
+        <div class="flex items-center gap-2 text-slate-400">
+            <span class="material-symbols-outlined text-violet-500 text-lg">person_search</span>
+            <span class="text-xs font-bold tracking-wider">PRIVATE CLASSES</span>
+        </div>
+        <div class="space-y-2">
+            @foreach($privateClasses as $pc)
+            <div class="glass rounded-2xl p-4 relative overflow-hidden border border-violet-500/30">
+                <div class="relative z-10 flex items-center gap-4">
+                    <div class="flex flex-col items-center text-center min-w-[50px]">
+                        <span class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ $pc->scheduled_at->format('H:i') }}</span>
+                        <span class="text-[10px] text-slate-500 uppercase">{{ $pc->scheduled_at->format('A') }}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white font-semibold truncate">{{ $pc->coach->name ?? 'Coach' }} <span class="text-slate-500 font-normal">→</span> {{ $pc->member->name ?? 'Member' }}</p>
+                        <p class="text-slate-500 text-sm">{{ $pc->duration_minutes }} min @if($pc->price) · NT${{ number_format($pc->price) }} @endif</p>
+                        <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $pc->status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400' }}">{{ $pc->status }}</span>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <!-- Classes by Time Period -->
     @php
         $periods = [

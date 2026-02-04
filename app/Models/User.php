@@ -33,6 +33,8 @@ class User extends Authenticatable
         'mat_hours',
         'is_admin',
         'is_coach',
+        'accepting_private_classes',
+        'private_class_price',
         'discount_type',
         'discount_amount',
         'avatar_url',
@@ -73,6 +75,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_coach' => 'boolean',
+            'accepting_private_classes' => 'boolean',
+            'private_class_price' => 'decimal:2',
             'stripes' => 'integer',
             'mat_hours' => 'integer',
             'monthly_class_goal' => 'integer',
@@ -185,6 +189,30 @@ class User extends Authenticatable
     public function membershipPackage(): BelongsTo
     {
         return $this->belongsTo(MembershipPackage::class);
+    }
+
+    /**
+     * Coach availability slots (recurring weekly).
+     */
+    public function coachAvailability(): HasMany
+    {
+        return $this->hasMany(CoachAvailability::class, 'user_id');
+    }
+
+    /**
+     * Private class bookings where this user is the coach.
+     */
+    public function privateClassBookingsAsCoach(): HasMany
+    {
+        return $this->hasMany(PrivateClassBooking::class, 'coach_id');
+    }
+
+    /**
+     * Private class bookings where this user is the member.
+     */
+    public function privateClassBookingsAsMember(): HasMany
+    {
+        return $this->hasMany(PrivateClassBooking::class, 'member_id');
     }
 
     /**

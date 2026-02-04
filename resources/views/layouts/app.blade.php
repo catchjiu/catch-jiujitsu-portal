@@ -77,6 +77,12 @@
                 <span class="material-symbols-outlined text-2xl">calendar_today</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.schedule') }}</span>
             </a>
+            @if(auth()->user()->is_coach ?? false)
+            <a href="{{ route('coach.private-availability') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('coach.private*') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
+                <span class="material-symbols-outlined text-2xl">person_search</span>
+                <span class="text-[10px] font-medium">{{ app()->getLocale() === 'zh-TW' ? '私教' : 'Private' }}</span>
+            </a>
+            @endif
             <a href="{{ $isFamily ? route('family.settings') : route('settings') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ (request()->routeIs('settings') || request()->routeIs('family.settings')) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">settings</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.settings') }}</span>

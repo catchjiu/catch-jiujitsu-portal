@@ -11,6 +11,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MembershipPackageController;
 use App\Http\Controllers\CheckInController;
+use App\Http\Controllers\PrivateClassController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -78,9 +79,20 @@ Route::middleware(['auth', 'member'])->group(function () {
     Route::post('/settings/avatar', [SettingsController::class, 'updateAvatar'])->name('settings.avatar');
     Route::delete('/settings/avatar', [SettingsController::class, 'removeAvatar'])->name('settings.avatar.remove');
     Route::post('/settings/locale', [SettingsController::class, 'updateLocale'])->name('settings.locale');
+    Route::post('/settings/private-class', [SettingsController::class, 'updatePrivateClass'])->name('settings.private-class');
 
     // Leaderboard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+
+    // Private classes (member: book; coach: availability + requests)
+    Route::get('/private-class/coaches', [PrivateClassController::class, 'coaches'])->name('private-class.coaches');
+    Route::get('/private-class/coach/{coachId}/availability', [PrivateClassController::class, 'availability'])->name('private-class.availability');
+    Route::post('/private-class/request', [PrivateClassController::class, 'request'])->name('private-class.request');
+    Route::get('/coach/private-availability', [PrivateClassController::class, 'availabilityPage'])->name('coach.private-availability');
+    Route::post('/coach/private-availability', [PrivateClassController::class, 'saveAvailability'])->name('coach.private-availability.save');
+    Route::get('/coach/private-requests', [PrivateClassController::class, 'requests'])->name('coach.private-requests');
+    Route::post('/coach/private-requests/{id}/accept', [PrivateClassController::class, 'acceptRequest'])->name('coach.private-request.accept');
+    Route::post('/coach/private-requests/{id}/decline', [PrivateClassController::class, 'declineRequest'])->name('coach.private-request.decline');
 });
 
 // Auth protected routes (shared)

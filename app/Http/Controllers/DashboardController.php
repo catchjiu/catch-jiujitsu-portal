@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassSession;
+use App\Models\PrivateClassBooking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -41,12 +42,17 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $pendingPrivateRequests = $user->is_coach
+            ? PrivateClassBooking::where('coach_id', $user->id)->where('status', 'pending')->count()
+            : 0;
+
         return view('dashboard', [
             'user' => $user,
             'nextClass' => $nextClass,
             'nextBooking' => $nextBooking,
             'classesThisMonth' => $classesThisMonth,
             'previousClasses' => $previousClasses,
+            'pendingPrivateRequests' => $pendingPrivateRequests,
         ]);
     }
 }

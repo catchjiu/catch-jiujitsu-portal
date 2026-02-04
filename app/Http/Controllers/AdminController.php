@@ -10,6 +10,7 @@ use App\Models\ClassTrial;
 use App\Models\Family;
 use App\Models\FamilyMember;
 use App\Models\MembershipPackage;
+use App\Models\PrivateClassBooking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
@@ -209,6 +210,12 @@ class AdminController extends Controller
                 return 'evening';
             });
 
+        $privateClasses = PrivateClassBooking::with(['coach', 'member'])
+            ->whereIn('status', ['pending', 'accepted'])
+            ->whereBetween('scheduled_at', [$dayStart, $dayEnd])
+            ->orderBy('scheduled_at')
+            ->get();
+
         return view('admin.classes', [
             'selectedDate' => $selectedDate,
             'weekDays' => $weekDays,
@@ -216,6 +223,7 @@ class AdminController extends Controller
             'prevWeek' => $prevWeek,
             'nextWeek' => $nextWeek,
             'classes' => $classes,
+            'privateClasses' => $privateClasses,
         ]);
     }
 

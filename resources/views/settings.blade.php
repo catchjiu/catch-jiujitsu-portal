@@ -155,6 +155,46 @@
         </form>
     </div>
 
+    @if($user->is_coach)
+    <!-- Private Classes (Coach) -->
+    <div class="space-y-3">
+        <div>
+            <h2 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '一對一私教' : 'Private Classes' }}</h2>
+            <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '開放會員預約私教課並設定價格' : 'Accept private class requests and set your price' }}</p>
+        </div>
+
+        <form action="{{ route('settings.private-class') }}" method="POST">
+            @csrf
+            <div class="glass rounded-2xl p-5 relative overflow-hidden space-y-4">
+                <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                <div class="relative z-10 space-y-4">
+                    <div class="flex items-center justify-between p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                        <div>
+                            <p class="text-white font-medium">{{ app()->getLocale() === 'zh-TW' ? '接受私教預約' : 'Accepting private classes' }}</p>
+                            <p class="text-slate-500 text-xs">{{ app()->getLocale() === 'zh-TW' ? '會員可看到您並預約時段' : 'Members can see you and request time slots' }}</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="accepting_private_classes" value="1" class="sr-only peer" {{ $user->accepting_private_classes ? 'checked' : '' }}>
+                            <div class="w-12 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ app()->getLocale() === 'zh-TW' ? '私教課價格 (NT$)' : 'Private class price (NT$)' }}</label>
+                        <input type="number" name="private_class_price" value="{{ old('private_class_price', $user->private_class_price) }}" min="0" step="1" placeholder="e.g. 1500"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        @error('private_class_price')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <button type="submit" class="w-full py-3 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-bold uppercase text-sm tracking-wider transition-colors">
+                        {{ __('app.common.save') }}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    @endif
+
     <!-- Change Password -->
     <div class="space-y-3">
         <div>

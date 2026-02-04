@@ -198,4 +198,27 @@ class SettingsController extends Controller
 
         return back()->with('success', 'Profile updated successfully.');
     }
+
+    /**
+     * Update coach private class settings (accepting + price).
+     */
+    public function updatePrivateClass(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->is_coach) {
+            return back()->with('error', 'Not authorized.');
+        }
+
+        $validated = $request->validate([
+            'accepting_private_classes' => 'boolean',
+            'private_class_price' => 'nullable|numeric|min:0|max:99999',
+        ]);
+
+        $user->update([
+            'accepting_private_classes' => $request->boolean('accepting_private_classes'),
+            'private_class_price' => $validated['private_class_price'] ?? null,
+        ]);
+
+        return back()->with('success', 'Private class settings updated.');
+    }
 }

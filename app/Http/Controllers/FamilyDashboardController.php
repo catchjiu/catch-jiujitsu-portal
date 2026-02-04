@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ClassSession;
+use App\Models\PrivateClassBooking;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,6 +41,10 @@ class FamilyDashboardController extends Controller
 
         $familyMembers = $me->familyMembersWithSelf();
 
+        $pendingPrivateRequests = $me->is_coach
+            ? PrivateClassBooking::where('coach_id', $me->id)->where('status', 'pending')->count()
+            : 0;
+
         return view('dashboard', [
             'user' => $user,
             'nextClass' => $nextClass,
@@ -48,6 +53,7 @@ class FamilyDashboardController extends Controller
             'previousClasses' => $previousClasses,
             'familyBar' => true,
             'familyMembers' => $familyMembers,
+            'pendingPrivateRequests' => $pendingPrivateRequests,
         ]);
     }
 
