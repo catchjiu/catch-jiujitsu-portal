@@ -786,6 +786,13 @@ class AdminController extends Controller
 
         $members = $query->orderBy('first_name')->orderBy('last_name')->get();
 
+        // User IDs with at least one class (group or private) in the last 7 days (for profile dot)
+        $recentGroup = Booking::whereHas('classSession', fn ($q) => $q->where('start_time', '>=', now()->subDays(7)))
+            ->distinct()->pluck('user_id');
+        $recentPrivate = PrivateClassBooking::where('scheduled_at', '>=', now()->subDays(7))
+            ->distinct()->pluck('member_id');
+        $userIdsWithClassInLast7Days = $recentGroup->merge($recentPrivate)->unique()->flip();
+
         $stats = [
             'total_members' => User::where('is_admin', false)->count(),
             'pending_payments' => Payment::where('status', 'Pending Verification')->count(),
@@ -793,6 +800,7 @@ class AdminController extends Controller
 
         return view('admin.members', [
             'members' => $members,
+            'userIdsWithClassInLast7Days' => $userIdsWithClassInLast7Days,
             'stats' => $stats,
             'search' => $search,
         ]);

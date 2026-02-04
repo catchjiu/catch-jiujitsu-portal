@@ -83,8 +83,7 @@
         @forelse($members as $member)
             @php
                 $isBlackBelt = $member->rank === 'Black';
-                // Random online status for demo (you can add a real field later)
-                $isOnline = rand(0, 1);
+                $hasClassInLast7Days = $userIdsWithClassInLast7Days->has($member->id);
             @endphp
             
             <a href="{{ route('admin.members.show', $member->id) }}" 
@@ -101,8 +100,8 @@
                             </div>
                         @endif
                     </div>
-                    <!-- Online status dot -->
-                    <div class="absolute -bottom-0.5 -left-0.5 w-4 h-4 rounded-full border-2 border-slate-800 {{ $isOnline ? 'bg-emerald-500' : 'bg-amber-500' }}"></div>
+                    <!-- Recent activity dot: green = had a class in last 7 days, red = hasn't -->
+                    <div class="absolute -bottom-0.5 -left-0.5 w-4 h-4 rounded-full border-2 border-slate-800 {{ $hasClassInLast7Days ? 'bg-emerald-500' : 'bg-red-500' }}" title="{{ $hasClassInLast7Days ? 'Had a class in the last 7 days' : 'No class in the last 7 days' }}"></div>
                 </div>
 
                 <!-- Member Info -->
