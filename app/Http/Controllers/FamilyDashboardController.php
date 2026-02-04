@@ -73,6 +73,6 @@ class FamilyDashboardController extends Controller
             return back()->with('error', 'Invalid family member.');
         }
         session(['viewing_family_user_id' => $userId]);
-        return redirect()->route('family.dashboard')->with('success', 'Switched to ' . $member->name . '.');
+        return redirect()->back()->with('success', 'Switched to ' . $member->name . '.');
     }
 }
