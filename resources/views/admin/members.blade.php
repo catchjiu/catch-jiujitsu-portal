@@ -107,11 +107,14 @@
 
                 <!-- Member Info -->
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex items-center gap-2 mb-1 flex-wrap">
                         <h3 class="text-white font-semibold truncate">{{ $member->name }}</h3>
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($member->age_group ?? 'Adults') === 'Kids' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700/50 text-slate-400' }} flex-shrink-0">
                             {{ $member->age_group ?? 'Adults' }}
                         </span>
+                        @if($member->bjj_age_category)
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 flex-shrink-0" title="{{ app()->getLocale() === 'zh-TW' ? 'BJJ 年齡組別' : 'BJJ age category' }}">{{ $member->bjj_age_category }}</span>
+                        @endif
                         @if($member->discount_type === 'gratis')
                             <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-500/20 text-emerald-400 flex-shrink-0" title="Gratis Member">FREE</span>
                         @elseif($member->discount_type === 'fixed' && ($member->discount_amount ?? 0) > 0)

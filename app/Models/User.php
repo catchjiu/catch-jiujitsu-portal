@@ -378,6 +378,18 @@ class User extends Authenticatable
     }
 
     /**
+     * Get BJJ age category from date of birth (Kid 1–6, Juvenile, Adult 18, Master 30/36/41/46/51/56).
+     * Ranges shift by one year each calendar year per config.
+     */
+    public function getBjjAgeCategoryAttribute(): ?string
+    {
+        if (!$this->dob) {
+            return null;
+        }
+        return \App\Services\BjjAgeCategoryService::getCategory((int) $this->dob->format('Y'));
+    }
+
+    /**
      * Get the user's next booked class.
      */
     public function nextBookedClass(): ?ClassSession

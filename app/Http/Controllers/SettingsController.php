@@ -184,6 +184,7 @@ class SettingsController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
+            'dob' => 'nullable|date',
             'public_profile' => 'boolean',
             'reminders_enabled' => 'boolean',
         ]);
@@ -192,6 +193,7 @@ class SettingsController extends Controller
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'email' => $validated['email'],
+            'dob' => !empty($validated['dob']) ? $validated['dob'] : null,
             'public_profile' => $request->boolean('public_profile'),
             'reminders_enabled' => $request->boolean('reminders_enabled'),
         ]);

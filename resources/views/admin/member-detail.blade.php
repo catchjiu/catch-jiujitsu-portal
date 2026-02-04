@@ -68,7 +68,17 @@
             </form>
             
             <h2 class="text-2xl font-bold text-white mb-1">{{ $member->name }}</h2>
-            <p class="text-slate-400 text-sm mb-4">{{ $member->email }}</p>
+            <p class="text-slate-400 text-sm mb-1">{{ $member->email }}</p>
+            @if($member->dob)
+                <p class="text-slate-500 text-xs mb-1">{{ app()->getLocale() === 'zh-TW' ? '出生日期' : 'Date of birth' }}: {{ $member->dob->format('M j, Y') }}</p>
+            @else
+                <p class="text-slate-500 text-xs mb-1">{{ app()->getLocale() === 'zh-TW' ? '出生日期' : 'Date of birth' }}: —</p>
+            @endif
+            @if($member->bjj_age_category)
+                <p class="text-amber-400 text-xs font-semibold mb-4">{{ app()->getLocale() === 'zh-TW' ? 'BJJ 年齡組別' : 'BJJ age category' }}: {{ $member->bjj_age_category }}</p>
+            @else
+                <p class="text-slate-500 text-xs mb-4">{{ app()->getLocale() === 'zh-TW' ? 'BJJ 年齡組別' : 'BJJ age category' }}: —</p>
+            @endif
 
             <!-- Belt Display -->
             <div class="flex justify-center mb-4">
@@ -214,6 +224,12 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email</label>
                     <input type="email" name="email" value="{{ old('email', $member->email) }}" required
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Date of Birth</label>
+                    <input type="date" name="dob" value="{{ old('dob', $member->dob ? $member->dob->format('Y-m-d') : '') }}"
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                 </div>
 

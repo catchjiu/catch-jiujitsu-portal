@@ -911,6 +911,7 @@ class AdminController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
+            'dob' => 'nullable|date',
             'age_group' => 'required|in:Kids,Adults',
             'rank' => 'required|in:White,Grey,Yellow,Orange,Green,Blue,Purple,Brown,Black',
             'belt_variation' => 'nullable|in:white,solid,black',
@@ -939,6 +940,7 @@ class AdminController extends Controller
             $validated['belt_variation'] = null;
         }
 
+        $validated['dob'] = !empty($validated['dob']) ? $validated['dob'] : null;
         $member->update($validated);
 
         return redirect()->route('admin.members.show', $member->id)->with('success', 'Member updated successfully.');

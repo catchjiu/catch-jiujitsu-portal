@@ -119,6 +119,18 @@
                         @enderror
                     </div>
 
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ app()->getLocale() === 'zh-TW' ? '出生日期' : 'Date of Birth' }}</label>
+                        <input type="date" name="dob" value="{{ old('dob', $user->dob ? $user->dob->format('Y-m-d') : '') }}"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        @error('dob')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        @if($user->dob && $user->bjj_age_category)
+                            <p class="text-amber-400 text-xs font-semibold mt-2">{{ app()->getLocale() === 'zh-TW' ? 'BJJ 年齡組別' : 'BJJ age category' }}: {{ $user->bjj_age_category }}</p>
+                        @endif
+                    </div>
+
                     <!-- Privacy & Notifications -->
                     <div class="pt-4 border-t border-slate-700/50 space-y-3">
                         <div class="flex items-center justify-between">
