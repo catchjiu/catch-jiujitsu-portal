@@ -1,11 +1,12 @@
 <?php
 
 /**
- * BJJ age categories. Ranges are birth years for the base_year.
- * Each calendar year, ranges shift by +1 (e.g. Kid 1 in 2026 = 2022–2023).
+ * BJJ age categories. Ranges are birth years for base_year (2026).
+ * Each calendar year, the two years that constitute each bracket increase by 1.
+ * E.g. Kid 3 in 2026 = 2017–2018, in 2027 = 2018–2019, in 2028 = 2019–2020.
  */
 return [
-    'base_year' => 2025,
+    'base_year' => 2026,
 
     'kids' => [
         ['name' => 'Kid 1', 'min' => 2021, 'max' => 2022],

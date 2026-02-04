@@ -5,7 +5,10 @@ namespace App\Services;
 class BjjAgeCategoryService
 {
     /**
-     * Get BJJ age category label from birth year. Ranges shift by one year each calendar year.
+     * Get BJJ age category label from birth year.
+     * Ranges are defined for base_year; each calendar year the two years that
+     * constitute each bracket (e.g. Kid 3) increase by 1.
+     * E.g. 2026: Kid 3 = 2017–2018, 2027: Kid 3 = 2018–2019, 2028: Kid 3 = 2019–2020.
      */
     public static function getCategory(int $birthYear, ?int $currentYear = null): ?string
     {
