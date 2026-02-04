@@ -86,6 +86,75 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's family membership (if any).
+     */
+    public function familyMember(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(FamilyMember::class);
+    }
+
+    /**
+     * Get the user's family (if they belong to one).
+     */
+    public function family(): \Illuminate\Database\Eloquent\Relations\HasOneThrough
+    {
+        return $this->hasOneThrough(Family::class, FamilyMember::class, 'user_id', 'id', 'id', 'family_id');
+    }
+
+    /**
+     * Check if the user belongs to a family.
+     */
+    public function isInFamily(): bool
+    {
+        return $this->familyMember()->exists();
+    }
+
+    /**
+     * Get the family's other members (excluding this user).
+     */
+    public function familyMembers(): \Illuminate\Support\Collection
+    {
+        $fm = $this->familyMember;
+        if (!$fm || !$fm->family) {
+            return collect();
+        }
+        return $fm->family->members()->with('user')->get()->map(fn ($m) => $m->user);
+    }
+
+    /**
+     * Get all users in this user's family (including self).
+     */
+    public function familyMembersWithSelf(): \Illuminate\Support\Collection
+    {
+        $fm = $this->familyMember;
+        if (!$fm || !$fm->family) {
+            return collect([$this]);
+        }
+        return $fm->family->members()->with('user')->get()->map(fn ($m) => $m->user);
+    }
+
+    /**
+     * Get the "current" user for family context (viewing member from session, or self).
+     * Only returns a user from the same family; otherwise returns auth user.
+     */
+    public static function currentFamilyMember(): ?User
+    {
+        $me = \Illuminate\Support\Facades\Auth::user();
+        if (!$me || !$me->isInFamily()) {
+            return $me;
+        }
+        $viewingId = session('viewing_family_user_id');
+        if (!$viewingId) {
+            return $me;
+        }
+        $viewing = User::find($viewingId);
+        if (!$viewing || !$viewing->familyMember || $viewing->familyMember->family_id !== $me->familyMember->family_id) {
+            return $me;
+        }
+        return $viewing;
+    }
+
+    /**
      * Get the user's bookings.
      */
     public function bookings(): HasMany

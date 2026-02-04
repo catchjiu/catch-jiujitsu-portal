@@ -14,12 +14,14 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        $payments = Payment::where('user_id', Auth::id())
+        $user = User::currentFamilyMember();
+        $payments = Payment::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
         return view('payments', [
             'payments' => $payments,
+            'viewingUser' => $user,
         ]);
     }
 
@@ -41,8 +43,10 @@ class PaymentController extends Controller
 
         $request->validate($rules);
 
+        $user = User::currentFamilyMember();
+
         Payment::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'amount' => $request->input('payment_amount'),
             'month' => now()->format('F Y'),
             'status' => 'Pending Verification',
@@ -73,7 +77,8 @@ class PaymentController extends Controller
 
         $request->validate($rules);
 
-        $payment = Payment::where('user_id', Auth::id())
+        $user = User::currentFamilyMember();
+        $payment = Payment::where('user_id', $user->id)
             ->findOrFail($paymentId);
 
         $payment->update([

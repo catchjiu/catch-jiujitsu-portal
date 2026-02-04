@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\ClassSession;
 use App\Models\Booking;
 use App\Models\ClassTrial;
+use App\Models\Family;
+use App\Models\FamilyMember;
 use App\Models\MembershipPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -748,17 +750,101 @@ class AdminController extends Controller
      */
     public function showMember($id)
     {
-        $member = User::where('is_admin', false)->with('membershipPackage')->findOrFail($id);
+        $member = User::where('is_admin', false)->with(['membershipPackage', 'familyMember.family.members.user'])->findOrFail($id);
         $payments = $member->payments()->orderBy('created_at', 'desc')->get();
         $bookings = $member->bookings()->with('classSession')->orderBy('booked_at', 'desc')->take(10)->get();
         $packages = MembershipPackage::active()->ordered()->get();
+        $memberFamily = $member->familyMember?->family;
+        $memberFamilyUsers = $memberFamily ? $memberFamily->members()->with('user')->get() : collect();
 
         return view('admin.member-detail', [
             'member' => $member,
             'payments' => $payments,
             'bookings' => $bookings,
             'packages' => $packages,
+            'memberFamily' => $memberFamily,
+            'memberFamilyUsers' => $memberFamilyUsers,
         ]);
+    }
+
+    /**
+     * Search members that can be added to this member's family (for admin family search).
+     */
+    public function searchFamilyMembers(Request $request, $id)
+    {
+        $member = User::where('is_admin', false)->findOrFail($id);
+        $q = $request->get('q', '');
+        $query = User::where('is_admin', false)
+            ->where('id', '!=', $id)
+            ->whereDoesntHave('familyMember');
+        if (strlen($q) >= 1) {
+            $query->where(function ($qry) use ($q) {
+                $qry->where('first_name', 'like', '%' . $q . '%')
+                    ->orWhere('last_name', 'like', '%' . $q . '%')
+                    ->orWhere('email', 'like', '%' . $q . '%');
+            });
+        }
+        $users = $query->orderBy('first_name')->orderBy('last_name')->limit(20)->get(['id', 'first_name', 'last_name', 'email', 'avatar_url']);
+        return response()->json($users->map(function ($u) {
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'email' => $u->email,
+                'avatar' => $u->avatar,
+            ];
+        }));
+    }
+
+    /**
+     * Add a family member to this member's family (create family if needed).
+     */
+    public function addFamilyMember(Request $request, $id)
+    {
+        $member = User::where('is_admin', false)->findOrFail($id);
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'role' => 'required|in:parent,child',
+        ]);
+        $userId = (int) $validated['user_id'];
+        if ($userId === (int) $id) {
+            return back()->with('error', 'Cannot add the same member to their own family.');
+        }
+        $other = User::findOrFail($userId);
+        if ($other->is_admin) {
+            return back()->with('error', 'Cannot add an admin to a family.');
+        }
+        if ($other->familyMember) {
+            return back()->with('error', 'That member already belongs to another family.');
+        }
+
+        $family = $member->familyMember?->family;
+        if (!$family) {
+            $family = Family::create(['primary_user_id' => $member->id]);
+            FamilyMember::create(['family_id' => $family->id, 'user_id' => $member->id, 'role' => 'parent']);
+        }
+        if (!$family->canAddMember($validated['role'])) {
+            return back()->with('error', $validated['role'] === 'child' ? 'Family already has 3 children.' : 'Family already has 2 parents.');
+        }
+        FamilyMember::create(['family_id' => $family->id, 'user_id' => $userId, 'role' => $validated['role']]);
+        return back()->with('success', $other->name . ' added to family.');
+    }
+
+    /**
+     * Remove a user from this member's family.
+     */
+    public function removeFamilyMember($id, $userId)
+    {
+        $member = User::where('is_admin', false)->findOrFail($id);
+        $family = $member->familyMember?->family;
+        if (!$family) {
+            return back()->with('error', 'No family found.');
+        }
+        $fm = FamilyMember::where('family_id', $family->id)->where('user_id', $userId)->firstOrFail();
+        $fm->delete();
+        if ($family->members()->count() === 0) {
+            $family->delete();
+        }
+        return back()->with('success', 'Removed from family.');
     }
 
     /**

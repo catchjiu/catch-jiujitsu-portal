@@ -339,6 +339,109 @@
         </div>
     </div>
 
+    <!-- Family (toggle + search to add members) -->
+    <div class="glass rounded-2xl p-5 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <button type="button" id="familyToggleBtn" onclick="toggleFamilySection()" class="w-full flex items-center justify-between text-left">
+                <div>
+                    <p class="text-white font-medium">Family</p>
+                    <p class="text-slate-500 text-xs">Link family members (up to 1 other parent + 3 kids). One profile can book classes and see payments for everyone.</p>
+                </div>
+                <span id="familyToggleChevron" class="material-symbols-outlined text-slate-400 transition-transform">expand_more</span>
+            </button>
+            <div id="familySection" class="hidden mt-4 space-y-4">
+                @if($memberFamilyUsers->count() > 0)
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Family members</p>
+                        <div class="space-y-2">
+                            @foreach($memberFamilyUsers as $fm)
+                                @php $u = $fm->user; @endphp
+                                <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-800 border border-slate-700/50">
+                                    @if($u->avatar)
+                                        <img src="{{ $u->avatar }}" alt="" class="w-10 h-10 rounded-full object-cover border border-slate-600">
+                                    @else
+                                        <div class="w-10 h-10 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-slate-400 text-sm font-bold">{{ strtoupper(substr($u->name ?? '?', 0, 2)) }}</div>
+                                    @endif
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-white font-medium truncate">{{ $u->name }}</p>
+                                        <p class="text-slate-500 text-xs capitalize">{{ $fm->role }}</p>
+                                    </div>
+                                    <form action="{{ route('admin.members.family.remove', [$member->id, $u->id]) }}" method="POST" class="flex-shrink-0" onsubmit="return confirm('Remove {{ $u->name }} from this family?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors" title="Remove from family">
+                                            <span class="material-symbols-outlined text-lg">person_remove</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+                @php
+                    $canAddParent = !$memberFamily || $memberFamily->parentsCount() < 2;
+                    $canAddChild = !$memberFamily || $memberFamily->childrenCount() < 3;
+                @endphp
+                @if($canAddParent || $canAddChild)
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Add family member</p>
+                        <input type="text" id="familySearchInput" placeholder="Search by name or email..." 
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors mb-2">
+                        <div id="familySearchResults" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                        <p id="familySearchHint" class="text-slate-500 text-xs mt-1">Type at least 1 character to search members not already in a family.</p>
+                    </div>
+                @else
+                    <p class="text-slate-500 text-sm">This family has the maximum number of members (2 parents, 3 kids).</p>
+                @endif
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleFamilySection() {
+            var section = document.getElementById('familySection');
+            var chevron = document.getElementById('familyToggleChevron');
+            section.classList.toggle('hidden');
+            chevron.style.transform = section.classList.contains('hidden') ? '' : 'rotate(180deg)';
+        }
+        var familySearchTimeout;
+        document.getElementById('familySearchInput')?.addEventListener('input', function() {
+            var q = this.value.trim();
+            clearTimeout(familySearchTimeout);
+            var resultsEl = document.getElementById('familySearchResults');
+            var hintEl = document.getElementById('familySearchHint');
+            if (q.length < 1) {
+                resultsEl.innerHTML = '';
+                if (hintEl) hintEl.classList.remove('hidden');
+                return;
+            }
+            if (hintEl) hintEl.classList.add('hidden');
+            familySearchTimeout = setTimeout(function() {
+                fetch('{{ route('admin.members.family.search', $member->id) }}?q=' + encodeURIComponent(q), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(users) {
+                    var canAddParent = {{ ($canAddParent ?? false) ? 'true' : 'false' }};
+                    var canAddChild = {{ ($canAddChild ?? false) ? 'true' : 'false' }};
+                    if (users.length === 0) {
+                        resultsEl.innerHTML = '<p class="text-slate-500 text-sm py-2">No members found. They may already be in a family.</p>';
+                        return;
+                    }
+                    resultsEl.innerHTML = users.map(function(u) {
+                        var btns = '';
+                        if (canAddParent) btns += '<form action="{{ route('admin.members.family.add', $member->id) }}" method="POST" class="inline"><input type="hidden" name="user_id" value="' + u.id + '"><input type="hidden" name="role" value="parent"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="px-2 py-1 rounded bg-slate-600 hover:bg-slate-500 text-white text-xs">Add as Parent</button></form> ';
+                        if (canAddChild) btns += '<form action="{{ route('admin.members.family.add', $member->id) }}" method="POST" class="inline"><input type="hidden" name="user_id" value="' + u.id + '"><input type="hidden" name="role" value="child"><input type="hidden" name="_token" value="{{ csrf_token() }}"><button type="submit" class="px-2 py-1 rounded bg-slate-600 hover:bg-slate-500 text-white text-xs">Add as Child</button></form>';
+                        return '<div class="flex items-center gap-3 p-2 rounded-lg bg-slate-800/50 border border-slate-700/50"><div class="flex-1 min-w-0"><p class="text-white text-sm font-medium truncate">' + (u.name || '') + '</p><p class="text-slate-500 text-xs truncate">' + (u.email || '') + '</p></div><div class="flex-shrink-0 flex gap-1">' + btns + '</div></div>';
+                    }).join('');
+                })
+                .catch(function() {
+                    resultsEl.innerHTML = '<p class="text-slate-500 text-sm py-2">Search failed.</p>';
+                });
+            }, 300);
+        });
+    </script>
+
     <!-- Membership Management -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>

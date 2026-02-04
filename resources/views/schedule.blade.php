@@ -3,28 +3,49 @@
 @section('title', __('app.schedule.class_schedule'))
 
 @section('content')
+@php $scheduleUser = $viewingUser ?? Auth::user(); @endphp
 <div class="space-y-5">
-    <!-- Membership Status Banner -->
-    @if(!Auth::user()->hasActiveMembership())
+    @if(!empty($familyBar) && !empty($familyMembers))
+    <!-- Family: booking for -->
+    <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
+        <div class="flex items-center gap-3 min-w-0">
+            @if($scheduleUser->avatar)
+                <img src="{{ $scheduleUser->avatar }}" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-slate-600 flex-shrink-0">
+            @else
+                <div class="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold text-sm flex-shrink-0">{{ strtoupper(substr($scheduleUser->name, 0, 2)) }}</div>
+            @endif
+            <div class="min-w-0">
+                <p class="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{{ app()->getLocale() === 'zh-TW' ? '預約對象' : 'Booking for' }}</p>
+                <p class="text-white font-semibold truncate">{{ $scheduleUser->name }}</p>
+            </div>
+        </div>
+        <a href="{{ route('family.settings') }}" class="flex-shrink-0 px-3 py-2 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-semibold hover:bg-blue-500/30 transition-colors">
+            {{ app()->getLocale() === 'zh-TW' ? '切換成員' : 'Switch member' }}
+        </a>
+    </div>
+    @endif
+
+    <!-- Membership Status Banner (for current viewing member) -->
+    @if(!$scheduleUser->hasActiveMembership())
         <div class="rounded-xl p-4 bg-amber-500/10 border border-amber-500/20">
             <div class="flex items-start gap-3">
                 <span class="material-symbols-outlined text-amber-500 text-lg flex-shrink-0 mt-0.5">warning</span>
                 <div>
-                    <p class="text-amber-400 font-semibold text-sm">{{ Auth::user()->membership_issue ?? (app()->getLocale() === 'zh-TW' ? '需要會籍' : 'Membership Required') }}</p>
+                    <p class="text-amber-400 font-semibold text-sm">{{ $scheduleUser->membership_issue ?? (app()->getLocale() === 'zh-TW' ? '需要會籍' : 'Membership Required') }}</p>
                     <p class="text-slate-400 text-xs mt-1">{{ app()->getLocale() === 'zh-TW' ? '請聯繫館方啟用您的會籍。' : 'Contact the gym to activate your membership.' }}</p>
                 </div>
             </div>
         </div>
     @else
-        @if(Auth::user()->membershipPackage && Auth::user()->membershipPackage->duration_type === 'classes' && Auth::user()->classes_remaining !== null)
+        @if($scheduleUser->membershipPackage && $scheduleUser->membershipPackage->duration_type === 'classes' && $scheduleUser->classes_remaining !== null)
             <div class="rounded-xl p-3 bg-slate-800/50 border border-slate-700/50 flex items-center justify-between">
                 <span class="text-slate-400 text-sm">{{ __('app.dashboard.classes_remaining') }}</span>
-                <span class="text-emerald-400 font-bold">{{ Auth::user()->classes_remaining }}</span>
+                <span class="text-emerald-400 font-bold">{{ $scheduleUser->classes_remaining }}</span>
             </div>
-        @elseif(Auth::user()->membership_expires_at)
+        @elseif($scheduleUser->membership_expires_at)
             <div class="rounded-xl p-3 bg-slate-800/50 border border-slate-700/50 flex items-center justify-between">
                 <span class="text-slate-400 text-sm">{{ app()->getLocale() === 'zh-TW' ? '會籍到期日' : 'Membership Expires' }}</span>
-                <span class="text-emerald-400 font-bold">{{ Auth::user()->membership_expires_at->format('M d, Y') }}</span>
+                <span class="text-emerald-400 font-bold">{{ $scheduleUser->membership_expires_at->format('M d, Y') }}</span>
             </div>
         @endif
     @endif
@@ -245,10 +266,10 @@
                         </form>
                     @else
                         @php
-                            $canBook = Auth::user()->hasActiveMembership() && !$isFull;
+                            $canBook = $scheduleUser->hasActiveMembership() && !$isFull;
                             if ($isFull) {
                                 $buttonText = __('app.schedule.full');
-                            } elseif (!Auth::user()->hasActiveMembership()) {
+                            } elseif (!$scheduleUser->hasActiveMembership()) {
                                 $buttonText = app()->getLocale() === 'zh-TW' ? '需要會籍' : 'Membership Required';
                             } else {
                                 $buttonText = __('app.schedule.book_class');

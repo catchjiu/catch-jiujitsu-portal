@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ClassSession;
 use App\Models\Booking;
+use App\Models\ClassTrial;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -15,7 +17,7 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = User::currentFamilyMember();
         
         // Default filter based on user's age_group
         $defaultFilter = $user->age_group ?? 'Adults';
@@ -52,8 +54,8 @@ class BookingController extends Controller
         }
         // 'All' filter shows all classes
         
-        $classes = $query->get()->map(function ($class) {
-            $class->is_booked_by_user = $class->isBookedByUser(Auth::user());
+        $classes = $query->get()->map(function ($class) use ($user) {
+            $class->is_booked_by_user = $class->isBookedByUser($user);
             return $class;
         });
 
@@ -65,6 +67,9 @@ class BookingController extends Controller
             'weekStart' => $weekStart,
             'prevWeek' => $prevWeek,
             'nextWeek' => $nextWeek,
+            'viewingUser' => $user,
+            'familyBar' => Auth::user()->isInFamily() ?? false,
+            'familyMembers' => Auth::user()->isInFamily() ? Auth::user()->familyMembersWithSelf() : collect(),
         ]);
     }
 
@@ -77,7 +82,7 @@ class BookingController extends Controller
             'class_id' => 'required|exists:classes,id'
         ]);
 
-        $user = Auth::user();
+        $user = User::currentFamilyMember();
 
         // Check if user has active membership
         if (!$user->hasActiveMembership()) {
@@ -117,8 +122,8 @@ class BookingController extends Controller
      */
     public function destroy($classId)
     {
-        $user = Auth::user();
-        
+        $user = User::currentFamilyMember();
+
         $booking = Booking::where('user_id', $user->id)
             ->where('class_id', $classId)
             ->first();
@@ -140,7 +145,7 @@ class BookingController extends Controller
      */
     public function checkInToday(Request $request)
     {
-        $user = Auth::user();
+        $user = User::currentFamilyMember();
 
         if (!$user->hasActiveMembership()) {
             return response()->json([
@@ -219,30 +224,120 @@ class BookingController extends Controller
     }
 
     /**
-     * Show class attendance for coaches.
+     * Show class attendance for coaches (same module as admin attendance).
      */
     public function showAttendance($classId)
     {
         $user = Auth::user();
-        
-        // Only coaches can view attendance
         if (!$user->isCoach()) {
             return redirect()->route('schedule')->with('error', 'Only coaches can view attendance.');
         }
 
-        $class = ClassSession::with(['instructor', 'bookings.user'])
-            ->withCount('bookings')
-            ->findOrFail($classId);
+        $class = ClassSession::with(['bookings.user'])->withCount('bookings')->findOrFail($classId);
+        $bookedUsers = $class->bookings->map(fn ($booking) => [
+            'booking' => $booking,
+            'user' => $booking->user,
+            'checked_in' => $booking->checked_in ?? false,
+        ]);
 
-        // Get all bookings with user details
-        $bookings = $class->bookings()
-            ->with('user')
-            ->orderBy('booked_at')
+        $bookedUserIds = $class->bookings->pluck('user_id');
+        $classAgeGroup = $class->age_group ?? 'Adults';
+        $availableMembers = User::where('is_admin', false)
+            ->whereNotIn('id', $bookedUserIds)
+            ->when($classAgeGroup === 'Kids', fn ($q) => $q->whereIn('age_group', ['Kids', 'All']))
+            ->when($classAgeGroup === 'Adults', fn ($q) => $q->whereIn('age_group', ['Adults', 'All']))
+            ->orderBy('first_name')
+            ->orderBy('last_name')
             ->get();
 
-        return view('class-attendance', [
+        $class->load('trials');
+        $waitlistCount = max(0, $class->bookings_count - $class->capacity);
+        $checkedInCount = $class->bookings->where('checked_in', true)->count();
+
+        return view('coach.attendance', [
             'class' => $class,
-            'bookings' => $bookings,
+            'bookedUsers' => $bookedUsers,
+            'trials' => $class->trials,
+            'availableMembers' => $availableMembers,
+            'checkedInCount' => $checkedInCount,
+            'waitlistCount' => $waitlistCount,
         ]);
+    }
+
+    /**
+     * Toggle check-in (coach).
+     */
+    public function toggleCheckInCoach(Request $request, $classId, $bookingId)
+    {
+        if (!Auth::user()->isCoach()) {
+            return redirect()->route('schedule')->with('error', 'Only coaches can update attendance.');
+        }
+        $booking = Booking::where('class_id', $classId)->findOrFail($bookingId);
+        $booking->checked_in = !$booking->checked_in;
+        $booking->save();
+        return back()->with('success', 'Check-in status updated.');
+    }
+
+    /**
+     * Remove booking from class (coach).
+     */
+    public function removeBookingCoach($classId, $bookingId)
+    {
+        if (!Auth::user()->isCoach()) {
+            return redirect()->route('schedule')->with('error', 'Only coaches can update attendance.');
+        }
+        $booking = Booking::where('class_id', $classId)->findOrFail($bookingId);
+        $user = $booking->user;
+        $booking->delete();
+        if ($user && $user->classes_remaining !== null) {
+            $user->incrementClassesRemaining();
+        }
+        return back()->with('success', 'Removed from class.');
+    }
+
+    /**
+     * Remove trial from class (coach).
+     */
+    public function removeTrialCoach($classId, $trialId)
+    {
+        if (!Auth::user()->isCoach()) {
+            return redirect()->route('schedule')->with('error', 'Only coaches can update attendance.');
+        }
+        $trial = ClassTrial::where('class_id', $classId)->findOrFail($trialId);
+        $trial->delete();
+        return back()->with('success', 'Trial removed.');
+    }
+
+    /**
+     * Add walk-in (coach).
+     */
+    public function addWalkInCoach(Request $request, $classId)
+    {
+        if (!Auth::user()->isCoach()) {
+            return redirect()->route('schedule')->with('error', 'Only coaches can add walk-ins.');
+        }
+        $class = ClassSession::withCount('bookings')->with('trials')->findOrFail($classId);
+        $validated = $request->validate(['user_id' => 'required|exists:users,id']);
+        $userId = (int) $validated['user_id'];
+        if (Booking::where('class_id', $class->id)->where('user_id', $userId)->exists()) {
+            return back()->with('error', 'Member is already booked for this class.');
+        }
+        $totalAttendance = $class->bookings_count + $class->trials->count();
+        if ($totalAttendance >= $class->capacity) {
+            return back()->with('error', 'Class is full.');
+        }
+        $user = User::findOrFail($userId);
+        if ($user->is_admin) {
+            return back()->with('error', 'Cannot add admin as walk-in.');
+        }
+        Booking::create([
+            'user_id' => $userId,
+            'class_id' => $class->id,
+            'checked_in' => true,
+        ]);
+        if ($user->classes_remaining !== null && $user->classes_remaining > 0) {
+            $user->decrementClassesRemaining();
+        }
+        return back()->with('success', $user->name . ' added as walk-in.');
     }
 }

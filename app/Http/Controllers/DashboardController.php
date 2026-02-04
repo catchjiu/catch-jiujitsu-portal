@@ -11,6 +11,9 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        if ($user->isInFamily()) {
+            return redirect()->route('family.dashboard');
+        }
         $user->load('membershipPackage'); // Load membership package relationship
         $nextClass = $user->nextBookedClass();
         

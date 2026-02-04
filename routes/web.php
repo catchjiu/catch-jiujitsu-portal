@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FamilyDashboardController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\GoalsController;
@@ -21,6 +22,9 @@ Route::get('/', function () {
     if (auth()->check()) {
         if (auth()->user()->isAdmin()) {
             return redirect('/admin');
+        }
+        if (auth()->user()->isInFamily()) {
+            return redirect()->route('family.dashboard');
         }
         return redirect('/dashboard');
     }
@@ -42,12 +46,21 @@ Route::middleware(['auth', 'member'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Family Dashboard (for users in a family)
+    Route::get('/family/dashboard', [FamilyDashboardController::class, 'index'])->name('family.dashboard');
+    Route::get('/family/settings', [FamilyDashboardController::class, 'settings'])->name('family.settings');
+    Route::post('/family/switch', [FamilyDashboardController::class, 'switchMember'])->name('family.switch');
+
     // Schedule & Bookings
     Route::get('/schedule', [BookingController::class, 'index'])->name('schedule');
     Route::post('/book', [BookingController::class, 'store'])->name('book.store');
     Route::post('/check-in/today', [BookingController::class, 'checkInToday'])->name('checkin.today');
     Route::delete('/book/{classId}', [BookingController::class, 'destroy'])->name('book.destroy');
     Route::get('/class/{classId}/attendance', [BookingController::class, 'showAttendance'])->name('class.attendance');
+    Route::post('/class/{classId}/attendance/toggle/{bookingId}', [BookingController::class, 'toggleCheckInCoach'])->name('class.attendance.toggle');
+    Route::delete('/class/{classId}/attendance/booking/{bookingId}', [BookingController::class, 'removeBookingCoach'])->name('class.attendance.booking.remove');
+    Route::delete('/class/{classId}/attendance/trial/{trialId}', [BookingController::class, 'removeTrialCoach'])->name('class.attendance.trial.remove');
+    Route::post('/class/{classId}/attendance/walk-in', [BookingController::class, 'addWalkInCoach'])->name('class.attendance.walkin');
 
     // Payments
     Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
@@ -83,6 +96,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/members', [AdminController::class, 'storeMember'])->name('members.store');
         Route::get('/members/{id}', [AdminController::class, 'showMember'])->name('members.show');
         Route::put('/members/{id}', [AdminController::class, 'updateMember'])->name('members.update');
+        Route::get('/members/{id}/family/search', [AdminController::class, 'searchFamilyMembers'])->name('members.family.search');
+        Route::post('/members/{id}/family', [AdminController::class, 'addFamilyMember'])->name('members.family.add');
+        Route::delete('/members/{id}/family/{userId}', [AdminController::class, 'removeFamilyMember'])->name('members.family.remove');
         Route::post('/members/{id}/membership', [AdminController::class, 'updateMembership'])->name('members.membership');
         Route::post('/members/{id}/avatar', [AdminController::class, 'updateMemberAvatar'])->name('members.avatar');
         Route::delete('/members/{id}', [AdminController::class, 'deleteMember'])->name('members.delete');

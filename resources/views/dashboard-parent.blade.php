@@ -4,30 +4,32 @@
 
 @section('content')
 <div class="space-y-6">
-    @if(!empty($familyBar) && !empty($familyMembers))
-    <!-- Family: viewing member + switch -->
-    <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
-        <div class="flex items-center gap-3 min-w-0">
-            @if($user->avatar)
-                <img src="{{ $user->avatar }}" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-slate-600 flex-shrink-0">
-            @else
-                <div class="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold text-sm flex-shrink-0">{{ strtoupper(substr($user->name, 0, 2)) }}</div>
-            @endif
-            <div class="min-w-0">
-                <p class="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{{ app()->getLocale() === 'zh-TW' ? '目前查看' : 'Viewing' }}</p>
-                <p class="text-white font-semibold truncate">{{ $user->name }}</p>
+    @if($profiles->count() > 1)
+        <a href="{{ route('settings') }}" class="block glass rounded-2xl p-4 border border-slate-700/50 hover:bg-slate-800/60 transition-colors">
+            <p class="text-xs text-slate-400 uppercase tracking-wider mb-2">{{ app()->getLocale() === 'zh-TW' ? '目前查看' : 'Viewing' }}</p>
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
+                    @if($viewingUser->avatar)
+                        <img src="{{ $viewingUser->avatar }}" alt="{{ $viewingUser->name }}" class="w-full h-full object-cover">
+                    @else
+                        <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">
+                            {{ strtoupper(substr($viewingUser->first_name, 0, 1) . substr($viewingUser->last_name ?? '', 0, 1)) }}
+                        </div>
+                    @endif
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-white font-bold truncate">{{ $viewingUser->name }}</p>
+                    <p class="text-slate-500 text-xs">{{ app()->getLocale() === 'zh-TW' ? '點擊設定切換孩子' : 'Tap Settings to switch profile' }}</p>
+                </div>
+                <span class="material-symbols-outlined text-slate-500">chevron_right</span>
             </div>
-        </div>
-        <a href="{{ route('family.settings') }}" class="flex-shrink-0 px-3 py-2 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-semibold hover:bg-blue-500/30 transition-colors">
-            {{ app()->getLocale() === 'zh-TW' ? '切換成員' : 'Switch member' }}
         </a>
-    </div>
     @endif
 
     <!-- Welcome Header -->
     <div class="space-y-1">
         <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">
-            {{ __('app.dashboard.welcome_back') }}, <span class="text-blue-500">{{ explode(' ', $user->name)[0] }}</span>
+            {{ __('app.dashboard.welcome_back') }}, <span class="text-blue-500">{{ explode(' ', $viewingUser->name)[0] }}</span>
         </h2>
         <p class="text-slate-400 text-sm">{{ __('app.dashboard.ready_to_train') }}</p>
     </div>
@@ -60,102 +62,102 @@
                     <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">{{ __('app.dashboard.current_rank') }}</p>
                     <h3 class="text-3xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">
                         @if(app()->getLocale() === 'zh-TW')
-                            {{ __('app.belts.' . strtolower($user->rank)) }}
+                            {{ __('app.belts.' . strtolower($viewingUser->rank)) }}
                         @else
-                            {{ $user->rank }} {{ __('app.dashboard.belt') }}
+                            {{ $viewingUser->rank }} {{ __('app.dashboard.belt') }}
                         @endif
                     </h3>
                 </div>
                 <div class="text-right">
                     <div class="flex space-x-1">
                         @for ($i = 0; $i < 4; $i++)
-                            <div class="w-2 h-6 rounded-sm {{ $i < $user->stripes ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-slate-700/50' }}"></div>
+                            <div class="w-2 h-6 rounded-sm {{ $i < $viewingUser->stripes ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-slate-700/50' }}"></div>
                         @endfor
                     </div>
                 </div>
             </div>
             
             <!-- Visual Belt -->
-            @if($user->rank === 'Black')
+            @if($viewingUser->rank === 'Black')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center pl-4 bg-black">
                     <div class="h-full w-16 bg-red-600 flex items-center justify-start gap-1 px-1 absolute left-4">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
                 </div>
-            @elseif($user->rank === 'Brown')
+            @elseif($viewingUser->rank === 'Brown')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center pl-4 bg-yellow-900">
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
                 </div>
-            @elseif($user->rank === 'Purple')
+            @elseif($viewingUser->rank === 'Purple')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center pl-4 bg-purple-600">
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
                 </div>
-            @elseif($user->rank === 'Blue')
+            @elseif($viewingUser->rank === 'Blue')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center pl-4 bg-blue-600">
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
                 </div>
-            @elseif($user->rank === 'Green')
+            @elseif($viewingUser->rank === 'Green')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center bg-green-500 overflow-hidden">
-                    @if($user->belt_variation === 'white')
+                    @if($viewingUser->belt_variation === 'white')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-white"></div></div>
-                    @elseif($user->belt_variation === 'black')
+                    @elseif($viewingUser->belt_variation === 'black')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-black"></div></div>
                     @endif
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4 z-10">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
                 </div>
-            @elseif($user->rank === 'Orange')
+            @elseif($viewingUser->rank === 'Orange')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center bg-orange-500 overflow-hidden">
-                    @if($user->belt_variation === 'white')
+                    @if($viewingUser->belt_variation === 'white')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-white"></div></div>
-                    @elseif($user->belt_variation === 'black')
+                    @elseif($viewingUser->belt_variation === 'black')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-black"></div></div>
                     @endif
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4 z-10">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
                 </div>
-            @elseif($user->rank === 'Yellow')
+            @elseif($viewingUser->rank === 'Yellow')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center bg-yellow-400 overflow-hidden">
-                    @if($user->belt_variation === 'white')
+                    @if($viewingUser->belt_variation === 'white')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-white"></div></div>
-                    @elseif($user->belt_variation === 'black')
+                    @elseif($viewingUser->belt_variation === 'black')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-black"></div></div>
                     @endif
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4 z-10">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
                 </div>
-            @elseif($user->rank === 'Grey')
+            @elseif($viewingUser->rank === 'Grey')
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center bg-slate-300 overflow-hidden">
-                    @if($user->belt_variation === 'white')
+                    @if($viewingUser->belt_variation === 'white')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-white"></div></div>
-                    @elseif($user->belt_variation === 'black')
+                    @elseif($viewingUser->belt_variation === 'black')
                         <div class="absolute inset-0 flex items-center"><div class="w-full h-2.5 bg-black"></div></div>
                     @endif
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4 z-10">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
@@ -164,7 +166,7 @@
                 <!-- White Belt (default) -->
                 <div class="mt-4 h-8 w-full rounded shadow-inner relative flex items-center pl-4 bg-gray-100">
                     <div class="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4">
-                        @for ($i = 0; $i < $user->stripes; $i++)
+                        @for ($i = 0; $i < $viewingUser->stripes; $i++)
                             <div class="w-1.5 h-full bg-white shadow-sm"></div>
                         @endfor
                     </div>
@@ -175,9 +177,9 @@
 
     <!-- Membership Card -->
     @php
-        $borderColor = $user->isGratis() ? 'border-t-emerald-500' : 
-            ($user->membership_status === 'active' ? 'border-t-emerald-500' : 
-            ($user->membership_status === 'pending' ? 'border-t-amber-500' : 'border-t-red-500'));
+        $borderColor = $viewingUser->isGratis() ? 'border-t-emerald-500' : 
+            ($viewingUser->membership_status === 'active' ? 'border-t-emerald-500' : 
+            ($viewingUser->membership_status === 'pending' ? 'border-t-amber-500' : 'border-t-red-500'));
     @endphp
     <div class="glass rounded-2xl p-5 border-t-4 {{ $borderColor }} relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
@@ -185,16 +187,16 @@
             <div class="flex justify-between items-start">
                 <div>
                     <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">{{ __('app.dashboard.membership') }}</p>
-                    @if($user->isGratis())
+                    @if($viewingUser->isGratis())
                         <h3 class="text-2xl font-bold text-emerald-400 uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.gratis') }}</h3>
-                    @elseif($user->membershipPackage)
-                        <h3 class="text-2xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membershipPackage->name }}</h3>
+                    @elseif($viewingUser->membershipPackage)
+                        <h3 class="text-2xl font-bold text-white uppercase" style="font-family: 'Bebas Neue', sans-serif;">{{ $viewingUser->membershipPackage->name }}</h3>
                         <p class="text-slate-400 text-sm mt-1">
-                            @if($user->hasFixedDiscount())
-                                <span class="line-through text-slate-500">NT${{ number_format($user->membershipPackage->price) }}</span>
-                                <span class="text-emerald-400 font-bold ml-2">NT${{ number_format($user->membershipPackage->price - $user->discount_amount) }}</span>
+                            @if($viewingUser->hasFixedDiscount())
+                                <span class="line-through text-slate-500">NT${{ number_format($viewingUser->membershipPackage->price) }}</span>
+                                <span class="text-emerald-400 font-bold ml-2">NT${{ number_format($viewingUser->membershipPackage->price - $viewingUser->discount_amount) }}</span>
                             @else
-                                NT${{ number_format($user->membershipPackage->price) }}
+                                NT${{ number_format($viewingUser->membershipPackage->price) }}
                             @endif
                         </p>
                     @else
@@ -202,13 +204,13 @@
                     @endif
                 </div>
                 <div class="text-right flex flex-col gap-1">
-                    @if($user->isGratis())
+                    @if($viewingUser->isGratis())
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-emerald-500/20 text-emerald-400">
                             {{ __('app.common.active') }}
                         </span>
-                    @elseif($user->hasFixedDiscount())
+                    @elseif($viewingUser->hasFixedDiscount())
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-amber-500/20 text-amber-400">
-                            -NT${{ number_format($user->discount_amount) }}
+                            -NT${{ number_format($viewingUser->discount_amount) }}
                         </span>
                     @else
                         @php
@@ -218,7 +220,7 @@
                                 'expired' => 'bg-red-500/20 text-red-400',
                                 'none' => 'bg-slate-700/50 text-slate-400',
                             ];
-                            $statusColor = $statusColors[$user->membership_status] ?? $statusColors['none'];
+                            $statusColor = $statusColors[$viewingUser->membership_status] ?? $statusColors['none'];
                             $statusTexts = [
                                 'active' => __('app.common.active'),
                                 'pending' => __('app.common.pending'),
@@ -227,7 +229,7 @@
                             ];
                         @endphp
                         <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ $statusColor }}">
-                            {{ $statusTexts[$user->membership_status] ?? __('app.common.none') }}
+                            {{ $statusTexts[$viewingUser->membership_status] ?? __('app.common.none') }}
                         </span>
                     @endif
                 </div>
@@ -235,31 +237,31 @@
             
             <!-- Membership Details -->
             <div class="mt-4 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
-                @if($user->isGratis())
+                @if($viewingUser->isGratis())
                     <p class="text-emerald-400 text-sm text-center">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">verified</span>
                         {{ __('app.dashboard.complimentary_membership') }}
                     </p>
-                @elseif($user->membership_status === 'active')
-                    @if($user->membershipPackage && $user->membershipPackage->duration_type === 'classes')
+                @elseif($viewingUser->membership_status === 'active')
+                    @if($viewingUser->membershipPackage && $viewingUser->membershipPackage->duration_type === 'classes')
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400 text-sm">{{ __('app.dashboard.classes_remaining') }}</span>
-                            <span class="text-white font-bold text-lg" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->classes_remaining ?? 0 }}</span>
+                            <span class="text-white font-bold text-lg" style="font-family: 'Bebas Neue', sans-serif;">{{ $viewingUser->classes_remaining ?? 0 }}</span>
                         </div>
-                    @elseif($user->membership_expires_at)
+                    @elseif($viewingUser->membership_expires_at)
                         <div class="flex justify-between items-center">
                             <span class="text-slate-400 text-sm">{{ __('app.dashboard.valid_until') }}</span>
-                            <span class="text-white font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->membership_expires_at->format('M d, Y') }}</span>
+                            <span class="text-white font-bold" style="font-family: 'Bebas Neue', sans-serif;">{{ $viewingUser->membership_expires_at->format('M d, Y') }}</span>
                         </div>
                     @else
                         <p class="text-slate-400 text-sm text-center">{{ __('app.dashboard.unlimited_access') }}</p>
                     @endif
-                @elseif($user->membership_status === 'pending')
+                @elseif($viewingUser->membership_status === 'pending')
                     <p class="text-amber-400 text-sm text-center">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">hourglass_top</span>
                         {{ __('app.dashboard.payment_pending') }}
                     </p>
-                @elseif($user->membership_status === 'expired')
+                @elseif($viewingUser->membership_status === 'expired')
                     <p class="text-red-400 text-sm text-center">
                         <span class="material-symbols-outlined text-sm align-middle mr-1">warning</span>
                         {{ __('app.dashboard.membership_expired') }}
@@ -272,7 +274,7 @@
             </div>
             
             <!-- Update Payment Button -->
-            @if(!$user->isGratis())
+            @if(!$viewingUser->isGratis())
                 <a href="{{ route('payments') }}" 
                    class="mt-3 w-full py-2.5 rounded-lg bg-blue-500/20 border border-blue-500/30 text-blue-400 font-semibold text-sm text-center hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-lg">payments</span>
@@ -349,7 +351,7 @@
         <div class="glass rounded-2xl p-5 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex flex-col items-center justify-center py-2">
-                <span class="text-4xl font-bold text-amber-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->calculated_mat_hours }}</span>
+                <span class="text-4xl font-bold text-amber-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $viewingUser->calculated_mat_hours }}</span>
                 <span class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('app.dashboard.mat_hours') }}</span>
             </div>
         </div>
@@ -375,8 +377,8 @@
                     <span class="text-slate-500 text-xs">{{ now()->format('F') }}</span>
                 </div>
                 @php
-                    $classesAttended = $user->monthly_classes_attended;
-                    $classGoal = $user->monthly_class_goal ?? 12;
+                    $classesAttended = $viewingUser->monthly_classes_attended;
+                    $classGoal = $viewingUser->monthly_class_goal ?? 12;
                     $classProgress = $classGoal > 0 ? min(100, ($classesAttended / $classGoal) * 100) : 0;
                 @endphp
                 <div class="flex items-center gap-3">
@@ -486,7 +488,7 @@
             <button type="button" id="qrFullscreenBtn" class="block w-full"
                     onclick="document.getElementById('checkInModal').classList.add('hidden'); document.getElementById('qrFullscreen').classList.remove('hidden')">
                 <div class="p-4 rounded-xl bg-white flex justify-center">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-{{ $user->id }}"
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-{{ $viewingUser->id }}"
                          alt="Check-in QR code" class="w-40 h-40">
                 </div>
                 <p class="text-slate-500 text-xs mt-2">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
@@ -499,10 +501,10 @@
          onclick="this.classList.add('hidden')">
         <p class="text-white text-sm mb-4">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
         <div class="p-6 rounded-2xl bg-white">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=CATCH-{{ $user->id }}"
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=CATCH-{{ $viewingUser->id }}"
                  alt="Check-in QR code" class="w-64 h-64 sm:w-80 sm:h-80">
         </div>
-        <p class="text-slate-500 text-xs mt-4">CATCH-{{ $user->id }}</p>
+        <p class="text-slate-500 text-xs mt-4">CATCH-{{ $viewingUser->id }}</p>
     </div>
 </div>
 
