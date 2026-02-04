@@ -226,6 +226,7 @@ return [
         'login' => '登入',
         'register' => '註冊',
         'welcome_back' => '歡迎回來',
+        'join_the_team' => '加入我們',
         'email' => '電子郵件',
         'password' => '密碼',
         'remember_me' => '記住我',

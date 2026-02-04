@@ -226,6 +226,7 @@ return [
         'login' => 'Login',
         'register' => 'Register',
         'welcome_back' => 'Welcome Back',
+        'join_the_team' => 'Join the Team',
         'email' => 'Email',
         'password' => 'Password',
         'remember_me' => 'Remember me',
