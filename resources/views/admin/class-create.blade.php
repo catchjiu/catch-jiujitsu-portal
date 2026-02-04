@@ -141,7 +141,7 @@
         <div class="flex items-center justify-between p-4 rounded-xl bg-slate-800/60 border border-slate-700/50">
             <div>
                 <p class="text-white font-medium">Recurring Class</p>
-                <p class="text-slate-500 text-xs">Repeat weekly on this day</p>
+                <p class="text-slate-500 text-xs">Creates this date plus 4 more weeks (5 total). A daily job also keeps the schedule filled 4 weeks ahead by copying from the current week.</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" name="recurring" value="1" class="sr-only peer" {{ old('recurring') ? 'checked' : '' }}>

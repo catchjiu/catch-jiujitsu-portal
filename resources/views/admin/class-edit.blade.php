@@ -27,11 +27,31 @@
             </div>
         @endif
 
-        <!-- Class Info Display -->
-        <div class="glass rounded-xl p-4">
-            <p class="text-slate-400 text-xs uppercase tracking-wider mb-1">Scheduled</p>
-            <p class="text-white">{{ $class->start_time->format('l, M j, Y \a\t g:i A') }}</p>
+        <!-- Scheduled (editable date & time) -->
+        <div>
+            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Scheduled</label>
+            <div class="grid grid-cols-2 gap-3">
+                <input type="date" name="start_date" value="{{ old('start_date', $class->start_time->format('Y-m-d')) }}" required
+                    class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                <input type="time" name="start_time" value="{{ old('start_time', $class->start_time->format('H:i')) }}" required
+                    class="w-full px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-700/50 text-white focus:outline-none focus:border-blue-500 transition-colors">
+            </div>
         </div>
+
+        @if(($recurrenceSiblingsCount ?? 0) > 0)
+        <!-- Apply change to this occurrence or all in series -->
+        <div class="glass rounded-xl p-4">
+            <p class="text-slate-400 text-xs uppercase tracking-wider mb-2">Apply changes to</p>
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio" name="apply_to" value="this" {{ old('apply_to', 'this') === 'this' ? 'checked' : '' }} class="text-blue-500 focus:ring-blue-500">
+                <span class="text-white">This occurrence only</span>
+            </label>
+            <label class="flex items-center gap-3 cursor-pointer mt-2">
+                <input type="radio" name="apply_to" value="all" {{ old('apply_to') === 'all' ? 'checked' : '' }} class="text-blue-500 focus:ring-blue-500">
+                <span class="text-white">All {{ $recurrenceSiblingsCount + 1 }} in this series</span>
+            </label>
+        </div>
+        @endif
 
         <!-- Class Name / Title -->
         <div>

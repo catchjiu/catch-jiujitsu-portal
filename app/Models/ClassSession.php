@@ -25,6 +25,7 @@ class ClassSession extends Model
         'instructor_name', // Kept for backward compatibility
         'capacity',
         'is_cancelled',
+        'recurrence_id',
     ];
 
     protected $casts = [

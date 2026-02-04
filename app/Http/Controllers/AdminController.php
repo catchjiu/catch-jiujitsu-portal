@@ -260,8 +260,7 @@ class AdminController extends Controller
         $startTime = Carbon::parse($validated['date'] . ' ' . $validated['time']);
         $instructor = User::find($validated['instructor_id']);
 
-        // Create the class
-        ClassSession::create([
+        $payload = [
             'title' => $validated['title'],
             'title_zh' => $validated['title_zh'] ?? null,
             'type' => $validated['type'],
@@ -269,24 +268,20 @@ class AdminController extends Controller
             'start_time' => $startTime,
             'duration_minutes' => $validated['duration_minutes'],
             'instructor_id' => $validated['instructor_id'],
-            'instructor_name' => $instructor->name, // Keep for backward compatibility
+            'instructor_name' => $instructor->name,
             'capacity' => $validated['capacity'],
-        ]);
+        ];
 
-        // If recurring, create for next 4 weeks
-        if ($request->boolean('recurring')) {
+        $first = ClassSession::create($payload);
+        $recurring = $request->boolean('recurring');
+
+        if ($recurring) {
+            $first->update(['recurrence_id' => $first->id]);
             for ($week = 1; $week <= 4; $week++) {
-                ClassSession::create([
-                    'title' => $validated['title'],
-                    'title_zh' => $validated['title_zh'] ?? null,
-                    'type' => $validated['type'],
-                    'age_group' => $validated['age_group'],
+                ClassSession::create(array_merge($payload, [
                     'start_time' => $startTime->copy()->addWeeks($week),
-                    'duration_minutes' => $validated['duration_minutes'],
-                    'instructor_id' => $validated['instructor_id'],
-                    'instructor_name' => $instructor->name,
-                    'capacity' => $validated['capacity'],
-                ]);
+                    'recurrence_id' => $first->id,
+                ]));
             }
         }
 
@@ -300,10 +295,17 @@ class AdminController extends Controller
     {
         $class = ClassSession::findOrFail($id);
         $coaches = User::where('is_coach', true)->orderBy('first_name')->get();
+        $recurrenceSiblingsCount = 0;
+        if ($class->recurrence_id) {
+            $recurrenceSiblingsCount = ClassSession::where('recurrence_id', $class->recurrence_id)
+                ->where('id', '!=', $class->id)
+                ->count();
+        }
         
         return view('admin.class-edit', [
             'class' => $class,
             'coaches' => $coaches,
+            'recurrenceSiblingsCount' => $recurrenceSiblingsCount,
         ]);
     }
 
@@ -322,12 +324,16 @@ class AdminController extends Controller
             'instructor_id' => 'required|exists:users,id',
             'capacity' => 'required|integer|min:1|max:100',
             'is_cancelled' => 'nullable|boolean',
+            'start_date' => 'required|date',
+            'start_time' => 'required|date_format:H:i',
+            'apply_to' => 'nullable|in:this,all',
         ]);
         
         $instructor = User::find($validated['instructor_id']);
         $isCancelled = $request->has('is_cancelled');
+        $newStartTime = Carbon::parse($validated['start_date'] . ' ' . $validated['start_time']);
 
-        $class->update([
+        $data = [
             'title' => $validated['title'],
             'title_zh' => $validated['title_zh'] ?? null,
             'type' => $validated['type'],
@@ -336,9 +342,25 @@ class AdminController extends Controller
             'instructor_name' => $instructor->name,
             'capacity' => $validated['capacity'],
             'is_cancelled' => $isCancelled,
-        ]);
+            'start_time' => $newStartTime,
+        ];
 
-        $message = 'Class updated successfully.';
+        $applyToAll = ($validated['apply_to'] ?? 'this') === 'all'
+            && $class->recurrence_id
+            && ClassSession::where('recurrence_id', $class->recurrence_id)->count() > 1;
+
+        if ($applyToAll) {
+            $timeOnly = $validated['start_time'];
+            foreach (ClassSession::where('recurrence_id', $class->recurrence_id)->get() as $c) {
+                $newStart = Carbon::parse($c->start_time->format('Y-m-d') . ' ' . $timeOnly);
+                $c->update(array_merge($data, ['start_time' => $newStart]));
+            }
+            $message = 'All classes in this series have been updated.';
+        } else {
+            $class->update($data);
+            $message = 'Class updated successfully.';
+        }
+
         if ($isCancelled && $class->bookings()->count() > 0) {
             $message .= ' ' . $class->bookings()->count() . ' member(s) will see this class as cancelled.';
         }
