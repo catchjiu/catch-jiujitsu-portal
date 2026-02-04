@@ -15,8 +15,8 @@
     @endif
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased flex items-center justify-center p-4">
-    {{-- Language switcher: globe in top right (same as login) --}}
-    <form action="{{ route('locale.switch') }}" method="POST" class="absolute top-4 right-4 z-10">
+    {{-- Language switcher: fixed top-right (where menu/hamburger would be) --}}
+    <form action="{{ route('locale.switch') }}" method="POST" class="fixed top-4 right-4 z-50">
         @csrf
         <input type="hidden" name="locale" value="{{ app()->getLocale() === 'zh-TW' ? 'en' : 'zh-TW' }}">
         <button type="submit" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}" aria-label="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}">
@@ -53,7 +53,7 @@
                 @csrf
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label for="first_name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
+                        <label for="first_name" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.first_name') }}</label>
                         <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required autofocus
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                     </div>
@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <div>
-                    <label for="email" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email</label>
+                    <label for="email" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.email') }}</label>
                     <input type="email" id="email" name="email" value="{{ old('email') }}" required
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 </div>

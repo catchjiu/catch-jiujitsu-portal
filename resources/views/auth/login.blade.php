@@ -14,8 +14,8 @@
     @endif
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased flex items-center justify-center p-4">
-    {{-- Language switcher: globe toggles English / Traditional Chinese --}}
-    <form action="{{ route('locale.switch') }}" method="POST" class="absolute top-4 right-4 z-10">
+    {{-- Language switcher: fixed top-right (where menu/hamburger would be) --}}
+    <form action="{{ route('locale.switch') }}" method="POST" class="fixed top-4 right-4 z-50">
         @csrf
         <input type="hidden" name="locale" value="{{ app()->getLocale() === 'zh-TW' ? 'en' : 'zh-TW' }}">
         <button type="submit" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}" aria-label="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}">
