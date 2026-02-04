@@ -13,15 +13,22 @@
     <style>body { font-family: 'Noto Sans TC', 'Inter', sans-serif; }</style>
     @endif
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased flex items-center justify-center p-4">
-    {{-- Language switcher: fixed top-right (where menu/hamburger would be) --}}
-    <form action="{{ route('locale.switch') }}" method="POST" class="fixed top-4 right-4 z-50">
-        @csrf
-        <input type="hidden" name="locale" value="{{ app()->getLocale() === 'zh-TW' ? 'en' : 'zh-TW' }}">
-        <button type="submit" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}" aria-label="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        </button>
-    </form>
+<body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    {{-- Menu bar: fixed top, logo left, globe right --}}
+    <header class="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 bg-slate-950/95 backdrop-blur border-b border-white/5">
+        <a href="{{ url('/') }}" class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-bold text-black text-lg" style="font-family: 'Bebas Neue', sans-serif;">C</div>
+            <span class="font-bold text-lg tracking-wider text-white" style="font-family: 'Bebas Neue', sans-serif;">CATCH <span class="text-amber-500">JIU JITSU</span></span>
+        </a>
+        <form action="{{ route('locale.switch') }}" method="POST" class="inline">
+            @csrf
+            <input type="hidden" name="locale" value="{{ app()->getLocale() === 'zh-TW' ? 'en' : 'zh-TW' }}">
+            <button type="submit" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}" aria-label="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </button>
+        </form>
+    </header>
+    <div class="min-h-screen flex items-center justify-center pt-14 pb-8 px-4">
     <div class="w-full max-w-sm">
         <!-- Logo -->
         <div class="text-center mb-8">
@@ -71,6 +78,7 @@
                 <a href="{{ route('register') }}" class="text-blue-400 hover:text-blue-300 font-medium">{{ __('app.auth.register') }}</a>
             </p>
         </div>
+    </div>
     </div>
 </body>
 </html>
