@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,10 +36,19 @@
         <div class="p-5">
             <!-- Header -->
             <div class="flex items-center justify-between mb-8">
-                <h2 class="text-xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Admin Menu</h2>
-                <button onclick="closeMenu()" class="text-slate-400 hover:text-white transition-colors">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
+                <h2 class="text-xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '管理選單' : 'Admin Menu' }}</h2>
+                <div class="flex items-center gap-2">
+                    <form action="{{ route('locale.switch') }}" method="POST" class="inline">
+                        @csrf
+                        <input type="hidden" name="locale" value="{{ app()->getLocale() === 'zh-TW' ? 'en' : 'zh-TW' }}">
+                        <button type="submit" class="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}" aria-label="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}">
+                            <span class="material-symbols-outlined text-xl">language</span>
+                        </button>
+                    </form>
+                    <button onclick="closeMenu()" class="text-slate-400 hover:text-white transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Menu Items -->

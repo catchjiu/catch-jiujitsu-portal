@@ -225,6 +225,7 @@ return [
     'auth' => [
         'login' => 'Login',
         'register' => 'Register',
+        'welcome_back' => 'Welcome Back',
         'email' => 'Email',
         'password' => 'Password',
         'remember_me' => 'Remember me',

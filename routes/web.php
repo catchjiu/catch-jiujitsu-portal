@@ -42,6 +42,9 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
+// Locale switch (public: works for guests, members, admins; uses browser language when no preference set)
+Route::post('/locale', [SettingsController::class, 'updateLocale'])->name('locale.switch');
+
 // Member routes (redirect admins to admin dashboard)
 Route::middleware(['auth', 'member'])->group(function () {
     // Dashboard

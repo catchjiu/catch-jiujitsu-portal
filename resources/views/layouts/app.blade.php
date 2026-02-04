@@ -32,6 +32,14 @@
                 </h1>
             </div>
             <div class="flex items-center gap-3">
+                {{-- Language switcher: globe toggles English / Traditional Chinese --}}
+                <form action="{{ route('locale.switch') }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="locale" value="{{ app()->getLocale() === 'zh-TW' ? 'en' : 'zh-TW' }}">
+                    <button type="submit" class="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}" aria-label="{{ app()->getLocale() === 'zh-TW' ? 'Switch to English' : '切換至繁體中文' }}">
+                        <span class="material-symbols-outlined text-xl">language</span>
+                    </button>
+                </form>
                 @auth
                     <a href="{{ route('settings') }}" class="w-8 h-8 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800 hover:border-blue-500 transition-colors">
                         @if(auth()->user()->avatar)

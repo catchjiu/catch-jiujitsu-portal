@@ -225,6 +225,7 @@ return [
     'auth' => [
         'login' => '登入',
         'register' => '註冊',
+        'welcome_back' => '歡迎回來',
         'email' => '電子郵件',
         'password' => '密碼',
         'remember_me' => '記住我',
