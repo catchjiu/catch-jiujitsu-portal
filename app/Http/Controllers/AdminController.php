@@ -289,18 +289,39 @@ class AdminController extends Controller
     }
 
     /**
+     * Find sibling classes (same series): by recurrence_id, or by matching title + day of week + time.
+     */
+    private function getSiblingClasses(ClassSession $class): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($class->recurrence_id) {
+            return ClassSession::where('recurrence_id', $class->recurrence_id)
+                ->where('id', '!=', $class->id)
+                ->get();
+        }
+        $windowStart = Carbon::now()->subWeeks(2)->startOfDay();
+        $windowEnd = Carbon::now()->addWeeks(12)->endOfDay();
+        $dayOfWeek = $class->start_time->dayOfWeek;
+        $timeHi = $class->start_time->format('H:i');
+        return ClassSession::where('title', $class->title)
+            ->where('type', $class->type)
+            ->whereBetween('start_time', [$windowStart, $windowEnd])
+            ->where('id', '!=', $class->id)
+            ->get()
+            ->filter(function ($c) use ($dayOfWeek, $timeHi) {
+                return $c->start_time->dayOfWeek === $dayOfWeek
+                    && $c->start_time->format('H:i') === $timeHi;
+            });
+    }
+
+    /**
      * Edit class.
      */
     public function editClass($id)
     {
         $class = ClassSession::findOrFail($id);
         $coaches = User::where('is_coach', true)->orderBy('first_name')->get();
-        $recurrenceSiblingsCount = 0;
-        if ($class->recurrence_id) {
-            $recurrenceSiblingsCount = ClassSession::where('recurrence_id', $class->recurrence_id)
-                ->where('id', '!=', $class->id)
-                ->count();
-        }
+        $siblings = $this->getSiblingClasses($class);
+        $recurrenceSiblingsCount = $siblings->count();
         
         return view('admin.class-edit', [
             'class' => $class,
@@ -345,13 +366,15 @@ class AdminController extends Controller
             'start_time' => $newStartTime,
         ];
 
-        $applyToAll = ($validated['apply_to'] ?? 'this') === 'all'
-            && $class->recurrence_id
-            && ClassSession::where('recurrence_id', $class->recurrence_id)->count() > 1;
+        $siblings = $this->getSiblingClasses($class);
+        $applyToAll = ($validated['apply_to'] ?? 'this') === 'all' && $siblings->isNotEmpty();
 
         if ($applyToAll) {
             $timeOnly = $validated['start_time'];
-            foreach (ClassSession::where('recurrence_id', $class->recurrence_id)->get() as $c) {
+            $toUpdate = $class->recurrence_id
+                ? ClassSession::where('recurrence_id', $class->recurrence_id)->get()
+                : $siblings->push($class);
+            foreach ($toUpdate as $c) {
                 $newStart = Carbon::parse($c->start_time->format('Y-m-d') . ' ' . $timeOnly);
                 $c->update(array_merge($data, ['start_time' => $newStart]));
             }
