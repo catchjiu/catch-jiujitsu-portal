@@ -33,6 +33,63 @@ class PrivateClassController extends Controller
     }
 
     /**
+     * List dates that have at least one available private class slot (next 4 weeks).
+     */
+    public function days()
+    {
+        $coaches = User::where('is_coach', true)
+            ->where('accepting_private_classes', true)
+            ->get();
+        $dates = [];
+        foreach ($coaches as $coach) {
+            $slots = $this->getAvailableSlotsForCoach($coach, 4);
+            foreach (array_keys($slots) as $key) {
+                $date = substr($key, 0, 10);
+                $dates[$date] = Carbon::parse($date)->format('D, M j');
+            }
+        }
+        ksort($dates);
+        $out = [];
+        foreach ($dates as $date => $label) {
+            $out[] = ['date' => $date, 'label' => $label];
+        }
+        return response()->json($out);
+    }
+
+    /**
+     * Get available time slots for a single day from all accepting coaches.
+     */
+    public function slotsByDate(Request $request)
+    {
+        $date = $request->validate(['date' => 'required|date'])['date'];
+        if (Carbon::parse($date)->format('Y-m-d') < Carbon::today()->format('Y-m-d')) {
+            return response()->json([]);
+        }
+        $coaches = User::where('is_coach', true)
+            ->where('accepting_private_classes', true)
+            ->get(['id', 'first_name', 'last_name', 'avatar_url', 'private_class_price']);
+        $allSlots = [];
+        foreach ($coaches as $coach) {
+            $slots = $this->getAvailableSlotsForCoach($coach, 4);
+            foreach ($slots as $key => $slot) {
+                if (substr($key, 0, 10) !== $date) {
+                    continue;
+                }
+                $allSlots[$key] = [
+                    'coach_id' => $coach->id,
+                    'coach_name' => $coach->name,
+                    'coach_avatar' => $coach->avatar,
+                    'coach_price' => $coach->private_class_price ? (int) $coach->private_class_price : null,
+                    'datetime' => $slot['datetime'],
+                    'label' => $slot['label'],
+                ];
+            }
+        }
+        ksort($allSlots);
+        return response()->json(array_values($allSlots));
+    }
+
+    /**
      * Get available time slots for a coach (next 4 weeks).
      */
     public function availability($coachId)

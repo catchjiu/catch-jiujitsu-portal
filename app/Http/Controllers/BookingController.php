@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ClassSession;
 use App\Models\Booking;
 use App\Models\ClassTrial;
+use App\Models\PrivateClassBooking;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -59,8 +60,27 @@ class BookingController extends Controller
             return $class;
         });
 
+        // Accepted private classes for the viewing member on the selected day
+        $privateClassesForDay = PrivateClassBooking::with('coach')
+            ->where('member_id', $user->id)
+            ->where('status', 'accepted')
+            ->whereBetween('scheduled_at', [$dayStart, $dayEnd])
+            ->orderBy('scheduled_at')
+            ->get();
+
+        // Merge group classes and private classes, sorted by start time
+        $scheduleItems = collect();
+        foreach ($classes as $class) {
+            $scheduleItems->push(['type' => 'class', 'start_time' => $class->start_time, 'payload' => $class]);
+        }
+        foreach ($privateClassesForDay as $booking) {
+            $scheduleItems->push(['type' => 'private', 'start_time' => $booking->scheduled_at, 'payload' => $booking]);
+        }
+        $scheduleItems = $scheduleItems->sortBy('start_time')->values();
+
         return view('schedule', [
             'classes' => $classes,
+            'scheduleItems' => $scheduleItems,
             'currentFilter' => $filter,
             'selectedDate' => $selectedDate,
             'weekDays' => $weekDays,

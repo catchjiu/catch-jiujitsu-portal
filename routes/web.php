@@ -86,6 +86,8 @@ Route::middleware(['auth', 'member'])->group(function () {
 
     // Private classes (member: book; coach: availability + requests)
     Route::get('/private-class/coaches', [PrivateClassController::class, 'coaches'])->name('private-class.coaches');
+    Route::get('/private-class/days', [PrivateClassController::class, 'days'])->name('private-class.days');
+    Route::get('/private-class/slots', [PrivateClassController::class, 'slotsByDate'])->name('private-class.slots');
     Route::get('/private-class/coach/{coachId}/availability', [PrivateClassController::class, 'availability'])->name('private-class.availability');
     Route::post('/private-class/request', [PrivateClassController::class, 'request'])->name('private-class.request');
     Route::get('/coach/private-availability', [PrivateClassController::class, 'availabilityPage'])->name('coach.private-availability');

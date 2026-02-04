@@ -143,29 +143,56 @@
         </div>
     @endif
 
-    <!-- Class List -->
+    <!-- Class List (group classes + accepted private classes, sorted by time) -->
     <div class="space-y-4">
-        @forelse($classes as $class)
-            @php
-                $isFull = $class->bookings_count >= $class->capacity;
-                $capacityPercent = ($class->bookings_count / $class->capacity) * 100;
-                $isBooked = $class->is_booked_by_user;
-                $isPastClass = $class->start_time->isPast();
-                $isCancelled = $class->is_cancelled ?? false;
-                
-                // Capacity bar color
-                if ($isCancelled) {
-                    $capacityColor = 'bg-slate-600';
-                } elseif ($capacityPercent >= 100) {
-                    $capacityColor = 'bg-red-500';
-                } elseif ($capacityPercent >= 80) {
-                    $capacityColor = 'bg-amber-500';
-                } else {
-                    $capacityColor = 'bg-emerald-500';
-                }
-            @endphp
-            
-            <div class="glass rounded-2xl p-5 relative overflow-hidden transition-all duration-300 {{ $isPastClass || $isCancelled ? 'opacity-60' : 'hover:bg-slate-800/60' }}">
+        @forelse($scheduleItems as $item)
+            @if($item['type'] === 'private')
+                @php $booking = $item['payload']; $isPastPrivate = $booking->scheduled_at->isPast(); @endphp
+                <div class="glass rounded-2xl p-5 relative overflow-hidden transition-all duration-300 {{ $isPastPrivate ? 'opacity-60' : 'hover:bg-slate-800/60' }}">
+                    <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex flex-col">
+                                <span class="text-amber-500 text-xs font-bold uppercase tracking-wider mb-0.5">{{ $booking->scheduled_at->format('l') }}</span>
+                                <span class="text-3xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ $booking->scheduled_at->format('H:i') }}</span>
+                                <span class="text-slate-400 text-xs">{{ $booking->duration_minutes }} {{ app()->getLocale() === 'zh-TW' ? '分鐘' : 'Minutes' }}</span>
+                            </div>
+                            <span class="inline-block px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider bg-violet-500/20 text-violet-400 border border-violet-500/30">{{ app()->getLocale() === 'zh-TW' ? '私教' : 'Private' }}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-100 mb-2">{{ app()->getLocale() === 'zh-TW' ? '私教課' : 'Private class' }}</h3>
+                        @if($booking->coach)
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 border-2 border-slate-600 flex-shrink-0">
+                                    @if($booking->coach->avatar)
+                                        <img src="{{ $booking->coach->avatar }}" alt="{{ $booking->coach->name }}" class="w-full h-full object-cover">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-400 text-xs font-bold">{{ strtoupper(substr($booking->coach->name ?? '', 0, 2)) }}</div>
+                                    @endif
+                                </div>
+                                <span class="text-sm text-slate-300">{{ $booking->coach->name }}</span>
+                            </div>
+                        @endif
+                        @if($isPastPrivate)
+                            <div class="mt-4 py-2.5 rounded bg-slate-700 text-slate-500 font-bold text-sm text-center uppercase tracking-wide">{{ app()->getLocale() === 'zh-TW' ? '課程已結束' : 'Class Ended' }}</div>
+                        @else
+                            <div class="mt-4 py-2.5 rounded bg-violet-500/20 text-violet-400 font-bold text-sm text-center uppercase tracking-wide flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-lg">event_available</span>
+                                {{ app()->getLocale() === 'zh-TW' ? '已預約' : 'Booked' }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @else
+                @php
+                    $class = $item['payload'];
+                    $isFull = $class->bookings_count >= $class->capacity;
+                    $capacityPercent = ($class->bookings_count / $class->capacity) * 100;
+                    $isBooked = $class->is_booked_by_user;
+                    $isPastClass = $class->start_time->isPast();
+                    $isCancelled = $class->is_cancelled ?? false;
+                    if ($isCancelled) { $capacityColor = 'bg-slate-600'; } elseif ($capacityPercent >= 100) { $capacityColor = 'bg-red-500'; } elseif ($capacityPercent >= 80) { $capacityColor = 'bg-amber-500'; } else { $capacityColor = 'bg-emerald-500'; }
+                @endphp
+                <div class="glass rounded-2xl p-5 relative overflow-hidden transition-all duration-300 {{ $isPastClass || $isCancelled ? 'opacity-60' : 'hover:bg-slate-800/60' }}">
                 <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                 @if($isCancelled)
                     <div class="absolute top-3 left-3 px-2 py-1 rounded bg-red-500/20 text-red-400 text-[10px] font-bold uppercase z-20 flex items-center gap-1">
@@ -300,6 +327,7 @@
                     @endif
                 </div>
             </div>
+            @endif
         @empty
             <div class="p-10 text-center text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
                 <span class="material-symbols-outlined text-4xl mb-2">event_busy</span>
