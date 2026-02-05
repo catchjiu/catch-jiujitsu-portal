@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
@@ -90,6 +91,81 @@ class ShopAdminController extends Controller
         return response()->json([
             'ok' => true,
             'status' => $order->status,
+        ]);
+    }
+
+    /**
+     * Delete an order. Restores stock for non-preorder items, then deletes the order.
+     */
+    public function destroyOrder(Order $order)
+    {
+        $order->load('items.productVariant');
+        foreach ($order->items as $item) {
+            if (! $item->is_preorder) {
+                $item->productVariant->increment('stock_quantity', $item->quantity);
+            }
+        }
+        $order->delete();
+        return redirect()->route('admin.shop.orders')->with('success', __('app.admin.order_deleted'));
+    }
+
+    /**
+     * Pre-Order: list all products that are pre-order (with total qty ordered).
+     */
+    public function preorderIndex()
+    {
+        $products = Product::where('is_preorder', true)
+            ->with('variants')
+            ->orderBy('name')
+            ->get();
+
+        $variantIdsByProduct = $products->keyBy('id')->map(fn ($p) => $p->variants->pluck('id'));
+        $preorderTotals = OrderItem::where('is_preorder', true)
+            ->whereIn('product_variant_id', $products->pluck('variants')->flatten()->pluck('id'))
+            ->selectRaw('product_variant_id, sum(quantity) as total')
+            ->groupBy('product_variant_id')
+            ->pluck('total', 'product_variant_id');
+
+        foreach ($products as $product) {
+            $product->preorder_total = $variantIdsByProduct->get($product->id, collect())->sum(fn ($vid) => $preorderTotals->get($vid, 0));
+        }
+
+        return view('admin.shop-preorder', [
+            'products' => $products,
+        ]);
+    }
+
+    /**
+     * Pre-Order: one product's breakdown (sizes ordered + list of names and sizes).
+     */
+    public function preorderProduct(Product $product)
+    {
+        if (! $product->is_preorder) {
+            abort(404);
+        }
+
+        $product->load('variants');
+
+        $variantIds = $product->variants->pluck('id');
+        $orderItems = OrderItem::with(['order.user', 'productVariant'])
+            ->where('is_preorder', true)
+            ->whereIn('product_variant_id', $variantIds)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $bySize = $orderItems->groupBy('product_variant_id')->map(function ($items) {
+            $v = $items->first()->productVariant;
+            return [
+                'size' => $v->size,
+                'color' => $v->color,
+                'quantity' => $items->sum('quantity'),
+            ];
+        })->values();
+
+        return view('admin.shop-preorder-product', [
+            'product' => $product,
+            'bySize' => $bySize,
+            'orderItems' => $orderItems,
         ]);
     }
 

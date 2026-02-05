@@ -91,6 +91,7 @@ Route::middleware(['auth', 'member'])->group(function () {
 
     // Gym Shop (member storefront)
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
+    Route::get('/shop/my-orders', [ShopController::class, 'myOrders'])->name('shop.my-orders');
     Route::post('/shop/quick-buy', [ShopController::class, 'quickBuy'])->name('shop.quick-buy');
     Route::get('/shop/confirmation/{order}', [ShopController::class, 'confirmation'])->name('shop.confirmation');
 
@@ -175,5 +176,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/shop/stock/update', [ShopAdminController::class, 'updateStock'])->name('shop.stock.update');
         Route::get('/shop/orders', [ShopAdminController::class, 'orders'])->name('shop.orders');
         Route::post('/shop/orders/{order}/status', [ShopAdminController::class, 'updateOrderStatus'])->name('shop.orders.status');
+        Route::delete('/shop/orders/{order}', [ShopAdminController::class, 'destroyOrder'])->name('shop.orders.destroy');
+        Route::get('/shop/preorder', [ShopAdminController::class, 'preorderIndex'])->name('shop.preorder');
+        Route::get('/shop/preorder/{product}', [ShopAdminController::class, 'preorderProduct'])->name('shop.preorder.product');
     });
 });

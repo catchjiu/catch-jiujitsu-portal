@@ -93,6 +93,34 @@ class ShopController extends Controller
     }
 
     /**
+     * Member: list my orders with items and expected delivery (for pre-orders).
+     */
+    public function myOrders()
+    {
+        $orders = Order::with(['items.productVariant.product'])
+            ->where('user_id', auth()->id())
+            ->orderByDesc('created_at')
+            ->get();
+
+        foreach ($orders as $order) {
+            $maxWeeks = 0;
+            foreach ($order->items as $item) {
+                if ($item->is_preorder && $item->productVariant && $item->productVariant->product && $item->productVariant->product->preorder_weeks) {
+                    $maxWeeks = max($maxWeeks, (int) $item->productVariant->product->preorder_weeks);
+                }
+            }
+            $order->expected_delivery = $maxWeeks > 0
+                ? $order->created_at->copy()->addWeeks($maxWeeks)
+                : null;
+            $order->has_preorder = $order->items->contains('is_preorder', true);
+        }
+
+        return view('shop.my-orders', [
+            'orders' => $orders,
+        ]);
+    }
+
+    /**
      * Checkout confirmation: show order and member's chinese_name.
      */
     public function confirmation(Order $order)

@@ -2,9 +2,15 @@
 
 @section('content')
 <div class="space-y-4">
-    <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">
-        {{ __('app.shop.title') }}
-    </h2>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-2xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">
+            {{ __('app.shop.title') }}
+        </h2>
+        <a href="{{ route('shop.my-orders') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/80 border border-slate-600 text-slate-300 hover:border-[#00d4ff]/40 hover:text-[#00d4ff] transition-colors text-sm font-medium">
+            <span class="material-symbols-outlined text-lg">shopping_bag</span>
+            {{ __('app.shop.view_your_orders') }}
+        </a>
+    </div>
 
     {{-- Search & category filter (mobile-first) --}}
     <form action="{{ route('shop.index') }}" method="GET" class="space-y-3">

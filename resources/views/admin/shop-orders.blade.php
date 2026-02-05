@@ -12,6 +12,10 @@
     </div>
     <p class="text-slate-400 text-sm">{{ __('app.admin.member_orders') }}</p>
 
+    @if(session('success'))
+        <p class="rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-4 py-2 text-sm">{{ session('success') }}</p>
+    @endif
+
     <div class="space-y-4">
         @forelse($orders as $order)
             <div class="rounded-xl bg-slate-800/60 border border-slate-700/50 overflow-hidden" data-order-id="{{ $order->id }}">
@@ -27,13 +31,18 @@
                             @elseif($order->status === 'Processing') bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40
                             @else bg-emerald-500/20 text-emerald-400 border border-emerald-500/40
                             @endif">{{ $order->status }}</span>
-                        <div class="flex gap-2" data-order-actions>
+                        <div class="flex gap-2 flex-wrap items-center" data-order-actions>
                             @if($order->status === 'Pending')
                                 <button type="button" data-set-status="Processing" class="px-3 py-1.5 rounded-lg bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40 text-sm font-medium hover:bg-[#00d4ff]/30 transition-colors">{{ __('app.admin.mark_processing') }}</button>
                             @endif
                             @if($order->status === 'Pending' || $order->status === 'Processing')
                                 <button type="button" data-set-status="Delivered" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-sm font-medium hover:bg-emerald-500/30 transition-colors">{{ __('app.admin.mark_delivered') }}</button>
                             @endif
+                            <form action="{{ route('admin.shop.orders.destroy', $order) }}" method="POST" class="inline order-delete-form" data-confirm="{{ __('app.admin.confirm_delete_order') }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/40 text-sm font-medium hover:bg-red-500/30 transition-colors">{{ __('app.admin.delete_order') }}</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -68,6 +77,13 @@
 
 <script>
 (function() {
+    document.querySelectorAll('.order-delete-form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            if (!confirm(form.getAttribute('data-confirm'))) {
+                e.preventDefault();
+            }
+        });
+    });
     document.querySelectorAll('[data-set-status]').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var orderId = btn.closest('[data-order-id]').getAttribute('data-order-id');
