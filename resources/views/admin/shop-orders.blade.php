@@ -41,7 +41,7 @@
                     @foreach($order->items as $item)
                         @php $v = $item->productVariant; $p = $v->product; @endphp
                         <li class="flex justify-between text-sm">
-                            <span class="text-slate-300">{{ $p->name }} · {{ $v->size }}{{ $v->color ? ' · ' . $v->color : '' }} × {{ $item->quantity }}</span>
+                            <span class="text-slate-300">{{ $p->name }}@if($item->is_preorder) <span class="text-amber-400 text-[10px] uppercase">({{ __('app.shop.preorder_badge') }})</span>@endif · {{ $v->size }}{{ $v->color ? ' · ' . $v->color : '' }} × {{ $item->quantity }}</span>
                             <span class="text-[#00d4ff]">NT$ {{ number_format($item->unit_price * $item->quantity) }}</span>
                         </li>
                     @endforeach

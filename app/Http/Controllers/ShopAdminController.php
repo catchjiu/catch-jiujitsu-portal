@@ -131,6 +131,8 @@ class ShopAdminController extends Controller
             'product_desc_zh' => $validated['product_desc_zh'] ?? null,
             'price' => $validated['price'],
             'image_url' => $imagePath ?? $validated['image_url'] ?? null,
+            'is_preorder' => !empty($validated['is_preorder']),
+            'preorder_weeks' => !empty($validated['is_preorder']) && isset($validated['preorder_weeks']) ? (int) $validated['preorder_weeks'] : null,
         ]);
         $this->syncVariants($product, $validated['variants'] ?? []);
         return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_added'));
@@ -163,6 +165,8 @@ class ShopAdminController extends Controller
             'product_desc_zh' => $validated['product_desc_zh'] ?? null,
             'price' => $validated['price'],
             'image_url' => $imagePath ?? $validated['image_url'] ?? $product->getRawOriginal('image_url'),
+            'is_preorder' => !empty($validated['is_preorder']),
+            'preorder_weeks' => !empty($validated['is_preorder']) && isset($validated['preorder_weeks']) ? (int) $validated['preorder_weeks'] : null,
         ]);
         $this->syncVariants($product, $validated['variants'] ?? []);
         return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_updated'));
@@ -191,6 +195,8 @@ class ShopAdminController extends Controller
             'product_desc_zh' => $product->product_desc_zh,
             'price' => $product->price,
             'image_url' => $product->getRawOriginal('image_url'),
+            'is_preorder' => $product->is_preorder,
+            'preorder_weeks' => $product->preorder_weeks,
         ]);
         foreach ($product->variants as $v) {
             $copy->variants()->create([
@@ -211,6 +217,8 @@ class ShopAdminController extends Controller
             'description' => 'nullable|string|max:2000',
             'product_desc_zh' => 'nullable|string|max:2000',
             'price' => 'required|numeric|min:0',
+            'is_preorder' => 'nullable|boolean',
+            'preorder_weeks' => 'nullable|integer|min:1|max:52',
             'image' => 'nullable|image|mimes:jpeg,png,webp|max:5120',
             'image_url' => 'nullable|string|max:500',
             'variants' => 'required|array|min:1',

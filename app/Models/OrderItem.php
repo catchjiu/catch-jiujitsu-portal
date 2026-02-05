@@ -12,11 +12,13 @@ class OrderItem extends Model
         'product_variant_id',
         'quantity',
         'unit_price',
+        'is_preorder',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
+        'is_preorder' => 'boolean',
     ];
 
     public function order(): BelongsTo

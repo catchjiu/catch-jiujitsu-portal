@@ -289,27 +289,35 @@
             <!-- Bar chart: by class (today/yesterday), by day (week), by week (month), by month (year) -->
             <div class="mt-4 border-b border-l border-slate-700/50 pb-2 pl-8 relative">
                 @if($attendanceChartMode === 'classes' && count($classAttendanceData) > 0)
-                    @php $maxCount = collect($classAttendanceData)->max('count'); @endphp
+                    @php
+                        $maxCount = max(1, collect($classAttendanceData)->max('count'));
+                        $barAreaHeight = 80;
+                    @endphp
                     <p class="text-[10px] text-slate-500 mb-1">One bar per class ({{ count($classAttendanceData) }} classes)</p>
-                    <div class="absolute left-0 top-0 flex flex-col justify-between text-[10px] text-slate-500 w-6" style="height: 7rem;">
+                    <div class="absolute left-0 top-0 flex flex-col justify-between text-[10px] text-slate-500 w-6" style="height: {{ $barAreaHeight + 56 }}px;">
                         <span>30</span>
                         <span>20</span>
                         <span>10</span>
                         <span>0</span>
                     </div>
-                    <div class="flex items-end gap-2 overflow-x-auto pb-1 scrollbar-hide" style="min-width: 0; height: 7rem;">
-                        @foreach($classAttendanceData as $bar)
-                            @php $isPeak = $bar['count'] == $maxCount && $bar['count'] > 0; @endphp
-                            <a href="{{ route('admin.attendance', $bar['class_id']) }}" class="flex flex-col items-center w-[72px] flex-shrink-0 h-full" title="{{ $bar['title'] }}: {{ $bar['count'] }} participants">
-                                <div class="w-full flex-1 flex flex-col justify-end min-h-0" style="height: 4.5rem;">
-                                    <div class="w-full rounded-t {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70 hover:bg-blue-500' }} transition-all duration-300"
-                                         style="height: {{ max($bar['height'], 2) }}%; min-height: {{ $bar['count'] > 0 ? '8px' : '0' }};"></div>
-                                </div>
-                                <span class="text-[10px] text-slate-500 mt-1 shrink-0" title="{{ $bar['time'] }}">{{ $bar['time'] }}</span>
-                                <span class="text-[9px] text-slate-400 mt-0.5 truncate w-full text-center shrink-0" title="{{ $bar['title'] }}">{{ Str::limit($bar['title'], 14) }}</span>
-                                <span class="text-[10px] font-semibold shrink-0 {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
-                            </a>
-                        @endforeach
+                    <div class="overflow-x-auto pb-1 scrollbar-hide pl-6" style="min-height: {{ $barAreaHeight + 56 }}px;">
+                        <div class="flex items-end gap-3" style="min-width: max-content; height: {{ $barAreaHeight + 56 }}px;">
+                            @foreach($classAttendanceData as $bar)
+                                @php
+                                    $isPeak = $bar['count'] == $maxCount && $bar['count'] > 0;
+                                    $barHeightPx = $bar['count'] > 0 ? max(8, (int) round(($bar['count'] / 30) * $barAreaHeight)) : 0;
+                                @endphp
+                                <a href="{{ route('admin.attendance', $bar['class_id']) }}" class="flex flex-col items-center flex-shrink-0 w-20" title="{{ $bar['title'] }}: {{ $bar['count'] }} participants">
+                                    <div class="w-full flex flex-col justify-end items-center" style="height: {{ $barAreaHeight }}px;">
+                                        <div class="w-10 rounded-t {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70 hover:bg-blue-500' }} transition-all duration-300"
+                                             style="height: {{ $barHeightPx }}px; min-width: 32px;"></div>
+                                    </div>
+                                    <span class="text-[10px] text-slate-500 mt-1 text-center whitespace-nowrap">{{ $bar['time'] }}</span>
+                                    <span class="text-[9px] text-slate-400 mt-0.5 text-center leading-tight w-full break-words line-clamp-2" title="{{ $bar['title'] }}">{{ $bar['title'] }}</span>
+                                    <span class="text-[10px] font-semibold mt-0.5 {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
+                                </a>
+                            @endforeach
+                        </div>
                     </div>
                 @elseif(in_array($attendanceChartMode, ['days', 'weeks', 'months']) && count($aggregatedChartData ?? []) > 0)
                     @php

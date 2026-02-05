@@ -9,7 +9,13 @@
         <h2 class="text-xl font-bold text-white uppercase tracking-wide" style="font-family: 'Bebas Neue', sans-serif;">
             {{ __('app.shop.confirmation') }}
         </h2>
-        <p class="text-slate-400 text-sm mt-1">{{ __('app.shop.order_placed') }}</p>
+        <p class="text-slate-400 text-sm mt-1">
+            @if($order->items->contains('is_preorder', true))
+                {{ __('app.shop.preorder_placed') }}
+            @else
+                {{ __('app.shop.order_placed') }}
+            @endif
+        </p>
     </div>
 
     {{-- Member name (chinese_name on confirmation) --}}
@@ -27,7 +33,7 @@
             @php $v = $item->productVariant; $p = $v->product; @endphp
             <div class="flex justify-between items-start gap-2">
                 <div>
-                    <p class="text-white font-medium">{{ $p->localized_name }}</p>
+                    <p class="text-white font-medium">{{ $p->localized_name }}@if($item->is_preorder) <span class="text-amber-400 text-[10px] uppercase tracking-wider">({{ __('app.shop.preorder_badge') }})</span>@endif</p>
                     <p class="text-slate-400 text-sm">{{ $v->size }}{{ $v->color ? ' · ' . $v->color : '' }} × {{ $item->quantity }}</p>
                 </div>
                 <p class="text-[#00d4ff] font-semibold">NT$ {{ number_format($item->unit_price * $item->quantity) }}</p>

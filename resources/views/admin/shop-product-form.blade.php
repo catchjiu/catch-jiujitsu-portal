@@ -64,6 +64,21 @@
                        placeholder="0">
                 @error('price')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
+            <div class="flex items-center gap-3">
+                <input type="hidden" name="is_preorder" value="0">
+                <input type="checkbox" name="is_preorder" id="is_preorder" value="1"
+                       {{ old('is_preorder', $product?->is_preorder) ? 'checked' : '' }}
+                       class="w-5 h-5 rounded border-slate-600 bg-slate-900 text-[#00d4ff] focus:ring-[#00d4ff]/40">
+                <label for="is_preorder" class="text-slate-400 text-sm font-medium">{{ __('app.admin.preorder_toggle') }}</label>
+            </div>
+            <p class="text-slate-500 text-xs -mt-2">{{ __('app.admin.preorder_toggle_hint') }}</p>
+            <div id="preorder_weeks_box" class="{{ old('is_preorder', $product?->is_preorder) ? '' : 'hidden' }} mt-3 pl-1 border-l-2 border-amber-500/50">
+                <label for="preorder_weeks" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.admin.preorder_weeks_label') }}</label>
+                <input type="number" name="preorder_weeks" id="preorder_weeks" value="{{ old('preorder_weeks', $product?->preorder_weeks) }}" min="1" max="52" placeholder="e.g. 4"
+                       class="w-full max-w-[8rem] px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-600 text-white focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none">
+                <p class="text-slate-500 text-xs mt-1">{{ __('app.admin.preorder_weeks_hint') }}</p>
+                @error('preorder_weeks')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
             <div class="space-y-2">
                 <label class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.admin.product_image') }}</label>
                 @if($product && $product->getRawOriginal('image_url'))
@@ -156,6 +171,20 @@
     var addBtn = document.getElementById('addVariant');
     var quickAddBtn = document.getElementById('quickAddSizes');
     var categorySelect = document.getElementById('category');
+    var isPreorderCheckbox = document.getElementById('is_preorder');
+    var preorderWeeksBox = document.getElementById('preorder_weeks_box');
+
+    function togglePreorderWeeksBox() {
+        if (isPreorderCheckbox && preorderWeeksBox) {
+            preorderWeeksBox.classList.toggle('hidden', !isPreorderCheckbox.checked);
+            if (!isPreorderCheckbox.checked) {
+                document.getElementById('preorder_weeks').value = '';
+            }
+        }
+    }
+    if (isPreorderCheckbox) {
+        isPreorderCheckbox.addEventListener('change', togglePreorderWeeksBox);
+    }
 
     var sizePresets = {
         'Gi': ['A0', 'A1', 'A2', 'A3', 'A4', 'M', 'L'],

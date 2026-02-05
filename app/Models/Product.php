@@ -15,10 +15,14 @@ class Product extends Model
         'product_desc_zh',
         'price',
         'image_url',
+        'is_preorder',
+        'preorder_weeks',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'is_preorder' => 'boolean',
+        'preorder_weeks' => 'integer',
     ];
 
     public static function categories(): array
