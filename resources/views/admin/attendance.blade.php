@@ -72,6 +72,7 @@
                 $user = $item['user'];
                 $booking = $item['booking'];
                 $isCheckedIn = $booking->checked_in ?? false;
+                $hasActiveMembership = $user->hasActiveMembership();
             @endphp
             <div class="attendee-item rounded-xl overflow-hidden border border-slate-700/30" data-name="{{ strtolower($user->name) }}">
                 <div class="overflow-x-auto scrollbar-hide" style="-webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory;">
@@ -93,8 +94,10 @@
                                 <p class="text-slate-500 text-xs">Joined {{ $user->created_at->format('Y') }} • {{ $user->rank }} Belt</p>
                             </div>
                             <div class="flex items-center gap-2">
-                                @if($isCheckedIn)
+                                @if($hasActiveMembership && $isCheckedIn)
                                     <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400">Checked in</span>
+                                @elseif(!$hasActiveMembership)
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-red-500/20 text-red-400">Unpaid</span>
                                 @endif
                                 <form action="{{ route('admin.attendance.toggle', [$class->id, $booking->id]) }}" method="POST" class="flex-shrink-0">
                                     @csrf
