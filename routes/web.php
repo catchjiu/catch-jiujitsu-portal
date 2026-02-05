@@ -118,6 +118,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/members', [AdminController::class, 'members'])->name('members');
         Route::get('/members/create', [AdminController::class, 'createMember'])->name('members.create');
         Route::post('/members', [AdminController::class, 'storeMember'])->name('members.store');
+        Route::get('/members/kids-mat-hours', [AdminController::class, 'kidsMatHours'])->name('members.kids-mat-hours');
+        Route::put('/members/kids-mat-hours', [AdminController::class, 'updateKidsMatHours'])->name('members.kids-mat-hours.update');
         Route::get('/members/{id}', [AdminController::class, 'showMember'])->name('members.show');
         Route::put('/members/{id}', [AdminController::class, 'updateMember'])->name('members.update');
         Route::get('/members/{id}/family/search', [AdminController::class, 'searchFamilyMembers'])->name('members.family.search');

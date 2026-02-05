@@ -909,6 +909,43 @@ class AdminController extends Controller
     }
 
     /**
+     * Kids Mat Hours: list Kids members with editable mat_hours.
+     */
+    public function kidsMatHours()
+    {
+        $kids = User::where('is_admin', false)
+            ->where('age_group', 'Kids')
+            ->orderBy('last_name')
+            ->orderBy('first_name')
+            ->get(['id', 'first_name', 'last_name', 'mat_hours']);
+
+        return view('admin.kids-mat-hours', ['kids' => $kids]);
+    }
+
+    /**
+     * Update Kids mat_hours in bulk.
+     */
+    public function updateKidsMatHours(Request $request)
+    {
+        $validated = $request->validate([
+            'mat_hours' => 'required|array',
+            'mat_hours.*' => 'nullable|integer|min:0',
+        ]);
+
+        $kids = User::where('is_admin', false)
+            ->where('age_group', 'Kids')
+            ->whereIn('id', array_keys($validated['mat_hours']))
+            ->get();
+
+        foreach ($kids as $user) {
+            $value = $validated['mat_hours'][$user->id] ?? 0;
+            $user->update(['mat_hours' => (int) $value]);
+        }
+
+        return back()->with('success', 'Mat hours updated.');
+    }
+
+    /**
      * Update member details.
      */
     public function updateMember(Request $request, $id)

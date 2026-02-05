@@ -57,9 +57,13 @@
                     <span class="material-symbols-outlined">dashboard</span>
                     <span class="font-medium">Dashboard</span>
                 </a>
-                <a href="{{ route('admin.members') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.members*') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                <a href="{{ route('admin.members') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.members*') && !request()->routeIs('admin.members.kids-mat-hours*') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
                     <span class="material-symbols-outlined">groups</span>
                     <span class="font-medium">Members</span>
+                </a>
+                <a href="{{ route('admin.members.kids-mat-hours') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.members.kids-mat-hours*') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <span class="font-medium">Kids Mat Hours</span>
                 </a>
                 <a href="{{ route('admin.classes') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.classes*') ? 'bg-blue-500/20 text-blue-400' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
                     <span class="material-symbols-outlined">calendar_today</span>
