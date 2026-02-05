@@ -511,6 +511,8 @@ class AdminController extends Controller
             $user->decrementClassesRemaining();
         }
 
+        $user->increment('hours_this_year');
+
         return back()->with('success', $user->name . ' added as walk-in.');
     }
 
@@ -925,6 +927,7 @@ class AdminController extends Controller
             'belt_variation' => 'nullable|in:white,solid,black',
             'stripes' => 'required|integer|min:0|max:4',
             'mat_hours' => 'required|integer|min:0',
+            'hours_this_year' => 'nullable|integer|min:0',
             'is_coach' => 'boolean',
             'discount_type' => 'required|in:none,gratis,fixed,percentage,half_price',
             'discount_amount' => 'nullable|integer|min:0|max:100000',
@@ -949,6 +952,7 @@ class AdminController extends Controller
         }
 
         $validated['dob'] = !empty($validated['dob']) ? $validated['dob'] : null;
+        $validated['hours_this_year'] = $validated['hours_this_year'] ?? 0;
         $member->update($validated);
 
         return redirect()->route('admin.members.show', $member->id)->with('success', 'Member updated successfully.');
