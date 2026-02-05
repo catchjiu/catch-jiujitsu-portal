@@ -19,93 +19,71 @@
     <meta name="viewport" content="width=1920, height=1080, initial-scale=1">
     <title>{{ __('app.checkin.title') }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL@24,400,0" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'Noto Sans TC', 'sans-serif'], display: ['Bebas Neue', 'sans-serif'] },
-                    colors: { slate: { 850: '#151f32', 900: '#0f172a', 950: '#020617' }, brand: { gold: '#f59e0b', blue: '#3b82f6' } }
+                    fontFamily: { sans: ['Inter', 'Noto Sans TC', 'sans-serif'], display: ['Cormorant Garamond', 'serif'] },
+                    colors: { slate: { 850: '#1a2332', 900: '#0f1419', 950: '#080c10' }, cream: '#f5f0e8', gold: '#c9a962', goldDim: 'rgba(201, 169, 98, 0.15)' }
                 }
             }
         };
     </script>
     <style>
-        body { background-color: #020617; color: #f8fafc; margin: 0; overflow: hidden; }
+        body { background: #080c10; color: #f5f0e8; margin: 0; overflow: hidden; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        @keyframes scan-pulse {
-            0%, 100% { opacity: 0.6; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-        }
-        @keyframes scan-line {
-            0% { top: 0; opacity: 0.3; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0.3; }
-        }
-        @keyframes border-glow {
-            0%, 100% { border-color: rgb(71 85 105); box-shadow: 0 0 20px rgba(251 191 36 / 0.1); }
-            50% { border-color: rgb(251 191 36 / 0.6); box-shadow: 0 0 30px rgba(251 191 36 / 0.2); }
-        }
-        @keyframes float-dots {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
-            50% { transform: translateY(-8px) scale(1.1); opacity: 0.6; }
-        }
-        .animate-scan-pulse { animation: scan-pulse 2s ease-in-out infinite; }
-        .animate-border-glow { animation: border-glow 3s ease-in-out infinite; }
-        .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(transparent, rgba(251 191 36 / 0.8), transparent); animation: scan-line 2.5s ease-in-out infinite; }
-        .float-dot { animation: float-dots 3s ease-in-out infinite; }
-        .float-dot:nth-child(2) { animation-delay: 0.5s; }
-        .float-dot:nth-child(3) { animation-delay: 1s; }
-        .float-dot:nth-child(4) { animation-delay: 1.5s; }
+        .font-display { font-family: 'Cormorant Garamond', serif; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes breathe { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+        .animate-fade-in { animation: fade-in 0.6s ease-out forwards; }
+        .animate-breathe { animation: breathe 3s ease-in-out infinite; }
+        .scan-zone { background: linear-gradient(180deg, rgba(201, 169, 98, 0.04) 0%, transparent 50%); }
     </style>
 </head>
-<body class="font-sans antialiased flex flex-col items-center justify-center overflow-hidden" style="width:1920px;height:1080px;box-sizing:border-box;">
+<body class="font-sans antialiased flex flex-col items-center justify-center overflow-hidden min-h-screen" style="width:1920px;height:1080px;box-sizing:border-box;">
     <input type="text" id="scanInput" autocomplete="off" aria-label="QR code scan" class="absolute opacity-0 w-0 h-0 pointer-events-none" tabindex="0">
 
     <!-- Scan screen -->
-    <div id="scanScreen" class="flex flex-col items-center justify-center">
-        <div class="flex items-center gap-3 mb-16">
-            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center font-display font-bold text-black text-2xl">C</div>
-            <h1 class="font-display font-bold text-4xl tracking-wider text-white">CATCH <span class="text-amber-500">BJJ</span></h1>
-        </div>
-        <div id="scanCard" role="button" tabindex="0" class="relative overflow-hidden rounded-3xl border-2 border-dashed bg-slate-800/40 backdrop-blur-md p-16 flex flex-col items-center justify-center cursor-pointer outline-none focus:border-amber-500 min-w-[720px] min-h-[360px] animate-border-glow border-slate-600">
-            <div class="scan-line"></div>
-            <div class="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
-                <span class="w-2 h-2 rounded-full bg-amber-500/60 float-dot"></span>
-                <span class="w-2 h-2 rounded-full bg-amber-500/60 float-dot"></span>
-                <span class="w-2 h-2 rounded-full bg-amber-500/60 float-dot"></span>
-                <span class="w-2 h-2 rounded-full bg-amber-500/60 float-dot"></span>
+    <div id="scanScreen" class="flex flex-col items-center justify-center w-full px-16">
+        <div class="flex items-center gap-4 mb-20">
+            <div class="w-12 h-12 rounded-lg bg-[#c9a962]/10 border border-[#c9a962]/30 flex items-center justify-center">
+                <span class="font-display font-semibold text-2xl text-[#c9a962]">C</span>
             </div>
-            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-            <span class="material-symbols-outlined text-8xl text-slate-500 mb-6 animate-scan-pulse">qr_code_scanner</span>
-            <h2 class="text-3xl font-display font-bold text-white uppercase tracking-wide mb-2">{{ __('app.checkin.scan_to_check_in') }}</h2>
-            <p id="loadingMsg" class="text-amber-500 text-lg font-medium mt-6 hidden animate-pulse">{{ __('app.checkin.looking_up') }}</p>
-            <p id="errorMsg" class="text-amber-400 text-lg font-medium mt-6 hidden"></p>
+            <h1 class="font-display font-semibold text-3xl tracking-[0.2em] text-cream uppercase">Catch Jiu Jitsu</h1>
         </div>
+        <div id="scanCard" role="button" tabindex="0" class="scan-zone relative overflow-hidden rounded-2xl border border-[#c9a962]/20 bg-white/[0.02] backdrop-blur-sm p-20 flex flex-col items-center justify-center cursor-pointer outline-none focus:border-[#c9a962]/50 min-w-[680px] min-h-[340px] transition-colors duration-300 hover:border-[#c9a962]/30">
+            <span class="material-symbols-outlined text-7xl text-[#c9a962]/50 mb-8 animate-breathe">qr_code_scanner</span>
+            <h2 class="font-display font-semibold text-3xl tracking-[0.15em] text-cream uppercase mb-2">{{ __('app.checkin.scan_to_check_in') }}</h2>
+            <p class="text-slate-400 text-lg font-light tracking-wide">{{ __('app.checkin.position_qr') }}</p>
+            <p class="text-slate-500 text-sm mt-6 font-light">{{ __('app.checkin.or_type_code') }}</p>
+            <p id="loadingMsg" class="text-[#c9a962] text-base font-medium mt-8 hidden animate-pulse">{{ __('app.checkin.looking_up') }}</p>
+            <p id="errorMsg" class="text-amber-300/90 text-base font-medium mt-8 hidden"></p>
+        </div>
+        <p class="text-slate-500 text-sm mt-12 font-light tracking-wide">{{ __('app.checkin.ready_for_next') }}</p>
     </div>
 
     <!-- Welcome screen (hidden by default) -->
-    <div id="welcomeScreen" class="hidden flex flex-col items-center justify-center">
-        <div id="welcomeStatus" class="mb-8"></div>
-        <div id="welcomeAvatar" class="w-48 h-48 rounded-full overflow-hidden border-4 border-slate-600 bg-slate-800 shadow-2xl mb-8"></div>
-        <h2 class="text-4xl font-display font-bold text-white uppercase tracking-wide mb-2">{{ __('app.checkin.welcome_back') }}</h2>
-        <p id="welcomeName" class="text-3xl font-display font-bold text-amber-500 mb-10"></p>
-        <div id="welcomeBelt" class="h-14 w-full max-w-md rounded shadow-inner relative flex items-center justify-end pr-4 mb-10"></div>
-        <p id="welcomeRank" class="text-slate-400 text-xl mb-12"></p>
-        <div class="grid grid-cols-3 gap-8 w-full max-w-2xl">
-            <div class="rounded-2xl bg-slate-800/60 border border-white/10 p-6 text-center">
-                <p id="welcomeHours" class="text-4xl font-display font-bold text-amber-500">0</p>
-                <p class="text-slate-400 text-sm uppercase tracking-wider mt-1">{{ __('app.checkin.hours_this_year') }}</p>
+    <div id="welcomeScreen" class="hidden flex flex-col items-center justify-center w-full px-16">
+        <div id="welcomeStatus" class="mb-10"></div>
+        <div id="welcomeAvatar" class="w-40 h-40 rounded-full overflow-hidden border-2 border-[#c9a962]/30 bg-slate-800/50 shadow-2xl mb-8 ring-2 ring-white/5"></div>
+        <h2 class="font-display font-semibold text-4xl tracking-[0.12em] text-cream uppercase mb-1">{{ __('app.checkin.welcome_back') }}</h2>
+        <p id="welcomeName" class="font-display font-semibold text-3xl text-[#c9a962] tracking-wide mb-8"></p>
+        <div id="welcomeBelt" class="h-12 w-full max-w-sm rounded-md shadow-inner relative flex items-center justify-end pr-4 mb-6 overflow-hidden"></div>
+        <p id="welcomeRank" class="text-slate-400 text-lg font-light tracking-wide mb-14"></p>
+        <div class="grid grid-cols-3 gap-6 w-full max-w-2xl">
+            <div class="rounded-xl border border-white/5 bg-white/[0.02] p-8 text-center backdrop-blur-sm">
+                <p id="welcomeHours" class="font-display font-semibold text-4xl text-[#c9a962]">0</p>
+                <p class="text-slate-500 text-xs uppercase tracking-[0.2em] mt-2 font-light">{{ __('app.checkin.hours_this_year') }}</p>
             </div>
-            <div class="rounded-2xl bg-slate-800/60 border border-white/10 p-6 text-center">
-                <p id="welcomeClasses" class="text-4xl font-display font-bold text-blue-500">0</p>
-                <p class="text-slate-400 text-sm uppercase tracking-wider mt-1">{{ __('app.checkin.classes_this_month') }}</p>
+            <div class="rounded-xl border border-white/5 bg-white/[0.02] p-8 text-center backdrop-blur-sm">
+                <p id="welcomeClasses" class="font-display font-semibold text-4xl text-cream">0</p>
+                <p class="text-slate-500 text-xs uppercase tracking-[0.2em] mt-2 font-light">{{ __('app.checkin.classes_this_month') }}</p>
             </div>
-            <div class="rounded-2xl bg-slate-800/60 border border-white/10 p-6 text-center">
-                <p id="welcomeExpiry" class="text-2xl font-display font-bold text-white">—</p>
-                <p class="text-slate-400 text-sm uppercase tracking-wider mt-1">{{ __('app.checkin.expires') }}</p>
+            <div class="rounded-xl border border-white/5 bg-white/[0.02] p-8 text-center backdrop-blur-sm">
+                <p id="welcomeExpiry" class="font-display font-semibold text-2xl text-cream">—</p>
+                <p class="text-slate-500 text-xs uppercase tracking-[0.2em] mt-2 font-light">{{ __('app.checkin.expires') }}</p>
             </div>
         </div>
     </div>
@@ -142,9 +120,9 @@
         const baseColor = baseColors[rank] || 'bg-gray-100';
         var bandHtml = '';
         if (kidsBelts.indexOf(rank) >= 0 && beltVariation === 'white') {
-            bandHtml = '<div class="absolute inset-0 flex items-center pointer-events-none"><div class="w-full h-3 bg-white"></div></div>';
+            bandHtml = '<div class="absolute inset-0 flex items-center pointer-events-none"><div class="w-full h-2 bg-white"></div></div>';
         } else if (kidsBelts.indexOf(rank) >= 0 && beltVariation === 'black') {
-            bandHtml = '<div class="absolute inset-0 flex items-center pointer-events-none"><div class="w-full h-3 bg-black"></div></div>';
+            bandHtml = '<div class="absolute inset-0 flex items-center pointer-events-none"><div class="w-full h-2 bg-black"></div></div>';
         }
         return { baseColor: baseColor, bandHtml: bandHtml, isKidsBelt: kidsBelts.indexOf(rank) >= 0 };
     }
@@ -198,15 +176,15 @@
 
         var status = document.getElementById('welcomeStatus');
         status.innerHTML = data.isActive
-            ? '<span class="px-8 py-3 rounded-full text-xl font-display font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/50">' + i18n.activeMember + '</span>'
-            : '<span class="px-8 py-3 rounded-full text-xl font-display font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 border-2 border-amber-500/50">' + i18n.membershipExpired + '</span>';
+            ? '<span class="px-6 py-2 rounded-full text-sm font-medium tracking-[0.15em] uppercase bg-emerald-500/10 text-emerald-400/90 border border-emerald-500/30">' + i18n.activeMember + '</span>'
+            : '<span class="px-6 py-2 rounded-full text-sm font-medium tracking-[0.15em] uppercase bg-amber-500/10 text-amber-400/90 border border-amber-500/30">' + i18n.membershipExpired + '</span>';
 
         var avatar = document.getElementById('welcomeAvatar');
         if (data.avatarUrl) {
             avatar.innerHTML = '<img src="' + escapeHtml(data.avatarUrl) + '" alt="" class="w-full h-full object-cover">';
         } else {
             var initials = (data.name || '').split(/\s+/).map(function(s) { return (s && s[0]) || ''; }).join('').slice(0, 2).toUpperCase();
-            avatar.innerHTML = '<div class="w-full h-full flex items-center justify-center text-6xl font-display font-bold text-slate-500">' + escapeHtml(initials || '?') + '</div>';
+            avatar.innerHTML = '<div class="w-full h-full flex items-center justify-center font-display font-semibold text-5xl text-slate-500">' + escapeHtml(initials || '?') + '</div>';
         }
 
         document.getElementById('welcomeName').textContent = data.name || '';
@@ -223,13 +201,13 @@
         var rank = data.rank || 'White';
         var beltVariation = data.beltVariation || null;
         var styles = getBeltStyles(rank, beltVariation);
-        beltEl.className = 'h-14 w-full max-w-md rounded shadow-inner relative flex items-center pl-4 mb-10 overflow-hidden ' + styles.baseColor;
+        beltEl.className = 'h-12 w-full max-w-sm rounded-md shadow-inner relative flex items-center pl-4 mb-6 overflow-hidden ' + styles.baseColor;
         var stripeBarColor = rank === 'Black' ? 'bg-red-600' : 'bg-black';
         var stripeCount = data.stripes || 0;
         var stripeDivs = stripeCount > 0
-            ? Array(stripeCount).fill(0).map(function() { return '<div class="w-1.5 h-full rounded-sm bg-white flex-shrink-0"></div>'; }).join('')
+            ? Array(stripeCount).fill(0).map(function() { return '<div class="w-1 h-full rounded-sm bg-white flex-shrink-0"></div>'; }).join('')
             : '';
-        var stripeBar = '<div class="h-full w-20 ' + stripeBarColor + ' flex items-center justify-start gap-1 px-1 absolute left-4 z-10">' + stripeDivs + '</div>';
+        var stripeBar = '<div class="h-full w-16 ' + stripeBarColor + ' flex items-center justify-start gap-0.5 px-1 absolute left-4 z-10">' + stripeDivs + '</div>';
         beltEl.innerHTML = styles.bandHtml + stripeBar;
 
         playSound(data.isActive);
