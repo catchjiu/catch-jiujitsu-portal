@@ -7,6 +7,7 @@ return [
         'schedule' => 'Schedule',
         'settings' => 'Settings',
         'payments' => 'Payments',
+        'shop' => 'Shop',
         'logout' => 'Logout',
         'members' => 'Members',
         'classes' => 'Classes',
@@ -219,6 +220,20 @@ return [
         'todays_attendance' => "Today's Attendance",
         'new_signups' => 'New Sign-ups',
         'recent_activity' => 'Recent Activity',
+
+        // Gym Shop
+        'stock_manager' => 'Stock Manager',
+        'order_tracker' => 'Order Tracker',
+        'gym_shop' => 'Gym Shop',
+        'low_stock' => 'Low stock',
+        'stock_quantity' => 'Stock',
+        'mark_processing' => 'Mark Processing',
+        'mark_delivered' => 'Mark Delivered',
+        'processing' => 'Processing',
+        'delivered' => 'Delivered',
+        'pending' => 'Pending',
+        'member_orders' => 'Member orders',
+        'no_orders' => 'No orders yet.',
     ],
 
     // Auth
@@ -323,5 +338,26 @@ return [
         'saved_successfully' => 'Saved successfully.',
         'deleted_successfully' => 'Deleted successfully.',
         'updated_successfully' => 'Updated successfully.',
+    ],
+
+    // Gym Shop
+    'shop' => [
+        'title' => 'Gym Shop',
+        'search_placeholder' => 'Search or filter by category…',
+        'category' => 'Category',
+        'all_categories' => 'All categories',
+        'price' => 'Price',
+        'size' => 'Size',
+        'order' => 'Order',
+        'quick_buy' => 'Quick Buy',
+        'select_size' => 'Select size',
+        'out_of_stock' => 'This item is out of stock.',
+        'order_placed' => 'Order placed successfully!',
+        'confirmation' => 'Order confirmation',
+        'order_for' => 'Order for',
+        'chinese_name' => 'Chinese name',
+        'total' => 'Total',
+        'back_to_shop' => 'Back to shop',
+        'stock_cannot_negative' => 'Stock cannot go below zero.',
     ],
 ];

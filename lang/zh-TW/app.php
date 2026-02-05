@@ -7,6 +7,7 @@ return [
         'schedule' => '課程表',
         'settings' => '設定',
         'payments' => '付款',
+        'shop' => '商店',
         'logout' => '登出',
         'members' => '會員',
         'classes' => '課程',
@@ -219,6 +220,20 @@ return [
         'todays_attendance' => '今日出席',
         'new_signups' => '新註冊',
         'recent_activity' => '近期活動',
+
+        // Gym Shop
+        'stock_manager' => '庫存管理',
+        'order_tracker' => '訂單追蹤',
+        'gym_shop' => '館內商店',
+        'low_stock' => '庫存不足',
+        'stock_quantity' => '庫存',
+        'mark_processing' => '標記處理中',
+        'mark_delivered' => '標記已送達',
+        'processing' => '處理中',
+        'delivered' => '已送達',
+        'pending' => '待處理',
+        'member_orders' => '會員訂單',
+        'no_orders' => '尚無訂單。',
     ],
 
     // Auth
@@ -323,5 +338,26 @@ return [
         'saved_successfully' => '儲存成功。',
         'deleted_successfully' => '刪除成功。',
         'updated_successfully' => '更新成功。',
+    ],
+
+    // Gym Shop
+    'shop' => [
+        'title' => '館內商店',
+        'search_placeholder' => '搜尋或依類別篩選…',
+        'category' => '類別',
+        'all_categories' => '全部類別',
+        'price' => '價格',
+        'size' => '尺寸',
+        'order' => '下單',
+        'quick_buy' => '快速下單',
+        'select_size' => '選擇尺寸',
+        'out_of_stock' => '此商品已缺貨。',
+        'order_placed' => '訂單已送出！',
+        'confirmation' => '訂單確認',
+        'order_for' => '訂購人',
+        'chinese_name' => '中文姓名',
+        'total' => '總計',
+        'back_to_shop' => '返回商店',
+        'stock_cannot_negative' => '庫存不可為負數。',
     ],
 ];

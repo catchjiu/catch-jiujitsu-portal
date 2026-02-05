@@ -13,6 +13,10 @@
     --color-brand-blue: #3b82f6;
     --color-brand-dark-blue: #2563eb;
     --color-brand-gold: #f59e0b;
+    /* Catch Jiu Jitsu – Electric Blue accent */
+    --color-electric-blue: #00d4ff;
+    --color-electric-blue-dim: rgba(0, 212, 255, 0.15);
+    --color-electric-blue-border: rgba(0, 212, 255, 0.4);
     
     /* Slate palette for dark mode */
     --color-slate-950: #020617;

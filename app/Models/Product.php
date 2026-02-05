@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Product extends Model
+{
+    protected $fillable = [
+        'name',
+        'category',
+        'description',
+        'price',
+        'image_url',
+    ];
+
+    protected $casts = [
+        'price' => 'decimal:2',
+    ];
+
+    public static function categories(): array
+    {
+        return ['Gi', 'Belt', 'Rash guard', 'Shorts', 'T-shirt', 'Sticker'];
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function getImageUrlAttribute(?string $value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+        if (str_starts_with($value, 'http')) {
+            return $value;
+        }
+        return asset('storage/' . $value);
+    }
+}

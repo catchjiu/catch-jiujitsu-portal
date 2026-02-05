@@ -31,6 +31,7 @@ class User extends Authenticatable
         'belt_color',
         'stripes',
         'mat_hours',
+        'hours_this_year',
         'is_admin',
         'is_coach',
         'accepting_private_classes',
@@ -79,6 +80,7 @@ class User extends Authenticatable
             'private_class_price' => 'decimal:2',
             'stripes' => 'integer',
             'mat_hours' => 'integer',
+            'hours_this_year' => 'integer',
             'monthly_class_goal' => 'integer',
             'monthly_hours_goal' => 'integer',
             'reminders_enabled' => 'boolean',
@@ -181,6 +183,14 @@ class User extends Authenticatable
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Get the user's shop orders.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(\App\Models\Order::class);
     }
 
     /**

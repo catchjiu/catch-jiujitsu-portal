@@ -12,6 +12,8 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MembershipPackageController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\PrivateClassController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\ShopAdminController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -87,6 +89,11 @@ Route::middleware(['auth', 'member'])->group(function () {
     // Leaderboard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
 
+    // Gym Shop (member storefront)
+    Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
+    Route::post('/shop/quick-buy', [ShopController::class, 'quickBuy'])->name('shop.quick-buy');
+    Route::get('/shop/confirmation/{order}', [ShopController::class, 'confirmation'])->name('shop.confirmation');
+
     // Private classes (member: book; coach: availability + requests)
     Route::get('/private-class/coaches', [PrivateClassController::class, 'coaches'])->name('private-class.coaches');
     Route::get('/private-class/days', [PrivateClassController::class, 'days'])->name('private-class.days');
@@ -153,5 +160,11 @@ Route::middleware('auth')->group(function () {
         Route::put('/packages/{id}', [MembershipPackageController::class, 'update'])->name('packages.update');
         Route::delete('/packages/{id}', [MembershipPackageController::class, 'destroy'])->name('packages.destroy');
         Route::post('/packages/{id}/toggle', [MembershipPackageController::class, 'toggleStatus'])->name('packages.toggle');
+
+        // Gym Shop (admin)
+        Route::get('/shop/stock', [ShopAdminController::class, 'stock'])->name('shop.stock');
+        Route::post('/shop/stock/update', [ShopAdminController::class, 'updateStock'])->name('shop.stock.update');
+        Route::get('/shop/orders', [ShopAdminController::class, 'orders'])->name('shop.orders');
+        Route::post('/shop/orders/{order}/status', [ShopAdminController::class, 'updateOrderStatus'])->name('shop.orders.status');
     });
 });

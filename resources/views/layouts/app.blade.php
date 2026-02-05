@@ -77,13 +77,17 @@
     <nav class="fixed bottom-0 left-0 w-full bg-slate-900/90 backdrop-blur-lg border-t border-white/10 z-50 pb-safe">
         <div class="flex justify-around items-center h-16 max-w-lg mx-auto">
             @php $isFamily = auth()->user()->isInFamily() ?? false; @endphp
-            <a href="{{ $isFamily ? route('family.dashboard') : route('dashboard') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ (request()->routeIs('dashboard') || request()->routeIs('family.dashboard')) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
+            <a href="{{ $isFamily ? route('family.dashboard') : route('dashboard') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ (request()->routeIs('dashboard') || request()->routeIs('family.dashboard')) ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">home</span>
                 <span class="text-[10px] font-medium">{{ $isFamily ? (app()->getLocale() === 'zh-TW' ? '家庭' : 'Family') : __('app.nav.home') }}</span>
             </a>
-            <a href="{{ route('schedule') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('schedule') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
+            <a href="{{ route('schedule') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('schedule') ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">calendar_today</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.schedule') }}</span>
+            </a>
+            <a href="{{ route('shop.index') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('shop.*') ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
+                <span class="material-symbols-outlined text-2xl">storefront</span>
+                <span class="text-[10px] font-medium">{{ __('app.nav.shop') }}</span>
             </a>
             @if(auth()->user()->is_coach ?? false)
             <a href="{{ route('coach.private-availability') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('coach.private*') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
@@ -91,11 +95,11 @@
                 <span class="text-[10px] font-medium">{{ app()->getLocale() === 'zh-TW' ? '私教' : 'Private' }}</span>
             </a>
             @endif
-            <a href="{{ $isFamily ? route('family.settings') : route('settings') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ (request()->routeIs('settings') || request()->routeIs('family.settings')) ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
+            <a href="{{ $isFamily ? route('family.settings') : route('settings') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ (request()->routeIs('settings') || request()->routeIs('family.settings')) ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">settings</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.settings') }}</span>
             </a>
-            <a href="{{ route('payments') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('payments') ? 'text-blue-500' : 'text-slate-500 hover:text-slate-300' }}">
+            <a href="{{ route('payments') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('payments') ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">payments</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.payments') }}</span>
             </a>

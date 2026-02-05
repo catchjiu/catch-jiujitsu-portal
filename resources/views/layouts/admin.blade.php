@@ -75,6 +75,18 @@
                 </a>
 
                 <div class="border-t border-slate-700 my-4"></div>
+
+                <p class="px-4 text-xs text-slate-500 uppercase tracking-wider font-bold mb-2">{{ __('app.admin.gym_shop') }}</p>
+                <a href="{{ route('admin.shop.stock') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.shop.stock') ? 'bg-[#00d4ff]/20 text-[#00d4ff]' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">inventory</span>
+                    <span class="font-medium">{{ __('app.admin.stock_manager') }}</span>
+                </a>
+                <a href="{{ route('admin.shop.orders') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl {{ request()->routeIs('admin.shop.orders') ? 'bg-[#00d4ff]/20 text-[#00d4ff]' : 'text-slate-300 hover:bg-slate-800' }} transition-colors">
+                    <span class="material-symbols-outlined">local_shipping</span>
+                    <span class="font-medium">{{ __('app.admin.order_tracker') }}</span>
+                </a>
+
+                <div class="border-t border-slate-700 my-4"></div>
                 
                 <p class="px-4 text-xs text-slate-500 uppercase tracking-wider font-bold mb-2">Settings</p>
                 
