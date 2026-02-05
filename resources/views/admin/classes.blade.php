@@ -113,10 +113,13 @@
                 @foreach($classes[$periodKey] as $class)
                     @php
                         $trialsCount = $class->trials_count ?? 0;
+                        $paidCount = $class->paid_bookings_count ?? $class->bookings_count;
+                        $unpaidCount = $class->unpaid_bookings_count ?? 0;
                         $totalAttendance = $class->bookings_count + $trialsCount;
-                        $bookingsPercent = $class->capacity > 0 ? ($class->bookings_count / $class->capacity) * 100 : 0;
+                        $paidPercent = $class->capacity > 0 ? ($paidCount / $class->capacity) * 100 : 0;
+                        $unpaidPercent = $class->capacity > 0 ? ($unpaidCount / $class->capacity) * 100 : 0;
                         $trialsPercent = $class->capacity > 0 ? ($trialsCount / $class->capacity) * 100 : 0;
-                        $totalPercent = $bookingsPercent + $trialsPercent;
+                        $totalPercent = $paidPercent + $unpaidPercent + $trialsPercent;
                         $isFull = $totalAttendance >= $class->capacity;
                         $isCancelled = $class->is_cancelled ?? false;
                     @endphp
@@ -167,16 +170,19 @@
                                         </a>
                                     </div>
 
-                                    <!-- Capacity Bar (green = bookings, orange = trials) -->
+                                    <!-- Capacity Bar (green = paid, red = unpaid, orange = trials) -->
                                     <div class="flex items-center gap-3">
                                         <span class="text-xs text-slate-500">Capacity</span>
                                         <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden flex">
                                             @if(!$isCancelled && $class->capacity > 0)
-                                                @if($class->bookings_count > 0)
-                                                    <div class="h-full bg-emerald-500 transition-all duration-500" style="width: {{ min($bookingsPercent, 100) }}%"></div>
+                                                @if($paidCount > 0)
+                                                    <div class="h-full bg-emerald-500 transition-all duration-500" style="width: {{ min($paidPercent, 100) }}%"></div>
+                                                @endif
+                                                @if($unpaidCount > 0)
+                                                    <div class="h-full bg-red-500 transition-all duration-500" style="width: {{ min($unpaidPercent, max(0, 100 - $paidPercent)) }}%"></div>
                                                 @endif
                                                 @if($trialsCount > 0)
-                                                    <div class="h-full bg-orange-500 transition-all duration-500" style="width: {{ min($trialsPercent, max(0, 100 - $bookingsPercent)) }}%"></div>
+                                                    <div class="h-full bg-orange-500 transition-all duration-500" style="width: {{ min($trialsPercent, max(0, 100 - $paidPercent - $unpaidPercent)) }}%"></div>
                                                 @endif
                                             @elseif($isCancelled)
                                                 <div class="h-full bg-slate-600" style="width: {{ min($totalPercent, 100) }}%"></div>

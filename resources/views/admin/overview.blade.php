@@ -285,61 +285,32 @@
                 </div>
             </div>
             
-            <!-- Chart Visualization -->
-            <div class="relative h-32 flex items-end justify-between gap-0.5 mt-4 border-b border-slate-700/50 pb-2">
-                @php
-                    $maxHeight = collect($hourlyData)->max('height');
-                    $peakIndex = collect($hourlyData)->search(function($item) use ($maxHeight) {
-                        return $item['height'] == $maxHeight && $item['count'] > 0;
-                    });
-                @endphp
-                @foreach($hourlyData as $index => $data)
-                    @php
-                        $isPeak = $data['height'] == $maxHeight && $data['count'] > 0;
-                        $hasClasses = $data['count'] > 0;
-                    @endphp
-                    <div class="flex-1 flex flex-col items-center group relative">
-                        <div class="w-full rounded-t transition-all duration-300 min-h-[2px]
-                            {{ $hasClasses ? ($isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70') : 'bg-slate-700/50' }}" 
-                             style="height: {{ max($data['height'], 2) }}%"></div>
-                        
-                        @if($hasClasses)
-                            <!-- Tooltip on hover -->
-                            <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-800 px-2 py-1 rounded text-[10px] text-white border border-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-30 pointer-events-none">
-                                @foreach($data['classes'] as $class)
-                                    <div>{{ $class['time'] }}: {{ $class['count'] }} booked</div>
-                                @endforeach
-                            </div>
-                        @endif
+            <!-- Bar chart: one bar per class, height = participants -->
+            <div class="mt-4 border-b border-slate-700/50 pb-2">
+                @if(count($classAttendanceData) > 0)
+                    @php $maxHeight = collect($classAttendanceData)->max('height'); @endphp
+                    <div class="flex items-end justify-between gap-1.5 h-32 overflow-x-auto pb-1 scrollbar-hide" style="min-width: 0;">
+                        @foreach($classAttendanceData as $bar)
+                            @php
+                                $isPeak = $bar['height'] == $maxHeight && $bar['count'] > 0;
+                            @endphp
+                            <a href="{{ route('admin.attendance', $bar['class_id']) }}" class="flex-1 flex flex-col items-center group relative min-w-[44px] flex-shrink-0" title="{{ $bar['title'] }}: {{ $bar['count'] }} participants">
+                                <div class="w-full rounded-t transition-all duration-300 min-h-[4px] {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70 hover:bg-blue-500' }}" 
+                                     style="height: {{ max($bar['height'], 4) }}%"></div>
+                                <span class="text-[10px] text-slate-500 mt-1.5 truncate w-full text-center" title="{{ $bar['time'] }} {{ $bar['title'] }}">{{ $bar['time'] }}</span>
+                                <span class="text-[10px] font-semibold {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
+                            </a>
+                        @endforeach
                     </div>
-                @endforeach
-                
-                @if($peakIndex !== false && $hourlyData[$peakIndex]['count'] > 0)
-                    <!-- Peak indicator tooltip -->
-                    @php
-                        $peakData = $hourlyData[$peakIndex];
-                        $peakClass = $peakData['classes'][0] ?? null;
-                    @endphp
-                    @if($peakClass)
-                        <div class="absolute top-0 left-1/2 -translate-x-1/2 bg-slate-800 px-2 py-1 rounded text-[10px] text-slate-300 border border-slate-700 whitespace-nowrap">
-                            {{ $peakClass['time'] }}: {{ $peakData['count'] }} students
-                        </div>
-                    @endif
+                @else
+                    <div class="h-32 flex items-center justify-center">
+                        <p class="text-slate-500 text-sm">No classes in this range</p>
+                    </div>
                 @endif
             </div>
             
-            <!-- Time labels -->
-            <div class="flex justify-between text-[10px] text-slate-500 mt-1">
-                <span>6am</span>
-                <span>9am</span>
-                <span>12pm</span>
-                <span>3pm</span>
-                <span>6pm</span>
-                <span>9pm</span>
-            </div>
-            
-            @if($todayCheckIns == 0)
-                <p class="text-center text-slate-500 text-xs mt-3">No classes scheduled for today</p>
+            @if($todayCheckIns == 0 && count($classAttendanceData) === 0)
+                <p class="text-center text-slate-500 text-xs mt-3">No classes scheduled for this period</p>
             @endif
         </div>
     </div>

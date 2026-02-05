@@ -72,56 +72,35 @@ class AdminController extends Controller
             });
         }
         
-        $filteredClasses = $classesQuery->withCount('bookings')->get();
+        $filteredClasses = $classesQuery->withCount('bookings')->orderBy('start_time')->get();
         $todayCheckIns = $filteredClasses->sum('bookings_count');
         
-        // Hourly attendance data for chart
-        $hourlyData = [];
-        $maxCount = 1; // Prevent division by zero
-        
-        // Initialize all hours with 0
-        for ($h = 6; $h <= 21; $h++) {
-            $hourlyData[$h] = [
-                'hour' => $h,
-                'count' => 0,
-                'classes' => []
+        // One bar per class: time, title, participant count
+        $classAttendanceData = [];
+        $maxCount = 1;
+        foreach ($filteredClasses as $class) {
+            $count = $class->bookings_count;
+            if ($count > $maxCount) {
+                $maxCount = $count;
+            }
+            $classAttendanceData[] = [
+                'time' => $class->start_time->format('g:i A'),
+                'title' => $class->title,
+                'count' => $count,
+                'height' => 0, // set below
+                'class_id' => $class->id,
             ];
         }
-        
-        // Populate with real class data
-        foreach ($filteredClasses as $class) {
-            $hour = (int) $class->start_time->format('G');
-            if ($hour >= 6 && $hour <= 21) {
-                $hourlyData[$hour]['count'] += $class->bookings_count;
-                $hourlyData[$hour]['classes'][] = [
-                    'time' => $class->start_time->format('g:i A'),
-                    'title' => $class->title,
-                    'count' => $class->bookings_count
-                ];
-                if ($hourlyData[$hour]['count'] > $maxCount) {
-                    $maxCount = $hourlyData[$hour]['count'];
-                }
-            }
+        foreach ($classAttendanceData as &$row) {
+            $row['height'] = $maxCount > 0 ? ($row['count'] / $maxCount) * 100 : 0;
         }
+        unset($row);
         
-        // Find peak hour
-        $peakHour = null;
-        $peakCount = 0;
-        foreach ($hourlyData as $hour => $data) {
-            if ($data['count'] > $peakCount) {
-                $peakCount = $data['count'];
-                $peakHour = $hour;
-            }
-        }
-        
-        // Convert to indexed array and add normalized height
-        $hourlyData = array_values(array_map(function($data) use ($maxCount) {
-            $data['height'] = $maxCount > 0 ? ($data['count'] / $maxCount) * 100 : 0;
-            return $data;
-        }, $hourlyData));
-        
-        // Peak hours text
-        $peakHoursText = $peakHour !== null ? Carbon::createFromTime($peakHour)->format('ga') . ' - ' . Carbon::createFromTime($peakHour + 1)->format('ga') : 'No classes in range';
+        // Peak = class with most participants
+        $peakClass = collect($classAttendanceData)->sortByDesc('count')->first();
+        $peakHoursText = $peakClass && $peakClass['count'] > 0
+            ? $peakClass['time'] . ' – ' . $peakClass['title'] . ' (' . $peakClass['count'] . ')'
+            : 'No classes in range';
         
         // Recent activity (recent bookings)
         $recentActivity = Booking::with(['user', 'classSession'])
@@ -165,7 +144,7 @@ class AdminController extends Controller
             'totalMembers' => $totalMembers,
             'activeBookings' => $activeBookings,
             'todayCheckIns' => $todayCheckIns,
-            'hourlyData' => $hourlyData,
+            'classAttendanceData' => $classAttendanceData,
             'peakHoursText' => $peakHoursText,
             'dateLabel' => $dateLabel,
             'recentActivity' => $recentActivity,
@@ -199,11 +178,20 @@ class AdminController extends Controller
         $dayStart = $selectedDate->copy()->startOfDay();
         $dayEnd = $selectedDate->copy()->endOfDay();
         
-        $classes = ClassSession::withCount(['bookings', 'trials'])
+        $allClasses = ClassSession::withCount(['bookings', 'trials'])
+            ->with(['bookings.user'])
             ->whereBetween('start_time', [$dayStart, $dayEnd])
             ->orderBy('start_time')
-            ->get()
-            ->groupBy(function($class) {
+            ->get();
+
+        // Add paid/unpaid counts for capacity bar (paid = active membership, unpaid = no active membership)
+        foreach ($allClasses as $class) {
+            $paid = $class->bookings->filter(fn ($b) => $b->user && $b->user->hasActiveMembership())->count();
+            $class->paid_bookings_count = $paid;
+            $class->unpaid_bookings_count = $class->bookings_count - $paid;
+        }
+
+        $classes = $allClasses->groupBy(function($class) {
                 $hour = $class->start_time->hour;
                 if ($hour < 12) return 'morning';
                 if ($hour < 17) return 'afternoon';
