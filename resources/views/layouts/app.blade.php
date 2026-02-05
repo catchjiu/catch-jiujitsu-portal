@@ -41,7 +41,7 @@
                     </button>
                 </form>
                 @auth
-                    <a href="{{ route('settings') }}" class="w-8 h-8 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800 hover:border-blue-500 transition-colors">
+                    <a href="{{ route('family.settings') }}" class="w-8 h-8 rounded-full overflow-hidden border-2 border-slate-700 bg-slate-800 hover:border-blue-500 transition-colors" title="{{ app()->getLocale() === 'zh-TW' ? '切換家庭成員' : 'Switch family member' }}">
                         @if(auth()->user()->avatar)
                             <img src="{{ auth()->user()->avatar }}" alt="Avatar" class="w-full h-full object-cover">
                         @else
@@ -95,7 +95,7 @@
                 <span class="text-[10px] font-medium">{{ app()->getLocale() === 'zh-TW' ? '私教' : 'Private' }}</span>
             </a>
             @endif
-            <a href="{{ $isFamily ? route('family.settings') : route('settings') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ (request()->routeIs('settings') || request()->routeIs('family.settings')) ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
+            <a href="{{ route('settings') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('settings') ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">settings</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.settings') }}</span>
             </a>
