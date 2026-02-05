@@ -60,10 +60,15 @@
                     @if($variants->isEmpty())
                         <p class="text-slate-500 text-xs mt-2">{{ __('app.shop.out_of_stock') }}</p>
                     @else
+                        @php
+                            $weeks = $product->is_preorder ? (int) $product->preorder_weeks : null;
+                            $preorderMessage = $weeks ? ($weeks === 1 ? __('app.shop.preorder_notice_week') : __('app.shop.preorder_notice_weeks', ['weeks' => $weeks])) : __('app.shop.preorder_notice');
+                            $preorderCheckbox = $weeks ? ($weeks === 1 ? __('app.shop.preorder_confirm_checkbox_week') : __('app.shop.preorder_confirm_checkbox_weeks', ['weeks' => $weeks])) : __('app.shop.preorder_confirm_checkbox');
+                        @endphp
                         <form action="{{ route('shop.quick-buy') }}" method="POST" class="mt-2 space-y-2 shop-quick-buy-form"
                               data-is-preorder="{{ $product->is_preorder ? '1' : '0' }}"
-                              data-preorder-message="{{ $product->is_preorder && $product->preorder_weeks ? __('app.shop.preorder_notice_weeks', ['weeks' => $product->preorder_weeks]) : __('app.shop.preorder_notice') }}"
-                              data-preorder-checkbox="{{ __('app.shop.preorder_confirm_checkbox') }}"
+                              data-preorder-message="{{ $preorderMessage }}"
+                              data-preorder-checkbox="{{ $preorderCheckbox }}"
                               data-preorder-submit="{{ __('app.shop.preorder_confirm_button') }}"
                               data-preorder-cancel="{{ __('app.common.cancel') }}">
                             @csrf
