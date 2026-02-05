@@ -21,22 +21,11 @@ class LeaderboardController extends Controller
             ->where('public_profile', true)
             ->get();
 
-        // Most Hours This Year
+        // Most Hours This Year = mat_hours (starting) + hours from classes this year
         $hoursLeaderboard = $publicUsers->map(function($user) {
-            $totalMinutes = $user->bookings()
-                ->whereHas('classSession', function($query) {
-                    $query->whereYear('start_time', now()->year)
-                          ->where('start_time', '<', now());
-                })
-                ->with('classSession')
-                ->get()
-                ->sum(function($booking) {
-                    return $booking->classSession->duration_minutes ?? 0;
-                });
-
             return [
                 'user' => $user,
-                'hours' => round($totalMinutes / 60, 1),
+                'hours' => $user->total_hours_this_year,
             ];
         })->sortByDesc('hours')->values()->take(20);
 
@@ -64,18 +53,8 @@ class LeaderboardController extends Controller
         $myClasses = 0;
 
         if ($currentUser) {
-            // Calculate current user's stats
-            $myHoursMinutes = $currentUser->bookings()
-                ->whereHas('classSession', function($query) {
-                    $query->whereYear('start_time', now()->year)
-                          ->where('start_time', '<', now());
-                })
-                ->with('classSession')
-                ->get()
-                ->sum(function($booking) {
-                    return $booking->classSession->duration_minutes ?? 0;
-                });
-            $myHours = round($myHoursMinutes / 60, 1);
+            // Calculate current user's stats (mat_hours + hours this year)
+            $myHours = $currentUser->total_hours_this_year;
 
             $myClasses = $currentUser->bookings()
                 ->whereHas('classSession', function($query) {
@@ -87,17 +66,7 @@ class LeaderboardController extends Controller
 
             // Find rank among all members (not just public)
             $allUsersHours = User::where('is_admin', false)->get()->map(function($user) {
-                $totalMinutes = $user->bookings()
-                    ->whereHas('classSession', function($query) {
-                        $query->whereYear('start_time', now()->year)
-                              ->where('start_time', '<', now());
-                    })
-                    ->with('classSession')
-                    ->get()
-                    ->sum(function($booking) {
-                        return $booking->classSession->duration_minutes ?? 0;
-                    });
-                return ['id' => $user->id, 'hours' => $totalMinutes / 60];
+                return ['id' => $user->id, 'hours' => $user->total_hours_this_year];
             })->sortByDesc('hours')->values();
 
             $myHoursRank = $allUsersHours->search(function($item) use ($currentUser) {

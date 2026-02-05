@@ -300,6 +300,42 @@
         </div>
     </div>
 
+    @if(isset($shopOrders) && $shopOrders->isNotEmpty())
+    <!-- Order tracking (Gym Shop) – only when member has orders -->
+    <a href="{{ route('shop.index') }}" class="block">
+        <div class="w-full glass rounded-2xl p-5 border-t-4 border-t-[#00d4ff] relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
+            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+            <div class="relative z-10 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-[#00d4ff]/20 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[#00d4ff] text-2xl">local_shipping</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '我的訂單' : 'My orders' }}</h3>
+                    <p class="text-slate-500 text-sm">{{ $shopOrders->count() }} {{ app()->getLocale() === 'zh-TW' ? '筆訂單' : 'order(s)' }}</p>
+                </div>
+                <span class="material-symbols-outlined text-slate-500 flex-shrink-0">chevron_right</span>
+            </div>
+            <div class="relative z-10 mt-3 space-y-2">
+                @foreach($shopOrders->take(3) as $order)
+                    <div class="flex items-center justify-between gap-2 py-2 border-t border-slate-700/50 first:border-t-0 first:pt-0">
+                        <span class="text-slate-300 text-sm truncate">
+                            #{{ $order->id }} · NT$ {{ number_format($order->total_price) }}
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0
+                            @if($order->status === 'Pending') bg-amber-500/20 text-amber-400
+                            @elseif($order->status === 'Processing') bg-[#00d4ff]/20 text-[#00d4ff]
+                            @else bg-emerald-500/20 text-emerald-400
+                            @endif">{{ $order->status }}</span>
+                    </div>
+                @endforeach
+                @if($shopOrders->count() > 3)
+                    <p class="text-slate-500 text-xs pt-1">{{ app()->getLocale() === 'zh-TW' ? '點擊查看全部' : 'Tap to see all' }}</p>
+                @endif
+            </div>
+        </div>
+    </a>
+    @endif
+
     <!-- Book Private Class (below membership) -->
     <div>
         <button type="button" id="openPrivateClassModal"

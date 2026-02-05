@@ -46,6 +46,12 @@ class DashboardController extends Controller
             ? PrivateClassBooking::where('coach_id', $user->id)->where('status', 'pending')->count()
             : 0;
 
+        $shopOrders = $user->orders()
+            ->with(['items.productVariant.product'])
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
         return view('dashboard', [
             'user' => $user,
             'nextClass' => $nextClass,
@@ -53,6 +59,7 @@ class DashboardController extends Controller
             'classesThisMonth' => $classesThisMonth,
             'previousClasses' => $previousClasses,
             'pendingPrivateRequests' => $pendingPrivateRequests,
+            'shopOrders' => $shopOrders,
         ]);
     }
 }

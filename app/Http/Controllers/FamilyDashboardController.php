@@ -45,6 +45,12 @@ class FamilyDashboardController extends Controller
             ? PrivateClassBooking::where('coach_id', $me->id)->where('status', 'pending')->count()
             : 0;
 
+        $shopOrders = $user->orders()
+            ->with(['items.productVariant.product'])
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
+
         return view('dashboard', [
             'user' => $user,
             'nextClass' => $nextClass,
@@ -54,6 +60,7 @@ class FamilyDashboardController extends Controller
             'familyBar' => true,
             'familyMembers' => $familyMembers,
             'pendingPrivateRequests' => $pendingPrivateRequests,
+            'shopOrders' => $shopOrders,
         ]);
     }
 

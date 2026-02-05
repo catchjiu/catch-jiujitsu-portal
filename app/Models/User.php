@@ -487,4 +487,12 @@ class User extends Authenticatable
 
         return round($totalMinutes / 60, 1);
     }
+
+    /**
+     * Get total hours for leaderboard "Hours This Year" = starting mat_hours + hours from classes this year.
+     */
+    public function getTotalHoursThisYearAttribute(): float
+    {
+        return ($this->mat_hours ?? 0) + $this->hours_this_year;
+    }
 }

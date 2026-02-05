@@ -11,7 +11,7 @@
         </h1>
     </div>
 
-    <form action="{{ $product ? route('admin.shop.products.update', $product) : route('admin.shop.products.store') }}" method="POST" class="space-y-6">
+    <form action="{{ $product ? route('admin.shop.products.update', $product) : route('admin.shop.products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @if($product) @method('PUT') @endif
 
@@ -24,6 +24,13 @@
                        class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none"
                        placeholder="e.g. Catch BJJ Gi">
                 @error('name')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="product_name_zh" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.admin.product_name_zh') }}</label>
+                <input type="text" name="product_name_zh" id="product_name_zh" value="{{ old('product_name_zh', $product?->product_name_zh) }}"
+                       class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none"
+                       placeholder="{{ __('app.admin.product_name_zh_placeholder') }}">
+                @error('product_name_zh')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label for="category" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.shop.category') }} *</label>
@@ -43,21 +50,39 @@
                           placeholder="Short product description (optional)">{{ old('description', $product?->description) }}</textarea>
                 @error('description')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="price" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.shop.price') }} (NT$) *</label>
-                    <input type="number" name="price" id="price" value="{{ old('price', $product?->price) }}" min="0" step="1" required
-                           class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none"
-                           placeholder="0">
-                    @error('price')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
-                </div>
-                <div>
-                    <label for="image_url" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.admin.image_url') }}</label>
+            <div>
+                <label for="product_desc_zh" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.admin.product_desc_zh') }}</label>
+                <textarea name="product_desc_zh" id="product_desc_zh" rows="3"
+                          class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none resize-none"
+                          placeholder="{{ __('app.admin.product_desc_zh_placeholder') }}">{{ old('product_desc_zh', $product?->product_desc_zh) }}</textarea>
+                @error('product_desc_zh')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="price" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.shop.price') }} (NT$) *</label>
+                <input type="number" name="price" id="price" value="{{ old('price', $product?->price) }}" min="0" step="1" required
+                       class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none max-w-[12rem]"
+                       placeholder="0">
+                @error('price')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
+            <div class="space-y-2">
+                <label class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.admin.product_image') }}</label>
+                @if($product && $product->getRawOriginal('image_url'))
+                    <div class="mb-2">
+                        <img src="{{ $product->image_url }}" alt="" class="rounded-lg border border-slate-600 object-cover w-full max-w-[280px] aspect-[3/2] bg-slate-800">
+                        <p class="text-slate-500 text-xs mt-1">{{ __('app.admin.current_image') }}</p>
+                    </div>
+                @endif
+                <input type="file" name="image" id="image" accept="image/jpeg,image/png,image/webp"
+                       class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-[#00d4ff]/20 file:text-[#00d4ff] file:font-medium file:cursor-pointer text-sm file:text-sm">
+                <p class="text-slate-500 text-xs">{{ __('app.admin.image_3x2_hint') }}</p>
+                @error('image')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                <details class="mt-2">
+                    <summary class="text-slate-500 text-xs cursor-pointer hover:text-slate-400">{{ __('app.admin.or_paste_url') }}</summary>
                     <input type="text" name="image_url" id="image_url" value="{{ old('image_url', $product?->getRawOriginal('image_url')) }}"
-                           class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-600 text-white placeholder-slate-500 focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none"
-                           placeholder="URL or path (optional)">
+                           class="w-full mt-1 px-3 py-2 rounded-lg bg-slate-900 border border-slate-600 text-white placeholder-slate-500 text-sm outline-none focus:border-[#00d4ff]/60"
+                           placeholder="https://... or path">
                     @error('image_url')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
-                </div>
+                </details>
             </div>
         </div>
 
@@ -65,9 +90,12 @@
         <div class="rounded-xl bg-slate-800/60 border border-slate-700/50 p-4 space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h2 class="text-[#00d4ff] font-semibold text-sm uppercase tracking-wider">{{ __('app.admin.sizes_stock') }}</h2>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <button type="button" id="quickAddSizes" class="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">
                         {{ __('app.admin.quick_add_sizes') }}
+                    </button>
+                    <button type="button" id="quickAddKidsSizes" class="text-xs px-3 py-1.5 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 transition-colors">
+                        {{ __('app.admin.add_kids_sizes') }}
                     </button>
                     <button type="button" id="addVariant" class="text-xs px-3 py-1.5 rounded-lg bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40 hover:bg-[#00d4ff]/30 transition-colors">
                         + {{ __('app.admin.add_variant') }}
@@ -164,6 +192,11 @@
     }
 
     addBtn.addEventListener('click', function() { addRow('', '', 0); });
+
+    var kidsSizes = ['Y-XS', 'Y-S', 'Y-M', 'Y-L', 'Y-XL'];
+    document.getElementById('quickAddKidsSizes').addEventListener('click', function() {
+        kidsSizes.forEach(function(s) { addRow(s, '', 0); });
+    });
 
     quickAddBtn.addEventListener('click', function() {
         var cat = categorySelect.value;
