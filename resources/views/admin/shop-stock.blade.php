@@ -11,6 +11,13 @@
         </h1>
     </div>
 
+    <div class="flex flex-wrap items-center gap-3">
+        <a href="{{ route('admin.shop.products.create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40 font-semibold text-sm hover:bg-[#00d4ff]/30 transition-colors">
+            <span class="material-symbols-outlined text-lg">add</span>
+            {{ __('app.admin.add_product') }}
+        </a>
+        <a href="{{ route('admin.shop.products') }}" class="text-sm text-[#00d4ff] hover:underline">{{ __('app.admin.gym_shop') }} →</a>
+    </div>
     <p class="text-slate-400 text-sm">
         {{ __('app.admin.low_stock') }}: &lt; {{ $lowStockThreshold }} → <span class="text-red-400 font-medium">highlighted in red</span>. Use +/- to update without reload.
     </p>
@@ -58,9 +65,13 @@
     </div>
 
     @if($products->isEmpty())
-        <div class="py-12 text-center text-slate-500">
-            <span class="material-symbols-outlined text-4xl mb-2 block">inventory_2</span>
-            <p>No products yet. Add products and variants via the database or seeder.</p>
+        <div class="py-12 text-center text-slate-500 rounded-xl bg-slate-800/40 border border-slate-700/50">
+            <span class="material-symbols-outlined text-5xl mb-3 block text-slate-600">inventory_2</span>
+            <p class="mb-4">{{ __('app.admin.no_products_yet') }}</p>
+            <a href="{{ route('admin.shop.products.create') }}" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40 font-semibold hover:bg-[#00d4ff]/30 transition-colors">
+                <span class="material-symbols-outlined">add</span>
+                {{ __('app.admin.add_product') }}
+            </a>
         </div>
     @endif
 </div>

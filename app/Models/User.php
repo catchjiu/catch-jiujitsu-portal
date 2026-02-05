@@ -31,7 +31,6 @@ class User extends Authenticatable
         'belt_color',
         'stripes',
         'mat_hours',
-        'hours_this_year',
         'is_admin',
         'is_coach',
         'accepting_private_classes',
@@ -80,7 +79,6 @@ class User extends Authenticatable
             'private_class_price' => 'decimal:2',
             'stripes' => 'integer',
             'mat_hours' => 'integer',
-            'hours_this_year' => 'integer',
             'monthly_class_goal' => 'integer',
             'monthly_hours_goal' => 'integer',
             'reminders_enabled' => 'boolean',
@@ -461,6 +459,14 @@ class User extends Authenticatable
             });
 
         return (int) round($totalMinutes / 60);
+    }
+
+    /**
+     * Get total mat hours = starting mat_hours + calculated from class attendance.
+     */
+    public function getTotalMatHoursAttribute(): int
+    {
+        return ($this->mat_hours ?? 0) + $this->calculated_mat_hours;
     }
 
     /**

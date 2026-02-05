@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
 
 class ShopAdminController extends Controller
 {
@@ -91,11 +92,111 @@ class ShopAdminController extends Controller
     }
 
     /**
-     * Admin: list products for CRUD (optional future use). For now we only have Stock + Orders.
+     * Admin: list products with Add product button.
      */
     public function products()
     {
-        $products = Product::withCount('variants')->with('variants')->orderBy('category')->orderBy('name')->get();
+        $products = Product::withCount('variants')->with('variants')
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get();
         return view('admin.shop-products', ['products' => $products]);
+    }
+
+    /**
+     * Show form to add a new product (with variants).
+     */
+    public function createProduct()
+    {
+        return view('admin.shop-product-form', [
+            'product' => null,
+            'categories' => Product::categories(),
+        ]);
+    }
+
+    /**
+     * Store a new product and its variants.
+     */
+    public function storeProduct(Request $request)
+    {
+        $validated = $this->validateProduct($request);
+        $product = Product::create([
+            'name' => $validated['name'],
+            'category' => $validated['category'],
+            'description' => $validated['description'] ?? null,
+            'price' => $validated['price'],
+            'image_url' => $validated['image_url'] ?? null,
+        ]);
+        $this->syncVariants($product, $validated['variants'] ?? []);
+        return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_added'));
+    }
+
+    /**
+     * Show form to edit a product.
+     */
+    public function editProduct(Product $product)
+    {
+        $product->load('variants');
+        return view('admin.shop-product-form', [
+            'product' => $product,
+            'categories' => Product::categories(),
+        ]);
+    }
+
+    /**
+     * Update a product and its variants.
+     */
+    public function updateProduct(Request $request, Product $product)
+    {
+        $validated = $this->validateProduct($request, $product);
+        $product->update([
+            'name' => $validated['name'],
+            'category' => $validated['category'],
+            'description' => $validated['description'] ?? null,
+            'price' => $validated['price'],
+            'image_url' => $validated['image_url'] ?? null,
+        ]);
+        $this->syncVariants($product, $validated['variants'] ?? []);
+        return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_updated'));
+    }
+
+    /**
+     * Delete a product (and its variants via cascade).
+     */
+    public function destroyProduct(Product $product)
+    {
+        $product->delete();
+        return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_deleted'));
+    }
+
+    private function validateProduct(Request $request, ?Product $product = null): array
+    {
+        $rules = [
+            'name' => 'required|string|max:255',
+            'category' => ['required', 'string', Rule::in(Product::categories())],
+            'description' => 'nullable|string|max:2000',
+            'price' => 'required|numeric|min:0',
+            'image_url' => 'nullable|string|max:500',
+            'variants' => 'required|array|min:1',
+            'variants.*.size' => 'required|string|max:30',
+            'variants.*.color' => 'nullable|string|max:60',
+            'variants.*.stock_quantity' => 'required|integer|min:0',
+        ];
+        return $request->validate($rules);
+    }
+
+    private function syncVariants(Product $product, array $variants): void
+    {
+        $product->variants()->delete();
+        foreach ($variants as $v) {
+            if (trim((string) ($v['size'] ?? '')) === '') {
+                continue;
+            }
+            $product->variants()->create([
+                'size' => trim($v['size']),
+                'color' => isset($v['color']) && trim((string) $v['color']) !== '' ? trim($v['color']) : null,
+                'stock_quantity' => (int) ($v['stock_quantity'] ?? 0),
+            ]);
+        }
     }
 }

@@ -181,14 +181,10 @@
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-4 gap-4 mt-6">
+            <div class="grid grid-cols-3 gap-4 mt-6">
                 <div class="text-center">
-                    <span class="text-2xl font-bold text-blue-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $member->mat_hours }}</span>
+                    <span class="text-2xl font-bold text-blue-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $member->total_mat_hours }}</span>
                     <p class="text-xs text-slate-400 uppercase">Mat Hours</p>
-                </div>
-                <div class="text-center">
-                    <span class="text-2xl font-bold text-cyan-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $member->hours_this_year ?? 0 }}</span>
-                    <p class="text-xs text-slate-400 uppercase">Hours This Year</p>
                 </div>
                 <div class="text-center">
                     <span class="text-2xl font-bold text-amber-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $member->stripes }}</span>
@@ -247,16 +243,11 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Mat Hours</label>
-                        <input type="number" name="mat_hours" value="{{ old('mat_hours', $member->mat_hours) }}" required min="0"
-                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Hours This Year</label>
-                        <input type="number" name="hours_this_year" value="{{ old('hours_this_year', $member->hours_this_year ?? 0) }}" min="0"
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Starting Mat Hours</label>
+                        <input type="number" name="mat_hours" value="{{ old('mat_hours', $member->mat_hours ?? 0) }}" min="0"
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                            title="Classes booked this calendar year; resets Jan 1. Manual override allowed.">
-                        <p class="text-slate-500 text-xs mt-1">Resets at end of calendar year. You can edit manually.</p>
+                            title="Prior hours before joining. Total = this + hours from class attendance.">
+                        <p class="text-slate-500 text-xs mt-1">Prior experience. Displayed total = this + hours from classes.</p>
                     </div>
                 </div>
 

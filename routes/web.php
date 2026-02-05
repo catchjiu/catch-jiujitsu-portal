@@ -162,6 +162,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/packages/{id}/toggle', [MembershipPackageController::class, 'toggleStatus'])->name('packages.toggle');
 
         // Gym Shop (admin)
+        Route::get('/shop/products', [ShopAdminController::class, 'products'])->name('shop.products');
+        Route::get('/shop/products/create', [ShopAdminController::class, 'createProduct'])->name('shop.products.create');
+        Route::post('/shop/products', [ShopAdminController::class, 'storeProduct'])->name('shop.products.store');
+        Route::get('/shop/products/{product}/edit', [ShopAdminController::class, 'editProduct'])->name('shop.products.edit');
+        Route::put('/shop/products/{product}', [ShopAdminController::class, 'updateProduct'])->name('shop.products.update');
+        Route::delete('/shop/products/{product}', [ShopAdminController::class, 'destroyProduct'])->name('shop.products.destroy');
         Route::get('/shop/stock', [ShopAdminController::class, 'stock'])->name('shop.stock');
         Route::post('/shop/stock/update', [ShopAdminController::class, 'updateStock'])->name('shop.stock.update');
         Route::get('/shop/orders', [ShopAdminController::class, 'orders'])->name('shop.orders');

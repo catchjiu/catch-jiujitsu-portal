@@ -134,9 +134,6 @@ class BookingController extends Controller
         // Decrement classes remaining for class-based packages
         $user->decrementClassesRemaining();
 
-        // Track hours this calendar year (+1 per booked class)
-        $user->increment('hours_this_year');
-
         return back()->with('success', 'Class booked successfully! See you on the mats.');
     }
 

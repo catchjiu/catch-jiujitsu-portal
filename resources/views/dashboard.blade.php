@@ -385,7 +385,7 @@
         <div class="glass rounded-2xl p-5 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex flex-col items-center justify-center py-2">
-                <span class="text-4xl font-bold text-amber-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->calculated_mat_hours }}</span>
+                <span class="text-4xl font-bold text-amber-500" style="font-family: 'Bebas Neue', sans-serif;">{{ $user->total_mat_hours }}</span>
                 <span class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('app.dashboard.mat_hours') }}</span>
             </div>
         </div>

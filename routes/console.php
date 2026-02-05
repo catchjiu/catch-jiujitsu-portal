@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\ClassSession;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -72,15 +71,3 @@ Artisan::command('classes:ensure-four-weeks', function () {
 })->purpose('Ensure classes are visible 4 weeks ahead (copy from reference week)');
 
 Schedule::command('classes:ensure-four-weeks')->daily();
-
-/**
- * Reset hours_this_year to 0 for all users at the start of each calendar year.
- * Run on Jan 1 at 00:05 so it executes after midnight.
- */
-Artisan::command('hours:reset-yearly', function () {
-    $updated = User::query()->update(['hours_this_year' => 0]);
-    $this->info("Reset hours_this_year to 0 for {$updated} user(s).");
-    return 0;
-})->purpose('Reset hours_this_year for all users (run on Jan 1)');
-
-Schedule::command('hours:reset-yearly')->yearlyOn(1, 1, '00:05');
