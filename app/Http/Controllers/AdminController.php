@@ -36,14 +36,19 @@ class AdminController extends Controller
                 $dateLabel = 'Yesterday, ' . $startDate->format('M d');
                 break;
             case 'week':
-                $startDate = Carbon::now()->startOfWeek();
-                $endDate = Carbon::now()->endOfWeek();
+                $startDate = Carbon::now()->copy()->startOfWeek(Carbon::MONDAY);
+                $endDate = Carbon::now()->copy()->endOfWeek(Carbon::SUNDAY);
                 $dateLabel = 'This Week, ' . $startDate->format('M d') . ' - ' . $endDate->format('M d');
                 break;
             case 'month':
                 $startDate = Carbon::now()->startOfMonth();
                 $endDate = Carbon::now()->endOfMonth();
                 $dateLabel = now()->format('F Y');
+                break;
+            case 'year':
+                $startDate = Carbon::now()->startOfYear();
+                $endDate = Carbon::now()->endOfYear();
+                $dateLabel = now()->format('Y');
                 break;
             default: // today
                 $startDate = Carbon::today();
@@ -58,49 +63,129 @@ class AdminController extends Controller
             $q->where('start_time', '>', now());
         })->count();
         
-        // Attendance query with filters
-        $classesQuery = ClassSession::whereBetween('start_time', [$startDate, $endDate])
-            ->where(function($q) {
+        // Base class filter for attendance (not cancelled, optional age group)
+        $classFilter = function ($q) use ($ageGroup) {
+            $q->where(function ($q) {
                 $q->where('is_cancelled', false)->orWhereNull('is_cancelled');
             });
-        
-        // Apply age group filter
-        if ($ageGroup !== 'all') {
-            $classesQuery->where(function($q) use ($ageGroup) {
-                $q->where('age_group', $ageGroup)
-                  ->orWhere('age_group', 'All');
-            });
-        }
-        
-        $filteredClasses = $classesQuery->withCount('bookings')->orderBy('start_time')->get();
-        $todayCheckIns = $filteredClasses->sum('bookings_count');
-        
-        // One bar per class: time, title, participant count
-        $classAttendanceData = [];
-        $maxCount = 1;
-        foreach ($filteredClasses as $class) {
-            $count = $class->bookings_count;
-            if ($count > $maxCount) {
-                $maxCount = $count;
+            if ($ageGroup !== 'all') {
+                $q->where(function ($q) use ($ageGroup) {
+                    $q->where('age_group', $ageGroup)->orWhere('age_group', 'All');
+                });
             }
-            $classAttendanceData[] = [
-                'time' => $class->start_time->format('g:i A'),
-                'title' => $class->title,
-                'count' => $count,
-                'height' => 0, // set below
-                'class_id' => $class->id,
-            ];
-        }
-        foreach ($classAttendanceData as &$row) {
-            $row['height'] = $maxCount > 0 ? ($row['count'] / $maxCount) * 100 : 0;
-        }
-        unset($row);
+        };
         
-        // Peak = class with most participants
-        $peakClass = collect($classAttendanceData)->sortByDesc('count')->first();
-        $peakHoursText = $peakClass && $peakClass['count'] > 0
-            ? $peakClass['time'] . ' – ' . $peakClass['title'] . ' (' . $peakClass['count'] . ')'
-            : 'No classes in range';
+        $todayCheckIns = Booking::whereHas('classSession', function ($q) use ($startDate, $endDate, $classFilter) {
+            $q->whereBetween('start_time', [$startDate, $endDate]);
+            $classFilter($q);
+        })->count();
+        
+        $attendanceChartMode = 'classes'; // classes | days | weeks | months
+        $classAttendanceData = [];
+        $aggregatedChartData = [];
+        $peakHoursText = 'No classes in range';
+        $yAxisMax = 30;
+        
+        if ($dateRange === 'today' || $dateRange === 'yesterday') {
+            // One bar per class for the day
+            $classesQuery = ClassSession::whereBetween('start_time', [$startDate, $endDate])
+                ->where($classFilter);
+            $filteredClasses = $classesQuery->withCount('bookings')->orderBy('start_time')->get();
+            foreach ($filteredClasses as $class) {
+                $count = $class->bookings_count;
+                $heightPercent = $yAxisMax > 0 ? min(100, ($count / $yAxisMax) * 100) : 0;
+                $classAttendanceData[] = [
+                    'label' => $class->start_time->format('g:i A'),
+                    'time' => $class->start_time->format('g:i A'),
+                    'title' => $class->title,
+                    'count' => $count,
+                    'height' => $heightPercent,
+                    'class_id' => $class->id,
+                ];
+            }
+            $peakClass = collect($classAttendanceData)->sortByDesc('count')->first();
+            if ($peakClass && $peakClass['count'] > 0) {
+                $peakHoursText = $peakClass['time'] . ' – ' . $peakClass['title'] . ' (' . $peakClass['count'] . ')';
+            }
+        } elseif ($dateRange === 'week') {
+            // One bar per day (Mon–Sun)
+            $attendanceChartMode = 'days';
+            for ($d = 0; $d < 7; $d++) {
+                $dayStart = $startDate->copy()->addDays($d)->startOfDay();
+                $dayEnd = $dayStart->copy()->endOfDay();
+                $count = Booking::whereHas('classSession', function ($q) use ($dayStart, $dayEnd, $classFilter) {
+                    $q->whereBetween('start_time', [$dayStart, $dayEnd]);
+                    $classFilter($q);
+                })->count();
+                $aggregatedChartData[] = [
+                    'label' => $dayStart->format('D d'),
+                    'count' => $count,
+                ];
+            }
+            $maxCount = max(1, collect($aggregatedChartData)->max('count'));
+            foreach ($aggregatedChartData as &$row) {
+                $row['height'] = min(100, ($row['count'] / $maxCount) * 100);
+            }
+            unset($row);
+            $peak = collect($aggregatedChartData)->sortByDesc('count')->first();
+            if ($peak && $peak['count'] > 0) {
+                $peakHoursText = $peak['label'] . ': ' . $peak['count'] . ' bookings';
+            }
+        } elseif ($dateRange === 'month') {
+            // One bar per week (week starting Monday) that overlaps the month
+            $attendanceChartMode = 'weeks';
+            $cursor = $startDate->copy()->startOfWeek(Carbon::MONDAY);
+            if ($cursor->lt($startDate)) {
+                $cursor->addWeek();
+            }
+            $weekNum = 1;
+            while ($cursor->lte($endDate)) {
+                $weekEnd = $cursor->copy()->endOfWeek(Carbon::SUNDAY);
+                $count = Booking::whereHas('classSession', function ($q) use ($cursor, $weekEnd, $classFilter) {
+                    $q->whereBetween('start_time', [$cursor, $weekEnd]);
+                    $classFilter($q);
+                })->count();
+                $aggregatedChartData[] = [
+                    'label' => 'Wk ' . $weekNum,
+                    'count' => $count,
+                ];
+                $weekNum++;
+                $cursor->addWeek();
+            }
+            $maxCount = max(1, collect($aggregatedChartData)->max('count'));
+            foreach ($aggregatedChartData as &$row) {
+                $row['height'] = min(100, ($row['count'] / $maxCount) * 100);
+            }
+            unset($row);
+            $peak = collect($aggregatedChartData)->sortByDesc('count')->first();
+            if ($peak && $peak['count'] > 0) {
+                $peakHoursText = 'Week ' . $peak['label'] . ': ' . $peak['count'] . ' bookings';
+            }
+        } elseif ($dateRange === 'year') {
+            // One bar per month
+            $attendanceChartMode = 'months';
+            for ($m = 1; $m <= 12; $m++) {
+                $monthStart = Carbon::create(now()->year, $m, 1)->startOfDay();
+                $monthEnd = $monthStart->copy()->endOfMonth();
+                $count = Booking::whereHas('classSession', function ($q) use ($monthStart, $monthEnd, $classFilter) {
+                    $q->whereBetween('start_time', [$monthStart, $monthEnd]);
+                    $classFilter($q);
+                })->count();
+                $aggregatedChartData[] = [
+                    'label' => $monthStart->format('M'),
+                    'count' => $count,
+                ];
+            }
+            $maxCount = max(1, collect($aggregatedChartData)->max('count'));
+            foreach ($aggregatedChartData as &$row) {
+                $row['height'] = min(100, ($row['count'] / $maxCount) * 100);
+            }
+            unset($row);
+            $peak = collect($aggregatedChartData)->sortByDesc('count')->first();
+            if ($peak && $peak['count'] > 0) {
+                $peakHoursText = $peak['label'] . ': ' . $peak['count'] . ' bookings';
+            }
+        }
         
         // Recent activity (recent bookings)
         $recentActivity = Booking::with(['user', 'classSession'])
@@ -144,7 +229,9 @@ class AdminController extends Controller
             'totalMembers' => $totalMembers,
             'activeBookings' => $activeBookings,
             'todayCheckIns' => $todayCheckIns,
+            'attendanceChartMode' => $attendanceChartMode,
             'classAttendanceData' => $classAttendanceData,
+            'aggregatedChartData' => $aggregatedChartData,
             'peakHoursText' => $peakHoursText,
             'dateLabel' => $dateLabel,
             'recentActivity' => $recentActivity,
@@ -653,14 +740,18 @@ class AdminController extends Controller
             }
         }
         
-        // Monthly member growth (last 6 months)
+        // Monthly active member growth (last 6 months) – active only (active status or gratis)
         $memberGrowth = [];
         $monthLabels = [];
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $monthLabels[] = $date->format('M');
             $memberGrowth[] = User::where('is_admin', false)
-                ->where('created_at', '<=', $date->endOfMonth())
+                ->where('created_at', '<=', $date->copy()->endOfMonth())
+                ->where(function ($q) {
+                    $q->where('membership_status', 'active')
+                      ->orWhere('discount_type', 'gratis');
+                })
                 ->count();
         }
         

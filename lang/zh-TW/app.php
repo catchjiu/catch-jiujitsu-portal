@@ -259,6 +259,8 @@ return [
         'product_added' => '商品已新增。',
         'product_updated' => '商品已更新。',
         'product_deleted' => '商品已刪除。',
+        'copy_product' => '複製商品',
+        'product_copied' => '商品已複製。',
         'save_product' => '儲存商品',
         'save_changes' => '儲存變更',
         'select_category' => '選擇類別',

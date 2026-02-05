@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $driver = DB::getDriverName();
-        if ($driver !== 'mysql') {
+        if (DB::getDriverName() !== 'mysql' || ! Schema::hasTable('products')) {
             return;
         }
-        DB::statement('ALTER TABLE products MODIFY product_name_zh VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL');
-        DB::statement('ALTER TABLE products MODIFY product_desc_zh TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL');
+        if (Schema::hasColumn('products', 'product_name_zh')) {
+            DB::statement('ALTER TABLE products MODIFY product_name_zh VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL');
+        }
+        if (Schema::hasColumn('products', 'product_desc_zh')) {
+            DB::statement('ALTER TABLE products MODIFY product_desc_zh TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL');
+        }
     }
 
     /**

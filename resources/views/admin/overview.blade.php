@@ -153,6 +153,7 @@
                             <option value="yesterday" {{ request('date_range') === 'yesterday' ? 'selected' : '' }}>Yesterday</option>
                             <option value="week" {{ request('date_range') === 'week' ? 'selected' : '' }}>This Week</option>
                             <option value="month" {{ request('date_range') === 'month' ? 'selected' : '' }}>This Month</option>
+                            <option value="year" {{ request('date_range') === 'year' ? 'selected' : '' }}>This Year</option>
                         </select>
                     </div>
                     
@@ -276,7 +277,7 @@
         <div class="relative z-10">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h3 class="text-white font-semibold">{{ request('date_range', 'today') === 'today' ? "Today's" : (request('date_range') === 'yesterday' ? "Yesterday's" : ucfirst(request('date_range', 'Today'))) }} Attendance</h3>
+                    <h3 class="text-white font-semibold">{{ request('date_range', 'today') === 'today' ? "Today's" : (request('date_range') === 'yesterday' ? "Yesterday's" : (request('date_range') === 'year' ? "This Year's" : ucfirst(request('date_range', 'Today')))) }} Attendance</h3>
                     <p class="text-slate-500 text-xs">Peak: {{ $peakHoursText }}</p>
                 </div>
                 <div class="text-right">
@@ -285,31 +286,61 @@
                 </div>
             </div>
             
-            <!-- Bar chart: one bar per class, height = participants -->
-            <div class="mt-4 border-b border-slate-700/50 pb-2">
-                @if(count($classAttendanceData) > 0)
-                    @php $maxHeight = collect($classAttendanceData)->max('height'); @endphp
-                    <div class="flex items-end justify-between gap-1.5 h-32 overflow-x-auto pb-1 scrollbar-hide" style="min-width: 0;">
+            <!-- Bar chart: by class (today/yesterday), by day (week), by week (month), by month (year) -->
+            <div class="mt-4 border-b border-l border-slate-700/50 pb-2 pl-8 relative">
+                @if($attendanceChartMode === 'classes' && count($classAttendanceData) > 0)
+                    @php $maxCount = collect($classAttendanceData)->max('count'); @endphp
+                    <div class="absolute left-0 top-0 flex flex-col justify-between text-[10px] text-slate-500 w-6" style="height: 7rem;">
+                        <span>30</span>
+                        <span>20</span>
+                        <span>10</span>
+                        <span>0</span>
+                    </div>
+                    <div class="flex items-end gap-1.5 overflow-x-auto pb-1 scrollbar-hide" style="min-width: 0; height: 7rem;">
                         @foreach($classAttendanceData as $bar)
-                            @php
-                                $isPeak = $bar['height'] == $maxHeight && $bar['count'] > 0;
-                            @endphp
-                            <a href="{{ route('admin.attendance', $bar['class_id']) }}" class="flex-1 flex flex-col items-center group relative min-w-[44px] flex-shrink-0" title="{{ $bar['title'] }}: {{ $bar['count'] }} participants">
-                                <div class="w-full rounded-t transition-all duration-300 min-h-[4px] {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70 hover:bg-blue-500' }}" 
-                                     style="height: {{ max($bar['height'], 4) }}%"></div>
-                                <span class="text-[10px] text-slate-500 mt-1.5 truncate w-full text-center" title="{{ $bar['time'] }} {{ $bar['title'] }}">{{ $bar['time'] }}</span>
-                                <span class="text-[10px] font-semibold {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
+                            @php $isPeak = $bar['count'] == $maxCount && $bar['count'] > 0; @endphp
+                            <a href="{{ route('admin.attendance', $bar['class_id']) }}" class="flex-1 flex flex-col items-center min-w-[44px] flex-shrink-0 h-full" title="{{ $bar['title'] }}: {{ $bar['count'] }} participants">
+                                <div class="w-full flex-1 flex flex-col justify-end min-h-0" style="height: 5rem;">
+                                    <div class="w-full rounded-t {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70 hover:bg-blue-500' }} transition-all duration-300"
+                                         style="height: {{ max($bar['height'], 2) }}%; min-height: {{ $bar['count'] > 0 ? '8px' : '0' }};"></div>
+                                </div>
+                                <span class="text-[10px] text-slate-500 mt-1 truncate w-full text-center shrink-0" title="{{ $bar['time'] }} {{ $bar['title'] }}">{{ $bar['time'] }}</span>
+                                <span class="text-[10px] font-semibold shrink-0 {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
                             </a>
                         @endforeach
                     </div>
+                @elseif(in_array($attendanceChartMode, ['days', 'weeks', 'months']) && count($aggregatedChartData ?? []) > 0)
+                    @php
+                        $agg = $aggregatedChartData;
+                        $maxCount = max(1, collect($agg)->max('count'));
+                    @endphp
+                    <div class="absolute left-0 top-0 flex flex-col justify-between text-[10px] text-slate-500 w-6" style="height: 7rem;">
+                        <span>{{ $maxCount }}</span>
+                        <span>{{ (int)($maxCount * 0.67) }}</span>
+                        <span>{{ (int)($maxCount * 0.33) }}</span>
+                        <span>0</span>
+                    </div>
+                    <div class="flex items-end gap-1.5 overflow-x-auto pb-1 scrollbar-hide" style="min-width: 0; height: 7rem;">
+                        @foreach($agg as $bar)
+                            @php $isPeak = $bar['count'] == $maxCount && $bar['count'] > 0; @endphp
+                            <div class="flex-1 flex flex-col items-center min-w-[36px] flex-shrink-0 h-full" title="{{ $bar['label'] }}: {{ $bar['count'] }} bookings">
+                                <div class="w-full flex-1 flex flex-col justify-end min-h-0" style="height: 5rem;">
+                                    <div class="w-full rounded-t {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70' }} transition-all duration-300"
+                                         style="height: {{ max($bar['height'] ?? 0, 2) }}%; min-height: {{ ($bar['count'] ?? 0) > 0 ? '8px' : '0' }};"></div>
+                                </div>
+                                <span class="text-[10px] text-slate-500 mt-1 truncate w-full text-center shrink-0">{{ $bar['label'] }}</span>
+                                <span class="text-[10px] font-semibold shrink-0 {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
+                            </div>
+                        @endforeach
+                    </div>
                 @else
-                    <div class="h-32 flex items-center justify-center">
+                    <div class="h-28 flex items-center justify-center">
                         <p class="text-slate-500 text-sm">No classes in this range</p>
                     </div>
                 @endif
             </div>
             
-            @if($todayCheckIns == 0 && count($classAttendanceData) === 0)
+            @if($todayCheckIns == 0 && (($attendanceChartMode === 'classes' && count($classAttendanceData) === 0) || (in_array($attendanceChartMode, ['days', 'weeks', 'months']) && count($aggregatedChartData ?? []) === 0)))
                 <p class="text-center text-slate-500 text-xs mt-3">No classes scheduled for this period</p>
             @endif
         </div>

@@ -41,4 +41,26 @@ class Product extends Model
         }
         return asset('storage/' . $value);
     }
+
+    /**
+     * Name in current locale: Chinese when zh-TW and product_name_zh set, else name.
+     */
+    public function getLocalizedNameAttribute(): string
+    {
+        if (app()->getLocale() === 'zh-TW' && ! empty($this->product_name_zh)) {
+            return $this->product_name_zh;
+        }
+        return $this->name;
+    }
+
+    /**
+     * Description in current locale: Chinese when zh-TW and product_desc_zh set, else description.
+     */
+    public function getLocalizedDescriptionAttribute(): ?string
+    {
+        if (app()->getLocale() === 'zh-TW' && ! empty($this->product_desc_zh)) {
+            return $this->product_desc_zh;
+        }
+        return $this->description;
+    }
 }

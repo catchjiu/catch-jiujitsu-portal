@@ -40,7 +40,7 @@
             <div class="rounded-2xl bg-slate-800/60 border border-slate-700/50 overflow-hidden flex flex-col">
                 <a href="#" class="block aspect-square bg-slate-800 relative overflow-hidden">
                     @if($product->image_url)
-                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                        <img src="{{ $product->image_url }}" alt="{{ $product->localized_name }}" class="w-full h-full object-cover">
                     @else
                         <div class="w-full h-full flex items-center justify-center text-slate-600">
                             <span class="material-symbols-outlined text-5xl">inventory_2</span>
@@ -49,7 +49,7 @@
                 </a>
                 <div class="p-3 flex flex-col flex-1">
                     <p class="text-[10px] uppercase tracking-wider text-[#00d4ff]/90 font-medium">{{ $product->category }}</p>
-                    <h3 class="text-white font-semibold text-sm mt-0.5 line-clamp-2">{{ $product->name }}</h3>
+                    <h3 class="text-white font-semibold text-sm mt-0.5 line-clamp-2">{{ $product->localized_name }}</h3>
                     <p class="text-[#00d4ff] font-bold mt-1">NT$ {{ number_format($product->price) }}</p>
                     @php $variants = $product->variants->where('stock_quantity', '>', 0); @endphp
                     @if($variants->isEmpty())

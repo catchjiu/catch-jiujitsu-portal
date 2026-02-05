@@ -143,7 +143,7 @@
                                     </span>
                                     @if(!$isCancelled)
                                         <button type="button" onclick="openTrialModal(this)" data-action="{{ route('admin.classes.trials.store', $class->id) }}"
-                                                class="mt-2 text-[10px] font-semibold text-blue-400 hover:text-blue-300 transition-colors">
+                                                class="mt-2 px-2 py-1 text-[10px] font-semibold rounded bg-emerald-500 text-white hover:bg-emerald-600 transition-colors">
                                             Add trial
                                         </button>
                                     @endif

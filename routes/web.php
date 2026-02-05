@@ -169,6 +169,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/shop/products', [ShopAdminController::class, 'storeProduct'])->name('shop.products.store');
         Route::get('/shop/products/{product}/edit', [ShopAdminController::class, 'editProduct'])->name('shop.products.edit');
         Route::put('/shop/products/{product}', [ShopAdminController::class, 'updateProduct'])->name('shop.products.update');
+        Route::post('/shop/products/{product}/copy', [ShopAdminController::class, 'copyProduct'])->name('shop.products.copy');
         Route::delete('/shop/products/{product}', [ShopAdminController::class, 'destroyProduct'])->name('shop.products.destroy');
         Route::get('/shop/stock', [ShopAdminController::class, 'stock'])->name('shop.stock');
         Route::post('/shop/stock/update', [ShopAdminController::class, 'updateStock'])->name('shop.stock.update');

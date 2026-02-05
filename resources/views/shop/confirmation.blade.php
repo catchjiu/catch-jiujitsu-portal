@@ -27,7 +27,7 @@
             @php $v = $item->productVariant; $p = $v->product; @endphp
             <div class="flex justify-between items-start gap-2">
                 <div>
-                    <p class="text-white font-medium">{{ $p->name }}</p>
+                    <p class="text-white font-medium">{{ $p->localized_name }}</p>
                     <p class="text-slate-400 text-sm">{{ $v->size }}{{ $v->color ? ' · ' . $v->color : '' }} × {{ $item->quantity }}</p>
                 </div>
                 <p class="text-[#00d4ff] font-semibold">NT$ {{ number_format($item->unit_price * $item->quantity) }}</p>

@@ -259,6 +259,8 @@ return [
         'product_added' => 'Product added successfully.',
         'product_updated' => 'Product updated successfully.',
         'product_deleted' => 'Product deleted.',
+        'copy_product' => 'Copy product',
+        'product_copied' => 'Product copied successfully.',
         'save_product' => 'Save product',
         'save_changes' => 'Save changes',
         'select_category' => 'Select category',

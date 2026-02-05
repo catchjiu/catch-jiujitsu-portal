@@ -177,6 +177,31 @@ class ShopAdminController extends Controller
         return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_deleted'));
     }
 
+    /**
+     * Copy a product and all its variants; append " - copy" to name (and product_name_zh).
+     */
+    public function copyProduct(Product $product)
+    {
+        $product->load('variants');
+        $copy = Product::create([
+            'name' => $product->name . ' - copy',
+            'product_name_zh' => $product->product_name_zh ? $product->product_name_zh . ' - 複製' : null,
+            'category' => $product->category,
+            'description' => $product->description,
+            'product_desc_zh' => $product->product_desc_zh,
+            'price' => $product->price,
+            'image_url' => $product->getRawOriginal('image_url'),
+        ]);
+        foreach ($product->variants as $v) {
+            $copy->variants()->create([
+                'size' => $v->size,
+                'color' => $v->color,
+                'stock_quantity' => $v->stock_quantity,
+            ]);
+        }
+        return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_copied'));
+    }
+
     private function validateProduct(Request $request, ?Product $product = null): array
     {
         $rules = [

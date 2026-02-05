@@ -317,10 +317,19 @@
             </div>
             <div class="relative z-10 mt-3 space-y-2">
                 @foreach($shopOrders->take(3) as $order)
+                    @php
+                        $firstItem = $order->items->first();
+                        $itemNames = $order->items->map(fn($i) => $i->productVariant->product->localized_name)->unique()->take(2);
+                        $nameLabel = $itemNames->isEmpty() ? '#' . $order->id : $itemNames->implode(', ');
+                        if ($order->items->count() > 2) {
+                            $nameLabel .= (app()->getLocale() === 'zh-TW' ? ' 等 ' . $order->items->count() . ' 件' : ' + ' . ($order->items->count() - 2) . ' more');
+                        }
+                    @endphp
                     <div class="flex items-center justify-between gap-2 py-2 border-t border-slate-700/50 first:border-t-0 first:pt-0">
-                        <span class="text-slate-300 text-sm truncate">
-                            #{{ $order->id }} · NT$ {{ number_format($order->total_price) }}
-                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-white text-sm font-medium truncate">{{ $nameLabel }}</p>
+                            <p class="text-slate-500 text-xs">#{{ $order->id }} · NT$ {{ number_format($order->total_price) }}</p>
+                        </div>
                         <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0
                             @if($order->status === 'Pending') bg-amber-500/20 text-amber-400
                             @elseif($order->status === 'Processing') bg-[#00d4ff]/20 text-[#00d4ff]

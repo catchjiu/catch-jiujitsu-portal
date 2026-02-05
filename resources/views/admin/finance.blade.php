@@ -154,7 +154,7 @@
         <div class="relative z-10">
             <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
                 <span class="material-symbols-outlined text-blue-400 text-lg">trending_up</span>
-                Member Growth (Last 6 Months)
+                Active Member Growth (Last 6 Months)
             </h3>
             <div class="h-48">
                 <canvas id="memberGrowthChart"></canvas>
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: {!! $monthLabels !!},
             datasets: [{
-                label: 'Total Members',
+                label: 'Active Members',
                 data: {!! $memberGrowth !!},
                 borderColor: '#3B82F6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',

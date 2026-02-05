@@ -35,6 +35,12 @@
                         <p class="text-slate-500 text-sm">{{ $product->category }} · NT$ {{ number_format($product->price) }} · {{ $product->variants_count }} {{ __('app.admin.variants') }}</p>
                     </div>
                     <div class="flex items-center gap-2">
+                        <form action="{{ route('admin.shop.products.copy', $product) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors" title="{{ __('app.admin.copy_product') }}">
+                                <span class="material-symbols-outlined">content_copy</span>
+                            </button>
+                        </form>
                         <a href="{{ route('admin.shop.products.edit', $product) }}" class="p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white transition-colors" title="{{ __('app.common.edit') }}">
                             <span class="material-symbols-outlined">edit</span>
                         </a>
