@@ -8,18 +8,21 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     * Safe when age_group column already exists on classes or users.
      */
     public function up(): void
     {
-        // Add age_group to classes table
-        Schema::table('classes', function (Blueprint $table) {
-            $table->enum('age_group', ['Kids', 'Adults', 'All'])->default('Adults')->after('type');
-        });
+        if (Schema::hasTable('classes') && ! Schema::hasColumn('classes', 'age_group')) {
+            Schema::table('classes', function (Blueprint $table) {
+                $table->enum('age_group', ['Kids', 'Adults', 'All'])->default('Adults')->after('type');
+            });
+        }
 
-        // Add age_group to users table
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('age_group', ['Kids', 'Adults'])->default('Adults')->after('gender');
-        });
+        if (Schema::hasTable('users') && ! Schema::hasColumn('users', 'age_group')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->enum('age_group', ['Kids', 'Adults'])->default('Adults')->after('gender');
+            });
+        }
     }
 
     /**
@@ -27,12 +30,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('classes', function (Blueprint $table) {
-            $table->dropColumn('age_group');
-        });
+        if (Schema::hasTable('classes') && Schema::hasColumn('classes', 'age_group')) {
+            Schema::table('classes', function (Blueprint $table) {
+                $table->dropColumn('age_group');
+            });
+        }
 
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('age_group');
-        });
+        if (Schema::hasTable('users') && Schema::hasColumn('users', 'age_group')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('age_group');
+            });
+        }
     }
 };
