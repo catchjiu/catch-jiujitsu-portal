@@ -99,9 +99,15 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Profile Picture (optional)</label>
-                    <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif"
-                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-white file:text-sm">
-                    <p class="text-slate-500 text-xs mt-1">JPEG, PNG, WebP or GIF. Will be resized.</p>
+                    <input type="file" id="member-create-avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+                    <input type="hidden" name="avatar_data" id="member-create-avatar-data" value="">
+                    <div class="flex items-center gap-3">
+                        <button type="button" id="member-create-avatar-trigger" class="px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-blue-500 transition-colors text-sm">
+                            Profile Picture
+                        </button>
+                        <span id="member-create-avatar-filename" class="text-slate-500 text-sm"></span>
+                    </div>
+                    <p class="text-slate-500 text-xs mt-1">Max 1MB. You can crop the area after selecting.</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -161,17 +167,94 @@
         </div>
     </div>
 
+    <!-- Crop modal (same as register) -->
+    <div id="member-create-crop-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 p-4">
+        <div class="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-white font-bold">{{ __('app.auth.crop_profile_picture') }}</h3>
+                <button type="button" id="member-create-crop-close" class="text-slate-400 hover:text-white p-1" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-4 overflow-hidden flex-1 min-h-0">
+                <div class="w-full max-h-[60vh] min-h-[280px] bg-slate-900 mx-auto" style="max-width: 400px;">
+                    <img id="member-create-crop-image" src="" alt="Crop" style="max-width: 100%; max-height: 60vh; display: block;">
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end gap-2">
+                <button type="button" id="member-create-crop-cancel" class="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">{{ app()->getLocale() === 'zh-TW' ? '取消' : 'Cancel' }}</button>
+                <button type="button" id="member-create-crop-apply" class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">{{ app()->getLocale() === 'zh-TW' ? '套用' : 'Apply' }}</button>
+            </div>
+        </div>
+    </div>
+
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var rankSelect = document.getElementById('rank');
-            var beltRow = document.getElementById('belt_variation_row');
-            var kidsBelts = ['Grey', 'Yellow', 'Orange', 'Green'];
-            function toggleBeltVariation() {
-                beltRow.classList.toggle('hidden', !kidsBelts.includes(rankSelect.value));
-            }
-            rankSelect.addEventListener('change', toggleBeltVariation);
-            toggleBeltVariation();
+    document.addEventListener('DOMContentLoaded', function() {
+        var rankSelect = document.getElementById('rank');
+        var beltRow = document.getElementById('belt_variation_row');
+        var kidsBelts = ['Grey', 'Yellow', 'Orange', 'Green'];
+        function toggleBeltVariation() { beltRow.classList.toggle('hidden', !kidsBelts.includes(rankSelect.value)); }
+        rankSelect.addEventListener('change', toggleBeltVariation);
+        toggleBeltVariation();
+    });
+    (function() {
+        var MAX_AVATAR_BYTES = 1024 * 1024;
+        var avatarInput = document.getElementById('member-create-avatar');
+        var avatarData = document.getElementById('member-create-avatar-data');
+        var avatarTrigger = document.getElementById('member-create-avatar-trigger');
+        var avatarFilename = document.getElementById('member-create-avatar-filename');
+        var cropModal = document.getElementById('member-create-crop-modal');
+        var cropImage = document.getElementById('member-create-crop-image');
+        var cropClose = document.getElementById('member-create-crop-close');
+        var cropCancel = document.getElementById('member-create-crop-cancel');
+        var cropApply = document.getElementById('member-create-crop-apply');
+        var cropper = null;
+        avatarTrigger.addEventListener('click', function() { avatarInput.click(); });
+        avatarInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            var url = URL.createObjectURL(file);
+            cropModal.classList.remove('hidden');
+            cropModal.classList.add('flex');
+            if (cropper) { cropper.destroy(); cropper = null; }
+            cropImage.onload = function() {
+                cropImage.onload = null;
+                cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 0.8, background: false, guides: true, center: true, highlight: false });
+            };
+            cropImage.src = url;
         });
+        function closeCropModal() {
+            cropModal.classList.add('hidden');
+            cropModal.classList.remove('flex');
+            if (cropper) { cropper.destroy(); cropper = null; }
+            if (cropImage.src) URL.revokeObjectURL(cropImage.src);
+            cropImage.src = '';
+            avatarInput.value = '';
+        }
+        cropClose.addEventListener('click', closeCropModal);
+        cropCancel.addEventListener('click', closeCropModal);
+        cropApply.addEventListener('click', function() {
+            if (!cropper) return;
+            var canvas = cropper.getCroppedCanvas({ maxWidth: 800, maxHeight: 800, imageSmoothingQuality: 'high' });
+            if (!canvas) return;
+            function toBlobWithQuality(quality) { return new Promise(function(resolve) { canvas.toBlob(resolve, 'image/jpeg', quality); }); }
+            (function tryQuality(quality) {
+                toBlobWithQuality(quality).then(function(blob) {
+                    if (blob.size <= MAX_AVATAR_BYTES || quality <= 0.2) {
+                        var reader = new FileReader();
+                        reader.onloadend = function() {
+                            avatarData.value = reader.result;
+                            avatarFilename.textContent = (blob.size / 1024).toFixed(1) + ' KB';
+                            closeCropModal();
+                        };
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                    tryQuality(Math.max(0.2, quality - 0.1));
+                });
+            })(0.9);
+        });
+    })();
     </script>
 
     <!-- Info Card -->

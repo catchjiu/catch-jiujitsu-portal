@@ -43,8 +43,8 @@
     <div class="glass rounded-2xl p-6 text-center relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
         <div class="relative z-10">
-            <!-- Avatar (double-click to upload) -->
-            <div class="relative w-24 h-24 mx-auto mb-4 group cursor-pointer" ondblclick="document.getElementById('avatarInput').click()">
+            <!-- Avatar (click to upload; same as register: crop modal, max 1MB) -->
+            <div class="relative w-24 h-24 mx-auto mb-4 group cursor-pointer" id="avatarUploadArea">
                 <div class="w-24 h-24 rounded-full overflow-hidden bg-slate-700 border-4 border-slate-600 transition-all group-hover:border-blue-500">
                     @if($member->avatar)
                         <img src="{{ $member->avatar }}" alt="{{ $member->name }}" class="w-full h-full object-cover">
@@ -54,17 +54,16 @@
                         </div>
                     @endif
                 </div>
-                <!-- Upload overlay on hover -->
                 <div class="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
                 </div>
             </div>
-            <p class="text-slate-500 text-xs mb-2">Double-click to upload photo</p>
+            <p class="text-slate-500 text-xs mb-2">Click avatar to upload photo. Max 1MB. You can crop after selecting.</p>
             
-            <!-- Hidden file input and form -->
             <form id="avatarForm" action="{{ route('admin.members.avatar', $member->id) }}" method="POST" enctype="multipart/form-data" class="hidden">
                 @csrf
-                <input type="file" id="avatarInput" name="avatar" accept="image/*" onchange="document.getElementById('avatarForm').submit()">
+                <input type="hidden" name="avatar_data" id="member-detail-avatar-data" value="">
+                <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
             </form>
             
             <h2 class="text-2xl font-bold text-white mb-1">{{ $member->name }}</h2>
@@ -841,5 +840,87 @@
             }
         }
     }
+</script>
+
+<!-- Crop modal (same as register) -->
+<div id="member-detail-crop-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 p-4">
+    <div class="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="text-white font-bold">{{ __('app.auth.crop_profile_picture') }}</h3>
+            <button type="button" id="member-detail-crop-close" class="text-slate-400 hover:text-white p-1" aria-label="Close">&times;</button>
+        </div>
+        <div class="p-4 overflow-hidden flex-1 min-h-0">
+            <div class="w-full max-h-[60vh] min-h-[280px] bg-slate-900 mx-auto" style="max-width: 400px;">
+                <img id="member-detail-crop-image" src="" alt="Crop" style="max-width: 100%; max-height: 60vh; display: block;">
+            </div>
+        </div>
+        <div class="p-4 border-t border-slate-700 flex justify-end gap-2">
+            <button type="button" id="member-detail-crop-cancel" class="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">{{ app()->getLocale() === 'zh-TW' ? '取消' : 'Cancel' }}</button>
+            <button type="button" id="member-detail-crop-apply" class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">{{ app()->getLocale() === 'zh-TW' ? '套用' : 'Apply' }}</button>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script>
+(function() {
+    var MAX_AVATAR_BYTES = 1024 * 1024;
+    var avatarForm = document.getElementById('avatarForm');
+    var avatarInput = document.getElementById('avatarInput');
+    var avatarData = document.getElementById('member-detail-avatar-data');
+    var avatarUploadArea = document.getElementById('avatarUploadArea');
+    var cropModal = document.getElementById('member-detail-crop-modal');
+    var cropImage = document.getElementById('member-detail-crop-image');
+    var cropClose = document.getElementById('member-detail-crop-close');
+    var cropCancel = document.getElementById('member-detail-crop-cancel');
+    var cropApply = document.getElementById('member-detail-crop-apply');
+    var cropper = null;
+    avatarUploadArea.addEventListener('click', function() { avatarInput.click(); });
+    avatarInput.addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        var url = URL.createObjectURL(file);
+        cropModal.classList.remove('hidden');
+        cropModal.classList.add('flex');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        cropImage.onload = function() {
+            cropImage.onload = null;
+            cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 0.8, background: false, guides: true, center: true, highlight: false });
+        };
+        cropImage.src = url;
+    });
+    function closeCropModal() {
+        cropModal.classList.add('hidden');
+        cropModal.classList.remove('flex');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        if (cropImage.src) URL.revokeObjectURL(cropImage.src);
+        cropImage.src = '';
+        avatarInput.value = '';
+    }
+    cropClose.addEventListener('click', closeCropModal);
+    cropCancel.addEventListener('click', closeCropModal);
+    cropApply.addEventListener('click', function() {
+        if (!cropper) return;
+        var canvas = cropper.getCroppedCanvas({ maxWidth: 800, maxHeight: 800, imageSmoothingQuality: 'high' });
+        if (!canvas) return;
+        function toBlobWithQuality(quality) { return new Promise(function(resolve) { canvas.toBlob(resolve, 'image/jpeg', quality); }); }
+        (function tryQuality(quality) {
+            toBlobWithQuality(quality).then(function(blob) {
+                if (blob.size <= MAX_AVATAR_BYTES || quality <= 0.2) {
+                    var reader = new FileReader();
+                    reader.onloadend = function() {
+                        avatarData.value = reader.result;
+                        closeCropModal();
+                        avatarForm.submit();
+                    };
+                    reader.readAsDataURL(blob);
+                    return;
+                }
+                tryQuality(Math.max(0.2, quality - 0.1));
+            });
+        })(0.9);
+    });
+})();
 </script>
 @endsection

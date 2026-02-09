@@ -51,24 +51,25 @@
                         @endif
                     </div>
 
-                    <!-- Upload Form -->
-                    <form action="{{ route('settings.avatar') }}" method="POST" enctype="multipart/form-data" class="flex-1">
+                    <!-- Upload Form (same as register: button + crop modal, max 1MB) -->
+                    <form id="settings-avatar-form" action="{{ route('settings.avatar') }}" method="POST" enctype="multipart/form-data" class="flex-1">
                         @csrf
-                        <label class="block">
-                            <input type="file" name="avatar" accept="image/*" required
-                                class="block w-full text-sm text-slate-400
-                                    file:mr-4 file:py-2 file:px-4
-                                    file:rounded-lg file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-blue-500 file:text-white
-                                    hover:file:bg-blue-600
-                                    file:cursor-pointer cursor-pointer">
-                        </label>
-                        <p class="text-slate-500 text-xs mt-2">JPG, PNG, GIF or WebP. Max 2MB.</p>
+                        <input type="file" id="settings-avatar-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+                        <input type="hidden" name="avatar_data" id="settings-avatar-data" value="">
+                        <div class="flex items-center gap-3">
+                            <button type="button" id="settings-avatar-trigger" class="px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-blue-500 transition-colors text-sm">
+                                {{ __('app.settings.change_photo') }}
+                            </button>
+                            <span id="settings-avatar-filename" class="text-slate-500 text-sm"></span>
+                        </div>
+                        <p class="text-slate-500 text-xs mt-2">Max 1MB. You can crop the area after selecting.</p>
                         @error('avatar')
                             <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
-                        <button type="submit" class="mt-3 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors">
+                        @error('avatar_data')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                        <button type="submit" id="settings-avatar-submit" class="mt-3 px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors" style="display: none;">
                             {{ __('app.settings.change_photo') }}
                         </button>
                     </form>
@@ -347,4 +348,94 @@
         </div>
     </div>
 </div>
+
+<!-- Crop modal (same as register) -->
+<div id="settings-crop-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 p-4">
+    <div class="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+            <h3 class="text-white font-bold">{{ __('app.auth.crop_profile_picture') }}</h3>
+            <button type="button" id="settings-crop-modal-close" class="text-slate-400 hover:text-white p-1" aria-label="Close">&times;</button>
+        </div>
+        <div class="p-4 overflow-hidden flex-1 min-h-0">
+            <div class="w-full max-h-[60vh] min-h-[280px] bg-slate-900 mx-auto" style="max-width: 400px;">
+                <img id="settings-crop-image" src="" alt="Crop" style="max-width: 100%; max-height: 60vh; display: block;">
+            </div>
+        </div>
+        <div class="p-4 border-t border-slate-700 flex justify-end gap-2">
+            <button type="button" id="settings-crop-cancel" class="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">{{ app()->getLocale() === 'zh-TW' ? '取消' : 'Cancel' }}</button>
+            <button type="button" id="settings-crop-apply" class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">{{ app()->getLocale() === 'zh-TW' ? '套用' : 'Apply' }}</button>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<script>
+(function() {
+    const MAX_AVATAR_BYTES = 1024 * 1024;
+    const avatarInput = document.getElementById('settings-avatar-input');
+    const avatarData = document.getElementById('settings-avatar-data');
+    const avatarTrigger = document.getElementById('settings-avatar-trigger');
+    const avatarFilename = document.getElementById('settings-avatar-filename');
+    const avatarForm = document.getElementById('settings-avatar-form');
+    const avatarSubmit = document.getElementById('settings-avatar-submit');
+    const cropModal = document.getElementById('settings-crop-modal');
+    const cropImage = document.getElementById('settings-crop-image');
+    const cropModalClose = document.getElementById('settings-crop-modal-close');
+    const cropCancel = document.getElementById('settings-crop-cancel');
+    const cropApply = document.getElementById('settings-crop-apply');
+    let cropper = null;
+
+    if (avatarTrigger) avatarTrigger.addEventListener('click', function() { avatarInput.click(); });
+
+    avatarInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        const url = URL.createObjectURL(file);
+        cropModal.classList.remove('hidden');
+        cropModal.classList.add('flex');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        cropImage.onload = function() {
+            cropImage.onload = null;
+            cropper = new Cropper(cropImage, { aspectRatio: 1, viewMode: 1, dragMode: 'move', autoCropArea: 0.8, background: false, guides: true, center: true, highlight: false });
+        };
+        cropImage.src = url;
+    });
+
+    function closeCropModal() {
+        cropModal.classList.add('hidden');
+        cropModal.classList.remove('flex');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        if (cropImage.src) URL.revokeObjectURL(cropImage.src);
+        cropImage.src = '';
+        avatarInput.value = '';
+    }
+
+    if (cropModalClose) cropModalClose.addEventListener('click', closeCropModal);
+    if (cropCancel) cropCancel.addEventListener('click', closeCropModal);
+
+    cropApply.addEventListener('click', function() {
+        if (!cropper) return;
+        const canvas = cropper.getCroppedCanvas({ maxWidth: 800, maxHeight: 800, imageSmoothingQuality: 'high' });
+        if (!canvas) return;
+        function toBlobWithQuality(quality) { return new Promise(function(resolve) { canvas.toBlob(resolve, 'image/jpeg', quality); }); }
+        (function tryQuality(quality) {
+            toBlobWithQuality(quality).then(function(blob) {
+                if (blob.size <= MAX_AVATAR_BYTES || quality <= 0.2) {
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        avatarData.value = reader.result;
+                        avatarFilename.textContent = (blob.size / 1024).toFixed(1) + ' KB';
+                        avatarSubmit.style.display = 'inline-block';
+                        closeCropModal();
+                    };
+                    reader.readAsDataURL(blob);
+                    return;
+                }
+                tryQuality(Math.max(0.2, quality - 0.1));
+            });
+        })(0.9);
+    });
+})();
+</script>
 @endsection

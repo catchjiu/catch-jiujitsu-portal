@@ -1096,6 +1096,7 @@ class AdminController extends Controller
             'belt_variation' => 'nullable|in:white,solid,black',
             'stripes' => 'required|integer|min:0|max:4',
             'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+            'avatar_data' => 'nullable|string',
         ]);
 
         $kidsBelts = ['Grey', 'Yellow', 'Orange', 'Green'];
@@ -1119,7 +1120,12 @@ class AdminController extends Controller
             'is_admin' => false,
         ]);
 
-        if ($request->hasFile('avatar')) {
+        if (! empty($request->input('avatar_data')) && preg_match('/^data:image\/(\w+);base64,/', $request->input('avatar_data'))) {
+            $filename = $this->processMemberAvatarBase64($request->input('avatar_data'), $member);
+            if ($filename) {
+                $member->update(['avatar_url' => $filename]);
+            }
+        } elseif ($request->hasFile('avatar')) {
             $filename = $this->processMemberAvatarUpload($request->file('avatar'), $member);
             $member->update(['avatar_url' => $filename]);
         }
@@ -1191,6 +1197,92 @@ class AdminController extends Controller
     }
 
     /**
+     * Process base64 avatar (from cropper). Resize and compress to under 1MB. Returns path or null.
+     */
+    private function processMemberAvatarBase64(string $dataUrl, User $member): ?string
+    {
+        if (! preg_match('/^data:image\/(\w+);base64,(.+)$/', $dataUrl, $m)) {
+            return null;
+        }
+        $ext = strtolower($m[1]);
+        $blob = base64_decode($m[2], true);
+        if ($blob === false) {
+            return null;
+        }
+        $tmp = tempnam(sys_get_temp_dir(), 'avatar_');
+        file_put_contents($tmp, $blob);
+        $mime = 'image/' . ($ext === 'jpeg' ? 'jpeg' : $ext);
+        $sourceImage = $this->createMemberImageFromPath($tmp, $mime);
+        unlink($tmp);
+        if (! $sourceImage) {
+            return null;
+        }
+        return $this->resizeAndSaveMemberAvatar($sourceImage, $member);
+    }
+
+    private function createMemberImageFromPath(string $path, string $mimeType)
+    {
+        switch ($mimeType) {
+            case 'image/jpeg':
+            case 'image/jpg':
+                return @imagecreatefromjpeg($path);
+            case 'image/png':
+                return @imagecreatefrompng($path);
+            case 'image/gif':
+                return @imagecreatefromgif($path);
+            case 'image/webp':
+                return @imagecreatefromwebp($path);
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Resize to max 400px and compress to under 1MB. Returns storage path or null.
+     */
+    private function resizeAndSaveMemberAvatar($sourceImage, User $member): ?string
+    {
+        $maxBytes = 1024 * 1024;
+        $maxWidth = 400;
+        $maxHeight = 400;
+        $origWidth = imagesx($sourceImage);
+        $origHeight = imagesy($sourceImage);
+        $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+        if ($ratio < 1) {
+            $newWidth = (int) ($origWidth * $ratio);
+            $newHeight = (int) ($origHeight * $ratio);
+        } else {
+            $newWidth = $origWidth;
+            $newHeight = $origHeight;
+        }
+        $resized = imagecreatetruecolor($newWidth, $newHeight);
+        if (! $resized) {
+            imagedestroy($sourceImage);
+            return null;
+        }
+        imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+        imagedestroy($sourceImage);
+
+        $filename = 'avatars/' . $member->id . '_' . time() . '.jpg';
+        $quality = 85;
+        do {
+            $tempFile = tempnam(sys_get_temp_dir(), 'avatar_');
+            imagejpeg($resized, $tempFile, $quality);
+            $size = filesize($tempFile);
+            if ($size <= $maxBytes) {
+                Storage::disk('public')->put($filename, file_get_contents($tempFile));
+                unlink($tempFile);
+                imagedestroy($resized);
+                return $filename;
+            }
+            unlink($tempFile);
+            $quality -= 10;
+        } while ($quality >= 20);
+        imagedestroy($resized);
+        return null;
+    }
+
+    /**
      * Delete a member.
      */
     public function deleteMember($id)
@@ -1215,16 +1307,28 @@ class AdminController extends Controller
         $member = User::where('is_admin', false)->findOrFail($id);
 
         $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+            'avatar_data' => 'nullable|string',
         ]);
 
-        if ($member->avatar_url && !str_starts_with($member->avatar_url, 'http')) {
+        if (! $request->hasFile('avatar') && empty($request->input('avatar_data'))) {
+            return back()->with('error', 'Please select a photo.');
+        }
+
+        if ($member->avatar_url && ! str_starts_with($member->avatar_url, 'http')) {
             Storage::disk('public')->delete($member->avatar_url);
         }
 
         try {
-            $filename = $this->processMemberAvatarUpload($request->file('avatar'), $member);
-            $member->update(['avatar_url' => $filename]);
+            $filename = null;
+            if (! empty($request->input('avatar_data')) && preg_match('/^data:image\/(\w+);base64,/', $request->input('avatar_data'))) {
+                $filename = $this->processMemberAvatarBase64($request->input('avatar_data'), $member);
+            } elseif ($request->hasFile('avatar')) {
+                $filename = $this->processMemberAvatarUpload($request->file('avatar'), $member);
+            }
+            if ($filename) {
+                $member->update(['avatar_url' => $filename]);
+            }
         } catch (\InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }

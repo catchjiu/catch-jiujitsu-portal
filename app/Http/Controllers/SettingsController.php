@@ -47,73 +47,123 @@ class SettingsController extends Controller
     }
 
     /**
-     * Update avatar/profile picture.
+     * Update avatar/profile picture. Accepts either file upload or base64 (from cropper, max 1MB).
      */
     public function updateAvatar(Request $request)
     {
         $request->validate([
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // 2MB max (nginx default limit)
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+            'avatar_data' => 'nullable|string',
         ]);
+
+        if (! $request->hasFile('avatar') && empty($request->input('avatar_data'))) {
+            return back()->with('error', 'Please select a photo.');
+        }
 
         $user = $request->user();
 
-        // Delete old avatar if exists
         if ($user->avatar_url && Storage::disk('public')->exists($user->avatar_url)) {
             Storage::disk('public')->delete($user->avatar_url);
         }
 
-        // Process and compress image using GD library
-        $file = $request->file('avatar');
-        $filename = 'avatars/' . uniqid() . '_' . time() . '.jpg';
-        
-        // Create image from uploaded file
-        $sourceImage = $this->createImageFromFile($file->getPathname(), $file->getMimeType());
-        
-        if (!$sourceImage) {
-            return back()->with('error', 'Unable to process image.');
+        $filename = null;
+        if (! empty($request->input('avatar_data')) && preg_match('/^data:image\/(\w+);base64,/', $request->input('avatar_data'))) {
+            $filename = $this->processAvatarBase64($request->input('avatar_data'));
+        } elseif ($request->hasFile('avatar')) {
+            $filename = $this->processAvatarFile($request->file('avatar'));
         }
-        
-        // Get original dimensions
+
+        if (! $filename) {
+            return back()->with('error', 'Unable to process image. Max 1MB.');
+        }
+
+        $user->update(['avatar_url' => $filename]);
+
+        return back()->with('success', 'Profile picture updated successfully.');
+    }
+
+    /**
+     * Process base64 avatar (from cropper). Resize and compress to under 1MB. Returns path or null.
+     */
+    private function processAvatarBase64(string $dataUrl): ?string
+    {
+        if (! preg_match('/^data:image\/(\w+);base64,(.+)$/', $dataUrl, $m)) {
+            return null;
+        }
+        $ext = strtolower($m[1]);
+        $blob = base64_decode($m[2], true);
+        if ($blob === false) {
+            return null;
+        }
+        $tmp = tempnam(sys_get_temp_dir(), 'avatar_');
+        file_put_contents($tmp, $blob);
+        $mime = 'image/' . ($ext === 'jpeg' ? 'jpeg' : $ext);
+        $sourceImage = $this->createImageFromFile($tmp, $mime);
+        unlink($tmp);
+        if (! $sourceImage) {
+            return null;
+        }
+        return $this->resizeAndSaveAvatar($sourceImage);
+    }
+
+    /**
+     * Process uploaded file. Resize and compress to under 1MB. Returns path or null.
+     */
+    private function processAvatarFile($file): ?string
+    {
+        $sourceImage = $this->createImageFromFile($file->getPathname(), $file->getMimeType());
+        if (! $sourceImage) {
+            return null;
+        }
+        return $this->resizeAndSaveAvatar($sourceImage);
+    }
+
+    /**
+     * Resize to max 500px and compress to under 1MB. Returns storage path or null.
+     */
+    private function resizeAndSaveAvatar($sourceImage): ?string
+    {
+        $maxBytes = 1024 * 1024;
+        $maxSize = 500;
         $origWidth = imagesx($sourceImage);
         $origHeight = imagesy($sourceImage);
-        
-        // Calculate new dimensions (max 500x500, maintain aspect ratio)
-        $maxSize = 500;
         if ($origWidth > $maxSize || $origHeight > $maxSize) {
             if ($origWidth > $origHeight) {
                 $newWidth = $maxSize;
-                $newHeight = intval($origHeight * ($maxSize / $origWidth));
+                $newHeight = (int) round($origHeight * ($maxSize / $origWidth));
             } else {
                 $newHeight = $maxSize;
-                $newWidth = intval($origWidth * ($maxSize / $origHeight));
+                $newWidth = (int) round($origWidth * ($maxSize / $origHeight));
             }
         } else {
             $newWidth = $origWidth;
             $newHeight = $origHeight;
         }
-        
-        // Create resized image
-        $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
-        imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
-        
-        // Save to temp file with compression
-        $tempFile = tempnam(sys_get_temp_dir(), 'avatar_');
-        $quality = 85;
-        imagejpeg($resizedImage, $tempFile, $quality);
-        
-        // Clean up
+        $resized = imagecreatetruecolor($newWidth, $newHeight);
+        if (! $resized) {
+            imagedestroy($sourceImage);
+            return null;
+        }
+        imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
         imagedestroy($sourceImage);
-        imagedestroy($resizedImage);
-        
-        // Move to storage
-        Storage::disk('public')->put($filename, file_get_contents($tempFile));
-        unlink($tempFile);
 
-        $user->update([
-            'avatar_url' => $filename,
-        ]);
-
-        return back()->with('success', 'Profile picture updated successfully.');
+        $filename = 'avatars/' . uniqid() . '_' . time() . '.jpg';
+        $quality = 85;
+        do {
+            $tempFile = tempnam(sys_get_temp_dir(), 'avatar_');
+            imagejpeg($resized, $tempFile, $quality);
+            $size = filesize($tempFile);
+            if ($size <= $maxBytes) {
+                Storage::disk('public')->put($filename, file_get_contents($tempFile));
+                unlink($tempFile);
+                imagedestroy($resized);
+                return $filename;
+            }
+            unlink($tempFile);
+            $quality -= 10;
+        } while ($quality >= 20);
+        imagedestroy($resized);
+        return null;
     }
     
     /**
