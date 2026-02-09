@@ -3,7 +3,6 @@
 @section('title', app()->getLocale() === 'zh-TW' ? '首頁' : 'Dashboard')
 
 @section('content')
-<script>window.CHECKIN_USER_ID = {{ $user->id }};</script>
 <div class="space-y-6">
     @if(!empty($familyBar) && !empty($familyMembers))
     <!-- Family: viewing member + switch -->
@@ -51,10 +50,9 @@
         <p class="text-slate-400 text-sm">{{ __('app.dashboard.ready_to_train') }}</p>
     </div>
 
-    <!-- Check In Module (at front) -->
-    <div id="checkInModule">
-        <button type="button" data-open-modal="checkin"
-                class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
+    <!-- Check In (opens separate page) -->
+    <a href="{{ route('checkin.page') }}" class="block">
+        <div class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
@@ -66,9 +64,8 @@
                 </div>
                 <span class="material-symbols-outlined text-slate-500">chevron_right</span>
             </div>
-        </button>
-
-    </div>
+        </div>
+    </a>
 
     <!-- Rank Card -->
     <div class="glass rounded-2xl p-5 border-t-4 border-t-amber-500 relative overflow-hidden">
@@ -345,24 +342,6 @@
         </div>
     </a>
     @endif
-
-    <!-- Book Private Class (below membership) – same as Schedule: data-open-modal + onclick so modal opens on top -->
-    <div>
-        <button type="button" id="openPrivateClassModal" data-open-modal="private"
-                class="w-full glass rounded-2xl p-5 border-t-4 border-t-violet-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
-            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-            <div class="relative z-10 flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                    <span class="material-symbols-outlined text-violet-500 text-2xl">person_search</span>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '預約私教課' : 'Book private class' }}</h3>
-                    <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '選擇教練與時段' : 'Choose a coach and time slot' }}</p>
-                </div>
-                <span class="material-symbols-outlined text-slate-500">chevron_right</span>
-            </div>
-        </button>
-    </div>
 
     <!-- Next Class (moved here, under membership) -->
     <div>

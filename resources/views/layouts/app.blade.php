@@ -22,7 +22,6 @@
     @endif
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
-    <!-- modals-v2: Check In + Private open on top via body delegation -->
     <!-- Top Bar -->
     <header class="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5 px-4 sm:px-6 py-4">
         <div class="max-w-lg mx-auto flex justify-between items-center">
@@ -114,146 +113,6 @@
         </div>
     </nav>
 
-    <!-- Check In Modal + QR Fullscreen: rendered in body so fixed positioning works on Android -->
-    <div id="checkInModal" class="hidden fixed inset-0 z-[10002] modal-overlay-fixed flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-         style="position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100% !important;height:100% !important;min-height:100vh;min-height:100dvh;"
-         onclick="if(event.target===this) typeof closeCheckInModal === 'function' && closeCheckInModal()">
-        <div class="glass rounded-2xl p-6 max-w-sm w-full relative" onclick="event.stopPropagation()">
-            <button type="button" onclick="typeof closeCheckInModal === 'function' && closeCheckInModal()"
-                    class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-            <h3 class="text-xl font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.check_in') }}</h3>
-
-            <button type="button" id="checkInTodayBtn"
-                    class="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 mb-4 transition-colors">
-                <span class="material-symbols-outlined">event_available</span>
-                {{ __('app.dashboard.check_in_for_today') }}
-            </button>
-            <p class="text-slate-500 text-xs mb-6">{{ __('app.dashboard.check_in_today_desc') }}</p>
-
-            <p class="text-slate-400 text-sm font-semibold mb-2">{{ __('app.dashboard.scan_at_kiosk') }}</p>
-            <button type="button" id="qrFullscreenBtn" class="block w-full" onclick="typeof openQrFullscreen === 'function' && openQrFullscreen()">
-                <div class="p-4 rounded-xl bg-white flex justify-center">
-                    <img id="checkinQrImg" src="" alt="Check-in QR code" class="w-40 h-40" style="min-width:10rem;min-height:10rem;">
-                </div>
-                <p class="text-slate-500 text-xs mt-2">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
-            </button>
-        </div>
-    </div>
-
-    <div id="qrFullscreen" class="hidden fixed inset-0 z-[10001] modal-overlay-fixed bg-black flex flex-col items-center justify-center p-4"
-         style="position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100% !important;height:100% !important;min-height:100vh;min-height:100dvh;"
-         onclick="typeof closeQrFullscreen === 'function' && closeQrFullscreen()">
-        <p class="text-white text-sm mb-4">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
-        <div class="p-6 rounded-2xl bg-white">
-            <img id="checkinQrImgFullscreen" src="" alt="Check-in QR code" class="w-64 h-64 sm:w-80 sm:h-80" style="min-width:16rem;min-height:16rem;">
-        </div>
-        <p id="checkinQrLabelFullscreen" class="text-slate-500 text-xs mt-4"></p>
-    </div>
-
-    <script>
-    (function() {
-        var checkinTodayUrl = '{{ route("checkin.today") }}';
-        var csrfToken = document.querySelector('meta[name="csrf-token"]') && document.querySelector('meta[name="csrf-token"]').content;
-        var checkinBodyScrollY = 0;
-        function lockBodyForModal() {
-            checkinBodyScrollY = window.scrollY || window.pageYOffset || 0;
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.top = '-' + checkinBodyScrollY + 'px';
-            document.body.style.left = '0';
-            document.body.style.right = '0';
-            window.scrollTo(0, 0);
-        }
-        function unlockBodyForModal() {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.top = '';
-            document.body.style.left = '';
-            document.body.style.right = '';
-            if (typeof checkinBodyScrollY === 'number') window.scrollTo(0, checkinBodyScrollY);
-        }
-        window.closeCheckInModal = function() {
-            unlockBodyForModal();
-            document.getElementById('checkInModal')?.classList.add('hidden');
-        };
-        window.closeQrFullscreen = function() {
-            unlockBodyForModal();
-            document.getElementById('qrFullscreen')?.classList.add('hidden');
-        };
-        function moveToBodyEnd(el) {
-            if (el && el.parentNode && el.parentNode !== document.body) document.body.appendChild(el);
-        }
-        window.openCheckInModal = function() {
-            var uid = window.CHECKIN_USER_ID;
-            var m = document.getElementById('checkInModal');
-            var q = document.getElementById('qrFullscreen');
-            if (q) q.classList.add('hidden');
-            if (m) {
-                moveToBodyEnd(m);
-                lockBodyForModal();
-                var img = document.getElementById('checkinQrImg');
-                if (img && uid) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-' + uid;
-                m.classList.remove('hidden');
-            }
-        };
-        window.openQrFullscreen = function() {
-            var uid = window.CHECKIN_USER_ID;
-            var m = document.getElementById('checkInModal');
-            var q = document.getElementById('qrFullscreen');
-            if (m) m.classList.add('hidden');
-            if (q) {
-                moveToBodyEnd(q);
-                lockBodyForModal();
-                var img = document.getElementById('checkinQrImgFullscreen');
-                var label = document.getElementById('checkinQrLabelFullscreen');
-                if (img && uid) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=CATCH-' + uid;
-                if (label) label.textContent = uid ? 'CATCH-' + uid : '';
-                q.classList.remove('hidden');
-            }
-        };
-        document.body.addEventListener('click', function(e) {
-            var open = e.target && e.target.closest && e.target.closest('[data-open-modal]');
-            if (!open) return;
-            e.preventDefault();
-            e.stopPropagation();
-            var which = open.getAttribute('data-open-modal');
-            if (which === 'checkin' && typeof window.openCheckInModal === 'function') window.openCheckInModal();
-            if (which === 'private' && typeof window.openModalAndLoadCoaches === 'function') window.openModalAndLoadCoaches();
-        }, true);
-        var btn = document.getElementById('checkInTodayBtn');
-        if (btn && checkinTodayUrl && csrfToken) {
-            var originalHtml = btn.innerHTML;
-            btn.addEventListener('click', function() {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
-                var d = new Date();
-                var localDate = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-                fetch(checkinTodayUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ date: localDate })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function(data) {
-                    if (data.success) {
-                        if (typeof closeCheckInModal === 'function') closeCheckInModal();
-                        window.location.reload();
-                    } else {
-                        alert(data.message || 'Something went wrong.');
-                    }
-                })
-                .catch(function() { alert('Check-in failed. Try again.'); })
-                .finally(function() {
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                });
-            });
-        }
-    })();
-    </script>
-
     <!-- Private Class Modal: 1) Choose coach → 2) Next 2 weeks calendar → 3) Book (same full-viewport style as Schedule) -->
     <div id="privateClassModal" class="hidden fixed inset-0 z-[10000] modal-overlay-fixed flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
          style="position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100% !important;height:100% !important;min-height:100vh;min-height:100dvh;"
@@ -339,8 +198,6 @@
             document.body.style.left = '0';
             document.body.style.right = '0';
             window.scrollTo(0, 0);
-            document.getElementById('checkInModal')?.classList.add('hidden');
-            document.getElementById('qrFullscreen')?.classList.add('hidden');
             if (modal.parentNode !== document.body) document.body.appendChild(modal);
             modal.classList.remove('hidden');
             step2.classList.add('hidden');

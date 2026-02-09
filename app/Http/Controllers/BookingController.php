@@ -161,6 +161,16 @@ class BookingController extends Controller
     }
 
     /**
+     * Show the check-in page (QR code and check in for today).
+     */
+    public function checkInPage()
+    {
+        $user = User::currentFamilyMember();
+
+        return view('check-in', ['user' => $user]);
+    }
+
+    /**
      * Check in for today's classes - book user for all of today's classes.
      */
     public function checkInToday(Request $request)

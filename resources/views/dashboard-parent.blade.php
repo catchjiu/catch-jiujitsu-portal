@@ -3,7 +3,6 @@
 @section('title', app()->getLocale() === 'zh-TW' ? '首頁' : 'Dashboard')
 
 @section('content')
-<script>window.CHECKIN_USER_ID = {{ $viewingUser->id }};</script>
 <div class="space-y-6">
     @if($profiles->count() > 1)
         <a href="{{ route('settings') }}" class="block glass rounded-2xl p-4 border border-slate-700/50 hover:bg-slate-800/60 transition-colors">
@@ -35,10 +34,9 @@
         <p class="text-slate-400 text-sm">{{ __('app.dashboard.ready_to_train') }}</p>
     </div>
 
-    <!-- Check In Module (at front) -->
-    <div id="checkInModule">
-        <button type="button" data-open-modal="checkin"
-                class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
+    <!-- Check In (opens separate page) -->
+    <a href="{{ route('checkin.page') }}" class="block">
+        <div class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
@@ -50,9 +48,8 @@
                 </div>
                 <span class="material-symbols-outlined text-slate-500">chevron_right</span>
             </div>
-        </button>
-
-    </div>
+        </div>
+    </a>
 
     <!-- Rank Card -->
     <div class="glass rounded-2xl p-5 border-t-4 border-t-amber-500 relative overflow-hidden">
