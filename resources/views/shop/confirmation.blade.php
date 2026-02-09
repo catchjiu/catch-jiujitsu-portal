@@ -47,7 +47,7 @@
 
     <div class="flex flex-col gap-3">
         @if($order->status === 'Pending')
-            <a href="{{ route('shop.my-orders') }}" class="block w-full py-3 rounded-xl bg-[#00d4ff] text-slate-950 font-bold text-center hover:bg-[#00d4ff]/90 transition-colors">
+            <a href="{{ route('shop.my-orders') }}" class="block w-full py-3 rounded-xl bg-emerald-500 text-white font-bold text-center hover:bg-emerald-600 transition-colors">
                 {{ __('app.shop.pay_now') }}
             </a>
             <p class="text-slate-500 text-xs text-center">{{ __('app.shop.pay_now_hint') }}</p>
