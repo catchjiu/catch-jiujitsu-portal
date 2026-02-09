@@ -68,9 +68,12 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'avatar_data' => 'nullable|string',
+            'waiver_accepted' => 'required|accepted',
             'g-recaptcha-response' => 'required',
         ], [
             'g-recaptcha-response.required' => 'Please complete the CAPTCHA verification.',
+            'waiver_accepted.required' => __('app.auth.waiver_required'),
+            'waiver_accepted.accepted' => __('app.auth.waiver_required'),
         ]);
 
         // Verify reCAPTCHA

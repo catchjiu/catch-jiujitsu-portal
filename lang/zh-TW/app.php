@@ -308,6 +308,7 @@ return [
         'profile_picture' => '大頭貼',
         'profile_picture_optional' => '大頭貼（選填）',
         'crop_profile_picture' => '裁切大頭貼',
+        'waiver_required' => '您必須閱讀並同意參與免責聲明才能註冊。',
     ],
 
     // Belts

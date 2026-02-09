@@ -113,6 +113,21 @@
                     <input type="password" id="password_confirmation" name="password_confirmation" required
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                 </div>
+
+                <!-- Waiver -->
+                <div class="flex flex-wrap items-start gap-2">
+                    <input type="checkbox" id="waiver_accepted" name="waiver_accepted" value="1" {{ old('waiver_accepted') ? 'checked' : '' }} required
+                        class="mt-1.5 h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-800">
+                    <div class="flex-1 min-w-0">
+                        <label for="waiver_accepted" class="text-sm text-slate-300 cursor-pointer">
+                            {{ __('waiver.accept_label') }}
+                            <button type="button" id="waiver-view-btn" class="ml-1 text-blue-400 hover:text-blue-300 underline font-medium">{{ __('waiver.view_button') }}</button>
+                        </label>
+                        @error('waiver_accepted')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
                 
                 <!-- reCAPTCHA -->
                 <div class="flex justify-center">
@@ -136,6 +151,20 @@
     </div>
     </div>
 
+    <!-- Waiver modal -->
+    <div id="waiver-modal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/80 p-4" aria-modal="true" role="dialog" aria-labelledby="waiver-modal-title">
+        <div class="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center shrink-0">
+                <h2 id="waiver-modal-title" class="text-lg font-bold text-white">{{ __('waiver.modal_title') }}</h2>
+                <button type="button" id="waiver-modal-close" class="text-slate-400 hover:text-white p-1 text-2xl leading-none" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 min-h-0 text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ __('waiver.full') }}</div>
+            <div class="p-4 border-t border-slate-700 shrink-0">
+                <button type="button" id="waiver-modal-ok" class="w-full py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium">{{ app()->getLocale() === 'zh-TW' ? '關閉' : 'Close' }}</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Crop modal -->
     <div id="crop-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 p-4">
         <div class="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
@@ -157,6 +186,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
     <script>
+(function() {
+    // Waiver modal
+    var waiverModal = document.getElementById('waiver-modal');
+    var waiverViewBtn = document.getElementById('waiver-view-btn');
+    var waiverModalClose = document.getElementById('waiver-modal-close');
+    var waiverModalOk = document.getElementById('waiver-modal-ok');
+    if (waiverViewBtn) waiverViewBtn.addEventListener('click', function(e) { e.preventDefault(); e.stopPropagation(); waiverModal.classList.remove('hidden'); waiverModal.classList.add('flex'); });
+    if (waiverModalClose) waiverModalClose.addEventListener('click', function() { waiverModal.classList.add('hidden'); waiverModal.classList.remove('flex'); });
+    if (waiverModalOk) waiverModalOk.addEventListener('click', function() { waiverModal.classList.add('hidden'); waiverModal.classList.remove('flex'); });
+})();
 (function() {
     const MAX_AVATAR_BYTES = 1024 * 1024; // 1MB
     const avatarInput = document.getElementById('avatar');

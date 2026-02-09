@@ -308,6 +308,7 @@ return [
         'profile_picture' => 'Profile Picture',
         'profile_picture_optional' => 'Profile picture (optional)',
         'crop_profile_picture' => 'Crop your profile picture',
+        'waiver_required' => 'You must read and accept the participation waiver to register.',
     ],
 
     // Belts

@@ -117,6 +117,7 @@ class AuthenticationTest extends TestCase
             'email' => 'john@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'waiver_accepted' => '1',
             'g-recaptcha-response' => 'valid-token',
         ]);
 
@@ -145,6 +146,7 @@ class AuthenticationTest extends TestCase
             'email' => 'john@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'waiver_accepted' => '1',
             'g-recaptcha-response' => 'invalid-token',
         ]);
 
@@ -159,7 +161,7 @@ class AuthenticationTest extends TestCase
     {
         $response = $this->post('/register', []);
 
-        $response->assertSessionHasErrors(['first_name', 'last_name', 'email', 'password', 'g-recaptcha-response']);
+        $response->assertSessionHasErrors(['first_name', 'last_name', 'email', 'password', 'waiver_accepted', 'g-recaptcha-response']);
     }
 
     /**
@@ -179,6 +181,7 @@ class AuthenticationTest extends TestCase
             'email' => 'existing@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'waiver_accepted' => '1',
             'g-recaptcha-response' => 'valid-token',
         ]);
 
@@ -196,6 +199,7 @@ class AuthenticationTest extends TestCase
             'email' => 'john@example.com',
             'password' => 'short',
             'password_confirmation' => 'short',
+            'waiver_accepted' => '1',
             'g-recaptcha-response' => 'valid-token',
         ]);
 

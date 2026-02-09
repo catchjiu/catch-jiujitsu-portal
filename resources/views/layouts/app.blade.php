@@ -79,7 +79,7 @@
             @php $isFamily = auth()->user()->isInFamily() ?? false; @endphp
             <a href="{{ $isFamily ? route('family.dashboard') : route('dashboard') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ (request()->routeIs('dashboard') || request()->routeIs('family.dashboard')) ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">home</span>
-                <span class="text-[10px] font-medium">{{ $isFamily ? (app()->getLocale() === 'zh-TW' ? '家庭' : 'Family') : __('app.nav.home') }}</span>
+                <span class="text-[10px] font-medium">{{ __('app.nav.home') }}</span>
             </a>
             <a href="{{ route('schedule') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('schedule') ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">calendar_today</span>
