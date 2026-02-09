@@ -45,8 +45,16 @@
         </div>
     </div>
 
-    <a href="{{ route('shop.index') }}" class="block w-full py-3 rounded-xl bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40 font-semibold text-center hover:bg-[#00d4ff]/30 transition-colors">
-        {{ __('app.shop.back_to_shop') }}
-    </a>
+    <div class="flex flex-col gap-3">
+        @if($order->status === 'Pending')
+            <a href="{{ route('shop.my-orders') }}" class="block w-full py-3 rounded-xl bg-[#00d4ff] text-slate-950 font-bold text-center hover:bg-[#00d4ff]/90 transition-colors">
+                {{ __('app.shop.pay_now') }}
+            </a>
+            <p class="text-slate-500 text-xs text-center">{{ __('app.shop.pay_now_hint') }}</p>
+        @endif
+        <a href="{{ route('shop.index') }}" class="block w-full py-3 rounded-xl bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40 font-semibold text-center hover:bg-[#00d4ff]/30 transition-colors">
+            {{ __('app.shop.back_to_shop') }}
+        </a>
+    </div>
 </div>
 @endsection

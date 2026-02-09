@@ -415,6 +415,8 @@ return [
         'chinese_name' => 'Chinese name',
         'total' => 'Total',
         'back_to_shop' => 'Back to shop',
+        'pay_now' => 'Pay now',
+        'pay_now_hint' => 'Go to My Orders to pay via bank transfer (last 5 digits).',
         'stock_cannot_negative' => 'Stock cannot go below zero.',
         'preorder_badge' => 'Pre-order',
         'preorder_button' => 'Pre-order',

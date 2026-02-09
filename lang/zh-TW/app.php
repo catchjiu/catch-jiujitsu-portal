@@ -415,6 +415,8 @@ return [
         'chinese_name' => '中文姓名',
         'total' => '總計',
         'back_to_shop' => '返回商店',
+        'pay_now' => '立即付款',
+        'pay_now_hint' => '前往「我的訂單」以銀行轉帳付款（輸入帳號末五碼）。',
         'stock_cannot_negative' => '庫存不可為負數。',
         'preorder_badge' => '預購',
         'preorder_button' => '預購',
