@@ -51,7 +51,7 @@
     @endif
 
     <!-- Book Private Class (on schedule page – modal and script are in layout) -->
-    <button type="button" id="openPrivateClassModalSchedule"
+    <button type="button" id="openPrivateClassModalSchedule" data-open-modal="private"
             class="w-full rounded-xl p-4 bg-violet-500/20 border border-violet-500/40 hover:bg-violet-500/30 transition-colors text-left flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl bg-violet-500/30 flex items-center justify-center flex-shrink-0">
             <span class="material-symbols-outlined text-violet-500 text-2xl">person_search</span>

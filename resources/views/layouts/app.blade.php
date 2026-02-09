@@ -22,6 +22,7 @@
     @endif
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+    <!-- modals-v2: Check In + Private open on top via body delegation -->
     <!-- Top Bar -->
     <header class="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5 px-4 sm:px-6 py-4">
         <div class="max-w-lg mx-auto flex justify-between items-center">
@@ -181,12 +182,16 @@
             unlockBodyForModal();
             document.getElementById('qrFullscreen')?.classList.add('hidden');
         };
+        function moveToBodyEnd(el) {
+            if (el && el.parentNode && el.parentNode !== document.body) document.body.appendChild(el);
+        }
         window.openCheckInModal = function() {
             var uid = window.CHECKIN_USER_ID;
             var m = document.getElementById('checkInModal');
             var q = document.getElementById('qrFullscreen');
             if (q) q.classList.add('hidden');
             if (m) {
+                moveToBodyEnd(m);
                 lockBodyForModal();
                 var img = document.getElementById('checkinQrImg');
                 if (img && uid) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-' + uid;
@@ -199,6 +204,7 @@
             var q = document.getElementById('qrFullscreen');
             if (m) m.classList.add('hidden');
             if (q) {
+                moveToBodyEnd(q);
                 lockBodyForModal();
                 var img = document.getElementById('checkinQrImgFullscreen');
                 var label = document.getElementById('checkinQrLabelFullscreen');
@@ -207,6 +213,15 @@
                 q.classList.remove('hidden');
             }
         };
+        document.body.addEventListener('click', function(e) {
+            var open = e.target && e.target.closest && e.target.closest('[data-open-modal]');
+            if (!open) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var which = open.getAttribute('data-open-modal');
+            if (which === 'checkin' && typeof window.openCheckInModal === 'function') window.openCheckInModal();
+            if (which === 'private' && typeof window.openModalAndLoadCoaches === 'function') window.openModalAndLoadCoaches();
+        }, true);
         var btn = document.getElementById('checkInTodayBtn');
         if (btn && checkinTodayUrl && csrfToken) {
             var originalHtml = btn.innerHTML;
@@ -326,6 +341,7 @@
             window.scrollTo(0, 0);
             document.getElementById('checkInModal')?.classList.add('hidden');
             document.getElementById('qrFullscreen')?.classList.add('hidden');
+            if (modal.parentNode !== document.body) document.body.appendChild(modal);
             modal.classList.remove('hidden');
             step2.classList.add('hidden');
             step1.classList.remove('hidden');
