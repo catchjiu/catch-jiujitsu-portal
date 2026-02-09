@@ -121,6 +121,23 @@ class ShopController extends Controller
     }
 
     /**
+     * Member: cancel own order only when it is Pending.
+     */
+    public function cancelOrder(Request $request, Order $order)
+    {
+        if ($order->user_id !== auth()->id()) {
+            abort(403);
+        }
+        if ($order->status !== Order::STATUS_PENDING) {
+            return redirect()->route('shop.my-orders')
+                ->with('error', __('app.shop.cancel_not_allowed'));
+        }
+        $order->update(['status' => Order::STATUS_CANCELLED]);
+        return redirect()->route('shop.my-orders')
+            ->with('success', __('app.shop.order_cancelled'));
+    }
+
+    /**
      * Checkout confirmation: show order and member's chinese_name.
      */
     public function confirmation(Order $order)

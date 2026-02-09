@@ -137,33 +137,57 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="absolute right-0 top-12 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden"
+                 class="absolute right-0 top-12 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50 overflow-hidden"
                  style="display: none;">
                 
                 <div class="p-3 border-b border-slate-700">
-                    <h4 class="text-white font-semibold text-sm">Filter Options</h4>
+                    <h4 class="text-white font-semibold text-sm">View bookings</h4>
+                    <p class="text-slate-500 text-xs mt-0.5">Choose range and when (including past)</p>
                 </div>
                 
-                <form action="{{ route('admin.index') }}" method="GET" class="p-3 space-y-4">
-                    <!-- Date Range -->
+                <form action="{{ route('admin.index') }}" method="GET" class="p-3 space-y-4" x-data="{ view: '{{ request('date_range', 'day') }}' }">
+                    <input type="hidden" name="date_range" :value="view">
+                    
+                    <!-- What to show: Day = per class, Week = per day, Year = per week -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Date Range</label>
-                        <select name="date_range" class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
-                            <option value="today" {{ request('date_range', 'today') === 'today' ? 'selected' : '' }}>Today</option>
-                            <option value="yesterday" {{ request('date_range') === 'yesterday' ? 'selected' : '' }}>Yesterday</option>
-                            <option value="week" {{ request('date_range') === 'week' ? 'selected' : '' }}>This Week</option>
-                            <option value="month" {{ request('date_range') === 'month' ? 'selected' : '' }}>This Month</option>
-                            <option value="year" {{ request('date_range') === 'year' ? 'selected' : '' }}>This Year</option>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Show</label>
+                        <select x-model="view" class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
+                            <option value="day">By day — sign-ups per class</option>
+                            <option value="week">By week — sign-ups per day</option>
+                            <option value="year">By year — sign-ups per week</option>
                         </select>
+                    </div>
+                    
+                    <!-- When: date / week / year picker -->
+                    <div x-show="view === 'day'" x-cloak>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Date</label>
+                        <input type="date" name="date" value="{{ $filterDate }}"
+                               class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
+                        <p class="text-slate-500 text-[10px] mt-1">Any day, including past</p>
+                    </div>
+                    <div x-show="view === 'week'" x-cloak style="display: none;">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Week</label>
+                        <input type="week" name="week" value="{{ $filterWeek }}"
+                               class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
+                        <p class="text-slate-500 text-[10px] mt-1">Mon–Sun, any week</p>
+                    </div>
+                    <div x-show="view === 'year'" x-cloak style="display: none;">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Year</label>
+                        <select name="year" class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
+                            @foreach(array_reverse(range(2020, now()->year)) as $y)
+                                <option value="{{ $y }}" {{ $filterYear === (int)$y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-slate-500 text-[10px] mt-1">Full year</p>
                     </div>
                     
                     <!-- Age Group -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Age Group</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Classes</label>
                         <select name="age_group" class="w-full px-3 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white text-sm focus:outline-none focus:border-blue-500">
-                            <option value="all" {{ request('age_group', 'all') === 'all' ? 'selected' : '' }}>All Classes</option>
-                            <option value="Adults" {{ request('age_group') === 'Adults' ? 'selected' : '' }}>Adults Only</option>
-                            <option value="Kids" {{ request('age_group') === 'Kids' ? 'selected' : '' }}>Kids Only</option>
+                            <option value="all" {{ request('age_group', 'all') === 'all' ? 'selected' : '' }}>All</option>
+                            <option value="Adults" {{ request('age_group') === 'Adults' ? 'selected' : '' }}>Adults only</option>
+                            <option value="Kids" {{ request('age_group') === 'Kids' ? 'selected' : '' }}>Kids only</option>
                         </select>
                     </div>
                     
@@ -277,7 +301,8 @@
         <div class="relative z-10">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h3 class="text-white font-semibold">{{ request('date_range', 'today') === 'today' ? "Today's" : (request('date_range') === 'yesterday' ? "Yesterday's" : (request('date_range') === 'year' ? "This Year's" : ucfirst(request('date_range', 'Today')))) }} Attendance</h3>
+                    <h3 class="text-white font-semibold">Attendance</h3>
+                    <p class="text-slate-500 text-xs">{{ $dateLabel }}</p>
                     <p class="text-slate-500 text-xs">Peak: {{ $peakHoursText }}</p>
                 </div>
                 <div class="text-right">
@@ -286,72 +311,78 @@
                 </div>
             </div>
             
-            <!-- Bar chart: by class (today/yesterday), by day (week), by week (month), by month (year) -->
-            <div class="mt-4 border-b border-l border-slate-700/50 pb-2 pl-8 relative">
-                @if($attendanceChartMode === 'classes' && count($classAttendanceData) > 0)
-                    @php
-                        $maxCount = max(1, collect($classAttendanceData)->max('count'));
-                        $barAreaHeight = 80;
-                    @endphp
-                    <p class="text-[10px] text-slate-500 mb-1">One bar per class ({{ count($classAttendanceData) }} classes)</p>
-                    <div class="absolute left-0 top-0 flex flex-col justify-between text-[10px] text-slate-500 w-6" style="height: {{ $barAreaHeight + 56 }}px;">
-                        <span>30</span>
-                        <span>20</span>
-                        <span>10</span>
-                        <span>0</span>
-                    </div>
-                    <div class="overflow-x-auto pb-1 scrollbar-hide pl-6" style="min-height: {{ $barAreaHeight + 56 }}px;">
-                        <div class="flex items-end gap-3" style="min-width: max-content; height: {{ $barAreaHeight + 56 }}px;">
-                            @foreach($classAttendanceData as $bar)
-                                @php
-                                    $isPeak = $bar['count'] == $maxCount && $bar['count'] > 0;
-                                    $barHeightPx = $bar['count'] > 0 ? max(8, (int) round(($bar['count'] / 30) * $barAreaHeight)) : 0;
-                                @endphp
-                                <a href="{{ route('admin.attendance', $bar['class_id']) }}" class="flex flex-col items-center flex-shrink-0 w-20" title="{{ $bar['title'] }}: {{ $bar['count'] }} participants">
-                                    <div class="w-full flex flex-col justify-end items-center" style="height: {{ $barAreaHeight }}px;">
-                                        <div class="w-10 rounded-t {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70 hover:bg-blue-500' }} transition-all duration-300"
-                                             style="height: {{ $barHeightPx }}px; min-width: 32px;"></div>
-                                    </div>
-                                    <span class="text-[10px] text-slate-500 mt-1 text-center whitespace-nowrap">{{ $bar['time'] }}</span>
-                                    <span class="text-[9px] text-slate-400 mt-0.5 text-center leading-tight w-full break-words line-clamp-2" title="{{ $bar['title'] }}">{{ $bar['title'] }}</span>
-                                    <span class="text-[10px] font-semibold mt-0.5 {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
-                                </a>
-                            @endforeach
-                        </div>
-                    </div>
-                @elseif(in_array($attendanceChartMode, ['days', 'weeks', 'months']) && count($aggregatedChartData ?? []) > 0)
-                    @php
-                        $agg = $aggregatedChartData;
-                        $maxCount = max(1, collect($agg)->max('count'));
-                    @endphp
-                    <div class="absolute left-0 top-0 flex flex-col justify-between text-[10px] text-slate-500 w-6" style="height: 7rem;">
-                        <span>{{ $maxCount }}</span>
-                        <span>{{ (int)($maxCount * 0.67) }}</span>
-                        <span>{{ (int)($maxCount * 0.33) }}</span>
-                        <span>0</span>
-                    </div>
-                    <div class="flex items-end gap-1.5 overflow-x-auto pb-1 scrollbar-hide" style="min-width: 0; height: 7rem;">
-                        @foreach($agg as $bar)
-                            @php $isPeak = $bar['count'] == $maxCount && $bar['count'] > 0; @endphp
-                            <div class="flex-1 flex flex-col items-center min-w-[36px] flex-shrink-0 h-full" title="{{ $bar['label'] }}: {{ $bar['count'] }} bookings">
-                                <div class="w-full flex-1 flex flex-col justify-end min-h-0" style="height: 5rem;">
-                                    <div class="w-full rounded-t {{ $isPeak ? 'bg-gradient-to-t from-cyan-500 to-cyan-400' : 'bg-blue-500/70' }} transition-all duration-300"
-                                         style="height: {{ max($bar['height'] ?? 0, 2) }}%; min-height: {{ ($bar['count'] ?? 0) > 0 ? '8px' : '0' }};"></div>
-                                </div>
-                                <span class="text-[10px] text-slate-500 mt-1 truncate w-full text-center shrink-0">{{ $bar['label'] }}</span>
-                                <span class="text-[10px] font-semibold shrink-0 {{ $isPeak ? 'text-cyan-400' : 'text-slate-400' }}">{{ $bar['count'] }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="h-28 flex items-center justify-center">
-                        <p class="text-slate-500 text-sm">No classes in this range</p>
-                    </div>
-                @endif
+            @php
+                $lineChartLabels = [];
+                $lineChartValues = [];
+                if ($attendanceChartMode === 'classes' && count($classAttendanceData) > 0) {
+                    foreach ($classAttendanceData as $row) {
+                        $lineChartLabels[] = $row['time'] . ' ' . $row['title'];
+                        $lineChartValues[] = $row['count'];
+                    }
+                } elseif (count($aggregatedChartData ?? []) > 0) {
+                    foreach ($aggregatedChartData as $row) {
+                        $lineChartLabels[] = $row['label'];
+                        $lineChartValues[] = $row['count'];
+                    }
+                }
+            @endphp
+
+            @if(count($lineChartLabels) === 0)
+                <p class="text-center text-slate-500 text-sm py-6 mt-4">No data in this range</p>
+            @else
+            <!-- Line chart: Day = sign-ups per class, Week = per day, Year = per week -->
+            <div class="mt-4 relative" style="height: 220px;">
+                <canvas id="attendanceLineChart" aria-label="Attendance sign-ups chart"></canvas>
             </div>
-            
-            @if($todayCheckIns == 0 && (($attendanceChartMode === 'classes' && count($classAttendanceData) === 0) || (in_array($attendanceChartMode, ['days', 'weeks', 'months']) && count($aggregatedChartData ?? []) === 0)))
-                <p class="text-center text-slate-500 text-xs mt-3">No classes scheduled for this period</p>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                (function() {
+                    const labels = @json($lineChartLabels);
+                    const values = @json($lineChartValues);
+                    const ctx = document.getElementById('attendanceLineChart');
+                    if (!ctx) return;
+                    Chart.defaults.color = '#94a3b8';
+                    Chart.defaults.font.family = 'Inter, sans-serif';
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Sign-ups',
+                                data: values,
+                                borderColor: 'rgb(34, 211, 238)',
+                                backgroundColor: 'rgba(34, 211, 238, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                pointBackgroundColor: 'rgb(34, 211, 238)',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 1,
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: { intersect: false, mode: 'index' },
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                                    ticks: { maxRotation: 45, minRotation: 0, maxTicksLimit: 12 }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                                    ticks: { stepSize: 1 }
+                                }
+                            }
+                        }
+                    });
+                })();
+            </script>
             @endif
         </div>
     </div>

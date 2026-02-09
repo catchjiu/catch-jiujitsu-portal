@@ -92,6 +92,7 @@ Route::middleware(['auth', 'member'])->group(function () {
     // Gym Shop (member storefront)
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
     Route::get('/shop/my-orders', [ShopController::class, 'myOrders'])->name('shop.my-orders');
+    Route::post('/shop/orders/{order}/cancel', [ShopController::class, 'cancelOrder'])->name('shop.orders.cancel');
     Route::post('/shop/quick-buy', [ShopController::class, 'quickBuy'])->name('shop.quick-buy');
     Route::get('/shop/confirmation/{order}', [ShopController::class, 'confirmation'])->name('shop.confirmation');
 

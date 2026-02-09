@@ -24,6 +24,7 @@
                     <span class="inline-block px-3 py-1 rounded-full text-xs font-medium
                         @if($order->status === 'Pending') bg-amber-500/20 text-amber-400 border border-amber-500/40
                         @elseif($order->status === 'Processing') bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40
+                        @elseif($order->status === 'Cancelled') bg-slate-500/20 text-slate-400 border border-slate-500/40
                         @else bg-emerald-500/20 text-emerald-400 border border-emerald-500/40
                         @endif">{{ __('app.shop.status_' . strtolower($order->status)) }}</span>
                     @if($order->expected_delivery)
@@ -43,9 +44,19 @@
                     </li>
                 @endforeach
             </ul>
-            <div class="px-4 pb-4 flex justify-between items-center border-t border-slate-700/50 pt-3">
-                <span class="text-slate-500 text-sm">{{ __('app.shop.total') }}</span>
-                <span class="text-[#00d4ff] font-bold">NT$ {{ number_format($order->total_price) }}</span>
+            <div class="px-4 pb-4 flex flex-wrap justify-between items-center gap-3 border-t border-slate-700/50 pt-3">
+                <div class="flex items-center gap-3">
+                    <span class="text-slate-500 text-sm">{{ __('app.shop.total') }}</span>
+                    <span class="text-[#00d4ff] font-bold">NT$ {{ number_format($order->total_price) }}</span>
+                </div>
+                @if($order->status === 'Pending')
+                    <form action="{{ route('shop.orders.cancel', $order) }}" method="POST" class="inline" onsubmit="return confirm('{{ addslashes(__('app.shop.cancel_confirm')) }}');">
+                        @csrf
+                        <button type="submit" class="px-3 py-1.5 rounded-lg border border-red-500/50 text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors">
+                            {{ __('app.shop.cancel_order') }}
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     @empty

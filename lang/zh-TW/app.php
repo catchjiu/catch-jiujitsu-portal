@@ -435,5 +435,10 @@ return [
         'status_pending' => '待處理',
         'status_processing' => '處理中',
         'status_delivered' => '已送達',
+        'status_cancelled' => '已取消',
+        'cancel_order' => '取消訂單',
+        'cancel_confirm' => '確定要取消此訂單嗎？',
+        'order_cancelled' => '訂單已取消。',
+        'cancel_not_allowed' => '此訂單無法取消。',
     ],
 ];

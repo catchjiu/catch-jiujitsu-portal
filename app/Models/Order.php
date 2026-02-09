@@ -22,6 +22,7 @@ class Order extends Model
     public const STATUS_PENDING = 'Pending';
     public const STATUS_PROCESSING = 'Processing';
     public const STATUS_DELIVERED = 'Delivered';
+    public const STATUS_CANCELLED = 'Cancelled';
 
     public function user(): BelongsTo
     {
@@ -46,5 +47,10 @@ class Order extends Model
     public function isDelivered(): bool
     {
         return $this->status === self::STATUS_DELIVERED;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
     }
 }

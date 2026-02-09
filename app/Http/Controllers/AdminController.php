@@ -24,33 +24,49 @@ class AdminController extends Controller
     {
         $user = auth()->user();
         
-        // Get filter parameters
-        $dateRange = $request->get('date_range', 'today');
+        // Get filter parameters (day = sign-ups per class; week = per day; year = per week). All support past periods.
+        $dateRange = $request->get('date_range', 'day');
         $ageGroup = $request->get('age_group', 'all');
-        
-        // Calculate date range
+        if (!in_array($dateRange, ['day', 'week', 'year'], true)) {
+            $dateRange = 'day';
+        }
+
+        // Resolve period (day = single date, week = that week Mon–Sun, year = that calendar year)
         switch ($dateRange) {
-            case 'yesterday':
-                $startDate = Carbon::yesterday();
-                $endDate = Carbon::yesterday()->endOfDay();
-                $dateLabel = 'Yesterday, ' . $startDate->format('M d');
+            case 'day':
+                $dateParam = $request->get('date');
+                if ($dateParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateParam)) {
+                    $startDate = Carbon::parse($dateParam)->startOfDay();
+                    $endDate = $startDate->copy()->endOfDay();
+                } else {
+                    $startDate = Carbon::today();
+                    $endDate = Carbon::today()->endOfDay();
+                }
+                $dateLabel = $startDate->isToday() ? 'Today, ' . $startDate->format('M d') : $startDate->format('l, M d, Y');
                 break;
             case 'week':
-                $startDate = Carbon::now()->copy()->startOfWeek(Carbon::MONDAY);
-                $endDate = Carbon::now()->copy()->endOfWeek(Carbon::SUNDAY);
-                $dateLabel = 'This Week, ' . $startDate->format('M d') . ' - ' . $endDate->format('M d');
-                break;
-            case 'month':
-                $startDate = Carbon::now()->startOfMonth();
-                $endDate = Carbon::now()->endOfMonth();
-                $dateLabel = now()->format('F Y');
+                $weekParam = $request->get('week');
+                if ($weekParam && preg_match('/^\d{4}-W\d{2}$/', $weekParam)) {
+                    // ISO week e.g. 2025-W07
+                    $startDate = Carbon::now()->setISODate((int) substr($weekParam, 0, 4), (int) substr($weekParam, 6, 2))->startOfWeek(Carbon::MONDAY);
+                    $endDate = $startDate->copy()->endOfWeek(Carbon::SUNDAY);
+                } elseif ($weekParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $weekParam)) {
+                    $startDate = Carbon::parse($weekParam)->startOfWeek(Carbon::MONDAY);
+                    $endDate = $startDate->copy()->endOfWeek(Carbon::SUNDAY);
+                } else {
+                    $startDate = Carbon::now()->copy()->startOfWeek(Carbon::MONDAY);
+                    $endDate = Carbon::now()->copy()->endOfWeek(Carbon::SUNDAY);
+                }
+                $dateLabel = $startDate->format('M d') . ' – ' . $endDate->format('M d, Y');
                 break;
             case 'year':
-                $startDate = Carbon::now()->startOfYear();
-                $endDate = Carbon::now()->endOfYear();
-                $dateLabel = now()->format('Y');
+                $yearParam = $request->get('year');
+                $y = is_numeric($yearParam) && (int) $yearParam >= 2020 && (int) $yearParam <= 2030 ? (int) $yearParam : (int) now()->format('Y');
+                $startDate = Carbon::createFromDate($y, 1, 1)->startOfDay();
+                $endDate = Carbon::createFromDate($y, 12, 31)->endOfDay();
+                $dateLabel = (string) $y;
                 break;
-            default: // today
+            default:
                 $startDate = Carbon::today();
                 $endDate = Carbon::today()->endOfDay();
                 $dateLabel = 'Today, ' . now()->format('M d');
@@ -86,8 +102,8 @@ class AdminController extends Controller
         $peakHoursText = 'No classes in range';
         $yAxisMax = 30;
         
-        if ($dateRange === 'today' || $dateRange === 'yesterday') {
-            // One bar per class for the day
+        if ($dateRange === 'day') {
+            // Sign-ups per class for the day (for line chart)
             $classesQuery = ClassSession::whereBetween('start_time', [$startDate, $endDate])
                 ->where($classFilter);
             $filteredClasses = $classesQuery->withCount('bookings')->orderBy('start_time')->get();
@@ -131,13 +147,10 @@ class AdminController extends Controller
             if ($peak && $peak['count'] > 0) {
                 $peakHoursText = $peak['label'] . ': ' . $peak['count'] . ' bookings';
             }
-        } elseif ($dateRange === 'month') {
-            // One bar per week (week starting Monday) that overlaps the month
+        } elseif ($dateRange === 'year') {
+            // Sign-ups per week (for line chart)
             $attendanceChartMode = 'weeks';
             $cursor = $startDate->copy()->startOfWeek(Carbon::MONDAY);
-            if ($cursor->lt($startDate)) {
-                $cursor->addWeek();
-            }
             $weekNum = 1;
             while ($cursor->lte($endDate)) {
                 $weekEnd = $cursor->copy()->endOfWeek(Carbon::SUNDAY);
@@ -146,35 +159,11 @@ class AdminController extends Controller
                     $classFilter($q);
                 })->count();
                 $aggregatedChartData[] = [
-                    'label' => 'Wk ' . $weekNum,
+                    'label' => 'Wk' . $weekNum,
                     'count' => $count,
                 ];
                 $weekNum++;
                 $cursor->addWeek();
-            }
-            $maxCount = max(1, collect($aggregatedChartData)->max('count'));
-            foreach ($aggregatedChartData as &$row) {
-                $row['height'] = min(100, ($row['count'] / $maxCount) * 100);
-            }
-            unset($row);
-            $peak = collect($aggregatedChartData)->sortByDesc('count')->first();
-            if ($peak && $peak['count'] > 0) {
-                $peakHoursText = 'Week ' . $peak['label'] . ': ' . $peak['count'] . ' bookings';
-            }
-        } elseif ($dateRange === 'year') {
-            // One bar per month
-            $attendanceChartMode = 'months';
-            for ($m = 1; $m <= 12; $m++) {
-                $monthStart = Carbon::create(now()->year, $m, 1)->startOfDay();
-                $monthEnd = $monthStart->copy()->endOfMonth();
-                $count = Booking::whereHas('classSession', function ($q) use ($monthStart, $monthEnd, $classFilter) {
-                    $q->whereBetween('start_time', [$monthStart, $monthEnd]);
-                    $classFilter($q);
-                })->count();
-                $aggregatedChartData[] = [
-                    'label' => $monthStart->format('M'),
-                    'count' => $count,
-                ];
             }
             $maxCount = max(1, collect($aggregatedChartData)->max('count'));
             foreach ($aggregatedChartData as &$row) {
@@ -224,6 +213,11 @@ class AdminController extends Controller
         // Total notification count
         $notificationCount = $expiringMemberships->count() + $newSignupsToday->count() + $pendingPayments->count();
 
+        // Current filter values for form pre-fill (past bookings)
+        $filterDate = $dateRange === 'day' ? $startDate->format('Y-m-d') : now()->format('Y-m-d');
+        $filterWeek = $dateRange === 'week' ? $startDate->format('o-\WW') : now()->format('o-\WW');
+        $filterYear = $dateRange === 'year' ? (int) $startDate->format('Y') : (int) now()->format('Y');
+
         return view('admin.overview', [
             'user' => $user,
             'totalMembers' => $totalMembers,
@@ -234,6 +228,9 @@ class AdminController extends Controller
             'aggregatedChartData' => $aggregatedChartData,
             'peakHoursText' => $peakHoursText,
             'dateLabel' => $dateLabel,
+            'filterDate' => $filterDate,
+            'filterWeek' => $filterWeek,
+            'filterYear' => $filterYear,
             'recentActivity' => $recentActivity,
             'recentSignups' => $recentSignups,
             'expiringMemberships' => $expiringMemberships,

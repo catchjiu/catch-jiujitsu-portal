@@ -435,5 +435,10 @@ return [
         'status_pending' => 'Pending',
         'status_processing' => 'Processing',
         'status_delivered' => 'Delivered',
+        'status_cancelled' => 'Cancelled',
+        'cancel_order' => 'Cancel order',
+        'cancel_confirm' => 'Are you sure you want to cancel this order?',
+        'order_cancelled' => 'Order cancelled.',
+        'cancel_not_allowed' => 'This order can no longer be cancelled.',
     ],
 ];
