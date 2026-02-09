@@ -3,6 +3,7 @@
 @section('title', app()->getLocale() === 'zh-TW' ? '首頁' : 'Dashboard')
 
 @section('content')
+<script>window.CHECKIN_USER_ID = {{ $viewingUser->id }};</script>
 <div class="space-y-6">
     @if($profiles->count() > 1)
         <a href="{{ route('settings') }}" class="block glass rounded-2xl p-4 border border-slate-700/50 hover:bg-slate-800/60 transition-colors">
@@ -466,100 +467,5 @@
             </div>
         @endif
     </div>
-
-    <!-- Check In Modal - at end of content with high z-index so it sits above all cards -->
-    <div id="checkInModal" class="hidden fixed inset-0 z-[10002] modal-overlay-fixed flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-         onclick="if(event.target===this) this.classList.add('hidden')">
-        <div class="glass rounded-2xl p-6 max-w-sm w-full relative" onclick="event.stopPropagation()">
-            <button type="button" onclick="document.getElementById('checkInModal').classList.add('hidden')"
-                    class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-            <h3 class="text-xl font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">{{ __('app.dashboard.check_in') }}</h3>
-
-            <button type="button" id="checkInTodayBtn"
-                    class="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold flex items-center justify-center gap-2 mb-4 transition-colors">
-                <span class="material-symbols-outlined">event_available</span>
-                {{ __('app.dashboard.check_in_for_today') }}
-            </button>
-            <p class="text-slate-500 text-xs mb-6">{{ __('app.dashboard.check_in_today_desc') }}</p>
-
-            <p class="text-slate-400 text-sm font-semibold mb-2">{{ __('app.dashboard.scan_at_kiosk') }}</p>
-            <button type="button" id="qrFullscreenBtn" class="block w-full"
-                    onclick="typeof openQrFullscreen === 'function' && openQrFullscreen()">
-                <div class="p-4 rounded-xl bg-white flex justify-center">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-{{ $viewingUser->id }}"
-                         alt="Check-in QR code" class="w-40 h-40">
-                </div>
-                <p class="text-slate-500 text-xs mt-2">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
-            </button>
-        </div>
-    </div>
-
-    <!-- QR Fullscreen overlay -->
-    <div id="qrFullscreen" class="hidden fixed inset-0 z-[10001] modal-overlay-fixed bg-black flex flex-col items-center justify-center p-4"
-         onclick="this.classList.add('hidden')">
-        <p class="text-white text-sm mb-4">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
-        <div class="p-6 rounded-2xl bg-white">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=CATCH-{{ $viewingUser->id }}"
-                 alt="Check-in QR code" class="w-64 h-64 sm:w-80 sm:h-80">
-        </div>
-        <p class="text-slate-500 text-xs mt-4">CATCH-{{ $viewingUser->id }}</p>
-    </div>
 </div>
-
-<script>
-(function() {
-    // Move modals to body when opening so they are never inside main (fixes Android fixed-position)
-    window.openCheckInModal = function() {
-        var m = document.getElementById('checkInModal');
-        var q = document.getElementById('qrFullscreen');
-        if (q) { q.classList.add('hidden'); if (q.parentNode !== document.body) document.body.appendChild(q); }
-        if (m) { if (m.parentNode !== document.body) document.body.appendChild(m); m.classList.remove('hidden'); }
-        window.scrollTo(0, 0);
-    };
-    window.openQrFullscreen = function() {
-        var m = document.getElementById('checkInModal');
-        var q = document.getElementById('qrFullscreen');
-        if (m) m.classList.add('hidden');
-        if (q) { if (q.parentNode !== document.body) document.body.appendChild(q); q.classList.remove('hidden'); }
-        window.scrollTo(0, 0);
-    };
-
-    var btn = document.getElementById('checkInTodayBtn');
-    if (!btn) return;
-    var originalHtml = btn.innerHTML;
-    btn.addEventListener('click', function() {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span>';
-        var localDate = (function() {
-            var d = new Date();
-            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-        })();
-        fetch('{{ route("checkin.today") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ date: localDate })
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.success) {
-                document.getElementById('checkInModal').classList.add('hidden');
-                window.location.reload();
-            } else {
-                alert(data.message || 'Something went wrong.');
-            }
-        })
-        .catch(function() { alert('Check-in failed. Try again.'); })
-        .finally(function() {
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-        });
-    });
-})();
-</script>
 @endsection
