@@ -346,9 +346,9 @@
     </a>
     @endif
 
-    <!-- Book Private Class (below membership) -->
+    <!-- Book Private Class (below membership) – same as Schedule: explicit onclick so modal opens on top -->
     <div>
-        <button type="button" id="openPrivateClassModal"
+        <button type="button" id="openPrivateClassModal" onclick="window.openModalAndLoadCoaches && window.openModalAndLoadCoaches()"
                 class="w-full glass rounded-2xl p-5 border-t-4 border-t-violet-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex items-center gap-4">

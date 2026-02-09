@@ -116,9 +116,9 @@
     <!-- Check In Modal + QR Fullscreen: rendered in body so fixed positioning works on Android -->
     <div id="checkInModal" class="hidden fixed inset-0 z-[10002] modal-overlay-fixed flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
          style="position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100% !important;height:100% !important;min-height:100vh;min-height:100dvh;"
-         onclick="if(event.target===this) this.classList.add('hidden')">
+         onclick="if(event.target===this) typeof closeCheckInModal === 'function' && closeCheckInModal()">
         <div class="glass rounded-2xl p-6 max-w-sm w-full relative" onclick="event.stopPropagation()">
-            <button type="button" onclick="document.getElementById('checkInModal').classList.add('hidden')"
+            <button type="button" onclick="typeof closeCheckInModal === 'function' && closeCheckInModal()"
                     class="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <span class="material-symbols-outlined">close</span>
             </button>
@@ -143,7 +143,7 @@
 
     <div id="qrFullscreen" class="hidden fixed inset-0 z-[10001] modal-overlay-fixed bg-black flex flex-col items-center justify-center p-4"
          style="position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100% !important;height:100% !important;min-height:100vh;min-height:100dvh;"
-         onclick="this.classList.add('hidden')">
+         onclick="typeof closeQrFullscreen === 'function' && closeQrFullscreen()">
         <p class="text-white text-sm mb-4">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
         <div class="p-6 rounded-2xl bg-white">
             <img id="checkinQrImgFullscreen" src="" alt="Check-in QR code" class="w-64 h-64 sm:w-80 sm:h-80" style="min-width:16rem;min-height:16rem;">
@@ -155,17 +155,43 @@
     (function() {
         var checkinTodayUrl = '{{ route("checkin.today") }}';
         var csrfToken = document.querySelector('meta[name="csrf-token"]') && document.querySelector('meta[name="csrf-token"]').content;
+        var checkinBodyScrollY = 0;
+        function lockBodyForModal() {
+            checkinBodyScrollY = window.scrollY || window.pageYOffset || 0;
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.top = '-' + checkinBodyScrollY + 'px';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            window.scrollTo(0, 0);
+        }
+        function unlockBodyForModal() {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            if (typeof checkinBodyScrollY === 'number') window.scrollTo(0, checkinBodyScrollY);
+        }
+        window.closeCheckInModal = function() {
+            unlockBodyForModal();
+            document.getElementById('checkInModal')?.classList.add('hidden');
+        };
+        window.closeQrFullscreen = function() {
+            unlockBodyForModal();
+            document.getElementById('qrFullscreen')?.classList.add('hidden');
+        };
         window.openCheckInModal = function() {
             var uid = window.CHECKIN_USER_ID;
             var m = document.getElementById('checkInModal');
             var q = document.getElementById('qrFullscreen');
             if (q) q.classList.add('hidden');
             if (m) {
+                lockBodyForModal();
                 var img = document.getElementById('checkinQrImg');
                 if (img && uid) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-' + uid;
                 m.classList.remove('hidden');
             }
-            window.scrollTo(0, 0);
         };
         window.openQrFullscreen = function() {
             var uid = window.CHECKIN_USER_ID;
@@ -173,13 +199,13 @@
             var q = document.getElementById('qrFullscreen');
             if (m) m.classList.add('hidden');
             if (q) {
+                lockBodyForModal();
                 var img = document.getElementById('checkinQrImgFullscreen');
                 var label = document.getElementById('checkinQrLabelFullscreen');
                 if (img && uid) img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=CATCH-' + uid;
                 if (label) label.textContent = uid ? 'CATCH-' + uid : '';
                 q.classList.remove('hidden');
             }
-            window.scrollTo(0, 0);
         };
         var btn = document.getElementById('checkInTodayBtn');
         if (btn && checkinTodayUrl && csrfToken) {
@@ -197,7 +223,7 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.success) {
-                        document.getElementById('checkInModal').classList.add('hidden');
+                        if (typeof closeCheckInModal === 'function') closeCheckInModal();
                         window.location.reload();
                     } else {
                         alert(data.message || 'Something went wrong.');
@@ -213,8 +239,9 @@
     })();
     </script>
 
-    <!-- Private Class Modal: 1) Choose coach → 2) Next 2 weeks calendar → 3) Book -->
+    <!-- Private Class Modal: 1) Choose coach → 2) Next 2 weeks calendar → 3) Book (same full-viewport style as Schedule) -->
     <div id="privateClassModal" class="hidden fixed inset-0 z-[10000] modal-overlay-fixed flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+         style="position:fixed !important;top:0 !important;left:0 !important;right:0 !important;bottom:0 !important;width:100% !important;height:100% !important;min-height:100vh;min-height:100dvh;"
          onclick="if(event.target===this) typeof closePrivateClassModal === 'function' && closePrivateClassModal()">
         <div class="glass rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-hidden flex flex-col relative" onclick="event.stopPropagation()">
             <button type="button" onclick="typeof closePrivateClassModal === 'function' && closePrivateClassModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
@@ -271,11 +298,16 @@
         var selectedCoach = null;
         var availabilityUrl = '{{ url("/private-class/coach") }}';
 
+        var bodyScrollY = 0;
         window.closePrivateClassModal = function() {
             modal.classList.add('hidden');
             step2.classList.add('hidden');
             step1.classList.remove('hidden');
             selectedCoach = null;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            if (typeof bodyScrollY === 'number') window.scrollTo(0, bodyScrollY);
         };
 
         window.privateClassBackToCoaches = function() {
@@ -285,6 +317,12 @@
         };
 
         function openModalAndLoadCoaches() {
+            bodyScrollY = window.scrollY || window.pageYOffset || 0;
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.top = '-' + bodyScrollY + 'px';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
             window.scrollTo(0, 0);
             document.getElementById('checkInModal')?.classList.add('hidden');
             document.getElementById('qrFullscreen')?.classList.add('hidden');
@@ -319,6 +357,7 @@
                 });
         }
 
+        window.openModalAndLoadCoaches = openModalAndLoadCoaches;
         document.getElementById('openPrivateClassModal')?.addEventListener('click', openModalAndLoadCoaches);
         document.getElementById('openPrivateClassModalSchedule')?.addEventListener('click', openModalAndLoadCoaches);
 
