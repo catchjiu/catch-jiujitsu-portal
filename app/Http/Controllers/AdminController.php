@@ -1090,7 +1090,7 @@ class AdminController extends Controller
             'phone' => 'nullable|string|max:50',
             'dob' => 'nullable|date',
             'line_id' => 'nullable|string|max:255',
-            'gender' => 'nullable|in:male,female,other',
+            'gender' => 'nullable|in:male,female',
             'age_group' => 'required|in:Kids,Adults',
             'rank' => 'required|in:White,Grey,Yellow,Orange,Green,Blue,Purple,Brown,Black',
             'belt_variation' => 'nullable|in:white,solid,black',
