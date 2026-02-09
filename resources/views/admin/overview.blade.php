@@ -239,6 +239,67 @@
         </div>
     </div>
 
+    <!-- Recent Shop Orders -->
+    <div class="glass rounded-2xl p-5 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-[#00d4ff]/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[#00d4ff]">shopping_bag</span>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-semibold">Recent shop orders</h3>
+                        <p class="text-slate-500 text-xs">Latest orders from the gym shop</p>
+                    </div>
+                </div>
+                <a href="{{ route('admin.shop.orders') }}" class="text-[#00d4ff] hover:text-[#00d4ff]/80 text-xs font-bold uppercase">
+                    Order tracker
+                </a>
+            </div>
+            @if($recentOrders->count() > 0)
+                <div class="space-y-2">
+                    @foreach($recentOrders->take(5) as $order)
+                        <a href="{{ route('admin.shop.orders') }}" class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-colors">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-700 flex-shrink-0 flex items-center justify-center text-slate-400 text-xs font-bold">
+                                    {{ substr($order->user->name ?? '?', 0, 1) }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-white text-sm font-medium truncate">#{{ $order->id }} · {{ $order->user->name ?? 'Unknown' }}</p>
+                                    <p class="text-slate-500 text-xs truncate">
+                                        @foreach($order->items->take(2) as $item)
+                                            @php $p = $item->productVariant->product ?? null; @endphp
+                                            {{ $p ? $p->name : 'Item' }}{{ $item->quantity > 1 ? ' ×' . $item->quantity : '' }}{{ !$loop->last ? ', ' : '' }}
+                                        @endforeach
+                                        @if($order->items->count() > 2)
+                                            +{{ $order->items->count() - 2 }} more
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <p class="text-[#00d4ff] font-bold text-sm">NT${{ number_format($order->total_price) }}</p>
+                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-medium
+                                    @if($order->status === 'Pending') bg-amber-500/20 text-amber-400
+                                    @elseif($order->status === 'Processing') bg-[#00d4ff]/20 text-[#00d4ff]
+                                    @else bg-emerald-500/20 text-emerald-400
+                                    @endif">{{ $order->status }}</span>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+                @if($recentOrders->count() > 5)
+                    <a href="{{ route('admin.shop.orders') }}" class="block text-center text-[#00d4ff] hover:text-[#00d4ff]/80 text-xs mt-3 py-2">
+                        View all orders →
+                    </a>
+                @endif
+            @else
+                <p class="text-slate-500 text-sm py-4 text-center">No orders yet.</p>
+            @endif
+        </div>
+    </div>
+
     <!-- Pending Payments Card -->
     @if($pendingPayments->count() > 0)
         <div class="glass rounded-2xl p-5 relative overflow-hidden border-l-4 border-l-amber-500">

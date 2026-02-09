@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\ClassSession;
@@ -209,6 +210,12 @@ class AdminController extends Controller
             ->where('status', 'Pending Verification')
             ->orderBy('submitted_at', 'desc')
             ->get();
+
+        // Recent shop orders (for overview)
+        $recentOrders = Order::with(['user', 'items.productVariant.product'])
+            ->orderByDesc('created_at')
+            ->take(10)
+            ->get();
         
         // Total notification count
         $notificationCount = $expiringMemberships->count() + $newSignupsToday->count() + $pendingPayments->count();
@@ -236,6 +243,7 @@ class AdminController extends Controller
             'expiringMemberships' => $expiringMemberships,
             'newSignupsToday' => $newSignupsToday,
             'pendingPayments' => $pendingPayments,
+            'recentOrders' => $recentOrders,
             'notificationCount' => $notificationCount,
         ]);
     }

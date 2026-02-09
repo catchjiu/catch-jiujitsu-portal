@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OrderPlacedMail;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ShopController extends Controller
 {
@@ -86,6 +88,13 @@ class ShopController extends Controller
 
         if (!$isPreorder) {
             $variant->decrement('stock_quantity', $quantity);
+        }
+
+        try {
+            Mail::to('catchjiujitsu@gmail.com')->send(new OrderPlacedMail($order));
+        } catch (\Throwable $e) {
+            // Don't fail the request if email fails (e.g. misconfigured mail)
+            report($e);
         }
 
         return redirect()->route('shop.confirmation', $order)
