@@ -20,17 +20,15 @@
                    placeholder="{{ __('app.shop.search_placeholder') }}"
                    class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none transition-colors">
         </div>
-        <div class="flex flex-wrap gap-2">
-            <a href="{{ route('shop.index', ['search' => request('search')]) }}"
-               class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ !request('category') ? 'bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600' }}">
-                {{ __('app.shop.all_categories') }}
-            </a>
-            @foreach($categories as $cat)
-                <a href="{{ route('shop.index', ['category' => $cat, 'search' => request('search')]) }}"
-                   class="px-3 py-2 rounded-lg text-sm font-medium transition-colors {{ request('category') === $cat ? 'bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-slate-600' }}">
-                    {{ $cat }}
-                </a>
-            @endforeach
+        <div>
+            <label for="shop-category" class="sr-only">{{ __('app.shop.category') }}</label>
+            <select id="shop-category" name="category" class="w-full sm:w-auto min-w-[180px] px-4 py-3 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:border-[#00d4ff]/60 focus:ring-1 focus:ring-[#00d4ff]/40 outline-none transition-colors appearance-none cursor-pointer"
+                    style="background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22%2394a3b8%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%222%22 d=%22M19 9l-7 7-7-7%22/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25em; padding-right: 2.5rem;">
+                <option value="" {{ !request('category') ? 'selected' : '' }}>{{ __('app.shop.all_categories') }}</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                @endforeach
+            </select>
         </div>
         @if(request('search') || request('category'))
             <a href="{{ route('shop.index') }}" class="inline-flex items-center gap-1 text-sm text-[#00d4ff] hover:underline">
@@ -39,6 +37,11 @@
             </a>
         @endif
     </form>
+    <script>
+        document.getElementById('shop-category').addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    </script>
 
     {{-- Product grid --}}
     <div class="grid grid-cols-2 gap-4 sm:gap-5">

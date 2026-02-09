@@ -843,7 +843,7 @@
 </script>
 
 <!-- Crop modal (same as register) -->
-<div id="member-detail-crop-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 p-4">
+<div id="member-detail-crop-modal" class="fixed inset-0 hidden items-center justify-center bg-black/80 p-4" style="z-index: 10000;">
     <div class="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         <div class="p-4 border-b border-slate-700 flex justify-between items-center">
             <h3 class="text-white font-bold">{{ __('app.auth.crop_profile_picture') }}</h3>
