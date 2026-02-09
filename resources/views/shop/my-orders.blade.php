@@ -13,6 +13,13 @@
     </div>
     <p class="text-slate-400 text-sm">{{ __('app.shop.my_orders_intro') }}</p>
 
+    @if(session('success'))
+        <div class="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-sm">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 text-sm">{{ session('error') }}</div>
+    @endif
+
     @forelse($orders as $order)
         <div class="rounded-xl bg-slate-800/60 border border-slate-700/50 overflow-hidden">
             <div class="p-4 border-b border-slate-700/50 flex flex-wrap items-center justify-between gap-2">
@@ -68,5 +75,45 @@
             </a>
         </div>
     @endforelse
+
+    @if($pendingOrders->isNotEmpty())
+        <div class="rounded-xl bg-slate-800/60 border border-slate-700/50 overflow-hidden">
+            <div class="p-4 border-b border-slate-700/50">
+                <p class="text-slate-400 text-xs uppercase tracking-wider mb-1">{{ __('app.shop.grand_total') }}</p>
+                <p class="text-2xl font-bold text-[#00d4ff]" style="font-family: 'Bebas Neue', sans-serif;">NT$ {{ number_format($grandTotal) }}</p>
+            </div>
+            <div class="p-4">
+                <h3 class="text-sm font-bold text-white mb-3">{{ __('app.shop.pay_via_bank_transfer') }}</h3>
+                <form action="{{ route('shop.orders.submit-payment') }}" method="POST"
+                      x-data="{ paymentDate: '{{ now()->format('Y-m-d') }}', accountLast5: '' }">
+                    @csrf
+                    <input type="hidden" name="payment_method" value="bank">
+                    <div class="mb-3">
+                        <label class="block text-xs text-slate-400 uppercase tracking-wider mb-1">{{ __('app.payments.payment_date') }}</label>
+                        <input type="date" name="payment_date" x-model="paymentDate" required
+                               class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d4ff]">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-xs text-slate-400 uppercase tracking-wider mb-1">{{ __('app.payments.amount') }} (NT$)</label>
+                        <input type="text" readonly value="{{ number_format($grandTotal) }}"
+                               class="w-full bg-slate-900/80 border border-slate-600 rounded px-3 py-2 text-[#00d4ff] font-semibold text-sm cursor-default">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-xs text-slate-400 uppercase tracking-wider mb-1">{{ __('app.payments.last_5_digits') }}</label>
+                        <input type="text" name="account_last_5" x-model="accountLast5" maxlength="5" inputmode="numeric" pattern="[0-9]*"
+                               placeholder="{{ app()->getLocale() === 'zh-TW' ? '例如 12345' : 'e.g. 12345' }}" required
+                               class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#00d4ff] font-mono tracking-widest text-center">
+                    </div>
+                    <button type="submit"
+                            class="w-full py-3 bg-[#00d4ff]/20 hover:bg-[#00d4ff]/30 text-[#00d4ff] font-bold uppercase text-xs tracking-wider rounded border border-[#00d4ff]/40 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="!paymentDate || accountLast5.length !== 5">
+                        <span class="material-symbols-outlined text-sm">send</span>
+                        {{ __('app.payments.submit') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @endif
 </div>
 @endsection

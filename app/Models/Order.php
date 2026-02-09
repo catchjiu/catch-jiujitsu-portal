@@ -13,10 +13,14 @@ class Order extends Model
         'total_price',
         'status',
         'notes',
+        'payment_method',
+        'account_last_5',
+        'payment_submitted_at',
     ];
 
     protected $casts = [
         'total_price' => 'decimal:2',
+        'payment_submitted_at' => 'datetime',
     ];
 
     public const STATUS_PENDING = 'Pending';

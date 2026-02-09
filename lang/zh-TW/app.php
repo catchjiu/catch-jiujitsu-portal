@@ -440,5 +440,9 @@ return [
         'cancel_confirm' => '確定要取消此訂單嗎？',
         'order_cancelled' => '訂單已取消。',
         'cancel_not_allowed' => '此訂單無法取消。',
+        'grand_total' => '總計',
+        'pay_via_bank_transfer' => '銀行轉帳付款',
+        'no_pending_orders' => '目前沒有待付款訂單。',
+        'payment_submitted' => '已送出付款資訊，我們會核對後更新訂單狀態。',
     ],
 ];

@@ -115,9 +115,45 @@ class ShopController extends Controller
             $order->has_preorder = $order->items->contains('is_preorder', true);
         }
 
+        $pendingOrders = $orders->where('status', Order::STATUS_PENDING);
+        $grandTotal = $pendingOrders->sum('total_price');
+
         return view('shop.my-orders', [
             'orders' => $orders,
+            'grandTotal' => $grandTotal,
+            'pendingOrders' => $pendingOrders,
         ]);
+    }
+
+    /**
+     * Member: submit bank transfer payment for pending orders (from My Orders page).
+     */
+    public function submitOrderPayment(Request $request)
+    {
+        $request->validate([
+            'account_last_5' => ['required', 'string', 'size:5', 'regex:/^[0-9]+$/'],
+            'payment_date' => ['required', 'date'],
+        ]);
+
+        $pending = Order::where('user_id', auth()->id())
+            ->where('status', Order::STATUS_PENDING)
+            ->get();
+
+        if ($pending->isEmpty()) {
+            return redirect()->route('shop.my-orders')
+                ->with('error', __('app.shop.no_pending_orders'));
+        }
+
+        foreach ($pending as $order) {
+            $order->update([
+                'payment_method' => 'bank',
+                'account_last_5' => $request->account_last_5,
+                'payment_submitted_at' => now(),
+            ]);
+        }
+
+        return redirect()->route('shop.my-orders')
+            ->with('success', __('app.shop.payment_submitted'));
     }
 
     /**
