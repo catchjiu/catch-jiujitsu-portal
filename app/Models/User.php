@@ -25,6 +25,7 @@ class User extends Authenticatable
         'last_name',
         'chinese_name',
         'email',
+        'phone',
         'password',
         'rank',
         'belt_variation',

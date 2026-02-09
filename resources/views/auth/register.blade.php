@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @if(app()->getLocale() === 'zh-TW')
     <style>body { font-family: 'Noto Sans TC', 'Inter', sans-serif; }</style>
@@ -56,7 +57,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('register') }}" class="space-y-4">
+            <form method="POST" action="{{ route('register') }}" class="space-y-4" id="register-form" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -74,6 +75,33 @@
                     <label for="email" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.email') }}</label>
                     <input type="email" id="email" name="email" value="{{ old('email') }}" required
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                </div>
+                <div>
+                    <label for="phone" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.phone') }}</label>
+                    <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" placeholder="+886 912 345 678"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                </div>
+                <div>
+                    <label for="dob" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.date_of_birth') }}</label>
+                    <input type="date" id="dob" name="dob" value="{{ old('dob') }}"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                </div>
+                <div>
+                    <label for="line_id" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.line_id') }}</label>
+                    <input type="text" id="line_id" name="line_id" value="{{ old('line_id') }}" placeholder="Line ID or username"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                </div>
+                <div>
+                    <label for="avatar" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.profile_picture_optional') }}</label>
+                    <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden">
+                    <input type="hidden" name="avatar_data" id="avatar_data" value="">
+                    <div class="flex items-center gap-3">
+                        <button type="button" id="avatar-trigger" class="px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:border-blue-500 transition-colors text-sm">
+                            {{ __('app.auth.profile_picture') }}
+                        </button>
+                        <span id="avatar-filename" class="text-slate-500 text-sm"></span>
+                    </div>
+                    <p class="text-slate-500 text-xs mt-1">Max 1MB. You can crop the area after selecting.</p>
                 </div>
                 <div>
                     <label for="password" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{{ __('app.auth.password') }}</label>
@@ -107,5 +135,110 @@
         </div>
     </div>
     </div>
+
+    <!-- Crop modal -->
+    <div id="crop-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/80 p-4">
+        <div class="bg-slate-800 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="text-white font-bold">{{ __('app.auth.crop_profile_picture') }}</h3>
+                <button type="button" id="crop-modal-close" class="text-slate-400 hover:text-white p-1" aria-label="Close">&times;</button>
+            </div>
+            <div class="p-4 overflow-hidden flex-1 min-h-0">
+                <div class="w-full max-h-[60vh] min-h-[280px] bg-slate-900 mx-auto" style="max-width: 400px;">
+                    <img id="crop-image" src="" alt="Crop" style="max-width: 100%; max-height: 60vh; display: block;">
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-700 flex justify-end gap-2">
+                <button type="button" id="crop-cancel" class="px-4 py-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-slate-600">{{ app()->getLocale() === 'zh-TW' ? '取消' : 'Cancel' }}</button>
+                <button type="button" id="crop-apply" class="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600">{{ app()->getLocale() === 'zh-TW' ? '套用' : 'Apply' }}</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script>
+(function() {
+    const MAX_AVATAR_BYTES = 1024 * 1024; // 1MB
+    const avatarInput = document.getElementById('avatar');
+    const avatarData = document.getElementById('avatar_data');
+    const avatarTrigger = document.getElementById('avatar-trigger');
+    const avatarFilename = document.getElementById('avatar-filename');
+    const cropModal = document.getElementById('crop-modal');
+    const cropImage = document.getElementById('crop-image');
+    const cropModalClose = document.getElementById('crop-modal-close');
+    const cropCancel = document.getElementById('crop-cancel');
+    const cropApply = document.getElementById('crop-apply');
+
+    let cropper = null;
+
+    avatarTrigger.addEventListener('click', function() { avatarInput.click(); });
+
+    avatarInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        const url = URL.createObjectURL(file);
+        cropModal.classList.remove('hidden');
+        cropModal.classList.add('flex');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        cropImage.onload = function() {
+            cropImage.onload = null;
+            cropper = new Cropper(cropImage, {
+                aspectRatio: 1,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 0.8,
+                background: false,
+                guides: true,
+                center: true,
+                highlight: false,
+            });
+        };
+        cropImage.src = url;
+    });
+
+    function closeCropModal() {
+        cropModal.classList.add('hidden');
+        cropModal.classList.remove('flex');
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        if (cropImage.src) URL.revokeObjectURL(cropImage.src);
+        cropImage.src = '';
+        avatarInput.value = '';
+    }
+
+    cropModalClose.addEventListener('click', closeCropModal);
+    cropCancel.addEventListener('click', closeCropModal);
+
+    cropApply.addEventListener('click', function() {
+        if (!cropper) return;
+        const canvas = cropper.getCroppedCanvas({ maxWidth: 800, maxHeight: 800, imageSmoothingQuality: 'high' });
+        if (!canvas) return;
+
+        function toBlobWithQuality(quality) {
+            return new Promise(function(resolve) {
+                canvas.toBlob(resolve, 'image/jpeg', quality);
+            });
+        }
+
+        (function tryQuality(quality) {
+            toBlobWithQuality(quality).then(function(blob) {
+                if (blob.size <= MAX_AVATAR_BYTES || quality <= 0.2) {
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        avatarData.value = reader.result;
+                        avatarFilename.textContent = (blob.size / 1024).toFixed(1) + ' KB';
+                        closeCropModal();
+                    };
+                    reader.readAsDataURL(blob);
+                    return;
+                }
+                tryQuality(Math.max(0.2, quality - 0.1));
+            });
+        })(0.9);
+    });
+})();
+    </script>
 </body>
 </html>

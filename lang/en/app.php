@@ -302,6 +302,12 @@ return [
         'confirm_password' => 'Confirm Password',
         'already_have_account' => 'Already have an account?',
         'dont_have_account' => "Don't have an account?",
+        'date_of_birth' => 'Date of Birth',
+        'phone' => 'Phone Number',
+        'line_id' => 'Line ID',
+        'profile_picture' => 'Profile Picture',
+        'profile_picture_optional' => 'Profile picture (optional)',
+        'crop_profile_picture' => 'Crop your profile picture',
     ],
 
     // Belts

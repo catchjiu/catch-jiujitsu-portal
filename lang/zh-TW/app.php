@@ -302,6 +302,12 @@ return [
         'confirm_password' => '確認密碼',
         'already_have_account' => '已有帳號？',
         'dont_have_account' => '還沒有帳號？',
+        'date_of_birth' => '出生日期',
+        'phone' => '電話號碼',
+        'line_id' => 'Line ID',
+        'profile_picture' => '大頭貼',
+        'profile_picture_optional' => '大頭貼（選填）',
+        'crop_profile_picture' => '裁切大頭貼',
     ],
 
     // Belts
