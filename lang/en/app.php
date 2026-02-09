@@ -241,6 +241,7 @@ return [
         'delete_order' => 'Delete order',
         'confirm_delete_order' => 'Are you sure you want to delete this order? Stock will be restored for in-stock items.',
         'order_deleted' => 'Order deleted.',
+        'payment_submitted' => 'Payment submitted',
         'processing' => 'Processing',
         'delivered' => 'Delivered',
         'pending' => 'Pending',

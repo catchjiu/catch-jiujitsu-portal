@@ -241,6 +241,7 @@ return [
         'delete_order' => '刪除訂單',
         'confirm_delete_order' => '確定要刪除此訂單嗎？非預購商品的庫存將會加回。',
         'order_deleted' => '訂單已刪除。',
+        'payment_submitted' => '已提交付款',
         'processing' => '處理中',
         'delivered' => '已送達',
         'pending' => '待處理',

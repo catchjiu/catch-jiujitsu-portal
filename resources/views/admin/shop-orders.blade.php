@@ -50,6 +50,20 @@
                             </form>
                         </div>
                     </div>
+                    @if($order->payment_submitted_at)
+                        <div class="mt-2 pt-2 border-t border-slate-700/50">
+                            <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">{{ __('app.admin.payment_submitted') }}</p>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                                <span class="text-emerald-400">{{ $order->payment_submitted_at->format('M j, Y g:i A') }}</span>
+                                @if($order->payment_method === 'bank')
+                                    <span class="text-slate-400">{{ __('app.payments.bank_transfer') }}</span>
+                                    @if($order->account_last_5)
+                                        <span class="text-slate-300">{{ __('app.payments.last_5_digits') }}: <span class="font-mono text-[#00d4ff]">{{ $order->account_last_5 }}</span></span>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
                 <ul class="p-4 space-y-2">
                     @foreach($order->items as $item)
