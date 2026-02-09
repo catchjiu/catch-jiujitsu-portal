@@ -113,7 +113,7 @@
         </div>
     </nav>
 
-    <!-- Private Class Modal (global for member booking from dashboard or schedule) -->
+    <!-- Private Class Modal: 1) Choose coach → 2) Next 2 weeks calendar → 3) Book -->
     <div id="privateClassModal" class="hidden fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
          onclick="if(event.target===this) typeof closePrivateClassModal === 'function' && closePrivateClassModal()">
         <div class="glass rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-hidden flex flex-col relative" onclick="event.stopPropagation()">
@@ -121,26 +121,33 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
             <h3 class="text-xl font-bold text-white mb-4 pr-8" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '預約私教課' : 'Book private class' }}</h3>
+
+            <!-- Step 1: Choose a coach -->
             <div id="privateClassStep1" class="space-y-3 overflow-y-auto flex-1 min-h-0">
-                <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '選擇日期' : 'Choose a day' }}</p>
-                <div id="privateClassDays" class="space-y-2"></div>
-                <p id="privateClassDaysLoading" class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '載入中…' : 'Loading…' }}</p>
-                <p id="privateClassDaysEmpty" class="hidden text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '目前沒有可預約日期' : 'No available days right now.' }}</p>
+                <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '選擇教練' : 'Choose a coach' }}</p>
+                <div id="privateClassCoaches" class="space-y-2"></div>
+                <p id="privateClassCoachesLoading" class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '載入中…' : 'Loading…' }}</p>
+                <p id="privateClassCoachesEmpty" class="hidden text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '目前沒有可預約的教練' : 'No coaches available for private classes right now.' }}</p>
             </div>
-            <div id="privateClassStep2" class="hidden flex flex-col flex-1 min-h-0">
-                <button type="button" onclick="typeof privateClassBackToDays === 'function' && privateClassBackToDays()" class="text-slate-400 hover:text-white text-sm mb-2 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-lg">arrow_back</span> {{ app()->getLocale() === 'zh-TW' ? '返回選擇日期' : 'Back to days' }}
+
+            <!-- Step 2: Next 2 weeks availability calendar -->
+            <div id="privateClassStep2" class="hidden flex flex-col flex-1 min-h-0 overflow-hidden">
+                <button type="button" onclick="typeof privateClassBackToCoaches === 'function' && privateClassBackToCoaches()" class="text-slate-400 hover:text-white text-sm mb-2 flex items-center gap-1 flex-shrink-0">
+                    <span class="material-symbols-outlined text-lg">arrow_back</span> {{ app()->getLocale() === 'zh-TW' ? '返回選擇教練' : 'Back to coaches' }}
                 </button>
-                <p id="privateClassSelectedDay" class="text-white font-semibold mb-2"></p>
-                <p class="text-slate-500 text-sm mb-2">{{ app()->getLocale() === 'zh-TW' ? '選擇時段' : 'Choose a time' }}</p>
-                <div id="privateClassSlots" class="space-y-2 overflow-y-auto flex-1 min-h-0 mb-4"></div>
-                <form id="privateClassRequestForm" action="{{ route('private-class.request') }}" method="POST" class="hidden">
-                    @csrf
-                    <input type="hidden" name="coach_id" id="privateClassCoachId">
-                    <input type="hidden" name="scheduled_at" id="privateClassScheduledAt">
-                    <input type="hidden" name="duration_minutes" value="60">
-                </form>
+                <p id="privateClassCoachName" class="text-white font-semibold mb-1 flex-shrink-0"></p>
+                <p class="text-slate-500 text-xs mb-3 flex-shrink-0">{{ app()->getLocale() === 'zh-TW' ? '選擇日期與時段（未來兩週）' : 'Choose a date and time (next 2 weeks)' }}</p>
+                <div id="privateClassCalendar" class="space-y-4 overflow-y-auto flex-1 min-h-0 pb-2"></div>
+                <p id="privateClassCalendarLoading" class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '載入可預約時段…' : 'Loading availability…' }}</p>
+                <p id="privateClassCalendarEmpty" class="hidden text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === 'zh-TW' ? '未來兩週暫無可預約時段' : 'No slots in the next 2 weeks.' }}</p>
             </div>
+
+            <form id="privateClassRequestForm" action="{{ route('private-class.request') }}" method="POST" class="hidden">
+                @csrf
+                <input type="hidden" name="coach_id" id="privateClassCoachId">
+                <input type="hidden" name="scheduled_at" id="privateClassScheduledAt">
+                <input type="hidden" name="duration_minutes" value="60">
+            </form>
         </div>
     </div>
 
@@ -148,92 +155,129 @@
     (function() {
         var modal = document.getElementById('privateClassModal');
         if (!modal) return;
-        var daysEl = document.getElementById('privateClassDays');
-        var daysLoadingEl = document.getElementById('privateClassDaysLoading');
-        var daysEmptyEl = document.getElementById('privateClassDaysEmpty');
+        var coachesEl = document.getElementById('privateClassCoaches');
+        var coachesLoadingEl = document.getElementById('privateClassCoachesLoading');
+        var coachesEmptyEl = document.getElementById('privateClassCoachesEmpty');
         var step1 = document.getElementById('privateClassStep1');
         var step2 = document.getElementById('privateClassStep2');
-        var selectedDayEl = document.getElementById('privateClassSelectedDay');
-        var slotsEl = document.getElementById('privateClassSlots');
+        var coachNameEl = document.getElementById('privateClassCoachName');
+        var calendarEl = document.getElementById('privateClassCalendar');
+        var calendarLoadingEl = document.getElementById('privateClassCalendarLoading');
+        var calendarEmptyEl = document.getElementById('privateClassCalendarEmpty');
         var form = document.getElementById('privateClassRequestForm');
         var coachIdInput = document.getElementById('privateClassCoachId');
         var scheduledAtInput = document.getElementById('privateClassScheduledAt');
 
+        var selectedCoach = null;
+        var availabilityUrl = '{{ url("/private-class/coach") }}';
+
         window.closePrivateClassModal = function() {
             modal.classList.add('hidden');
-            step1.classList.remove('hidden');
-            step2.classList.add('hidden');
-        };
-
-        window.privateClassBackToDays = function() {
             step2.classList.add('hidden');
             step1.classList.remove('hidden');
+            selectedCoach = null;
         };
 
-        function openModalAndLoadDays() {
+        window.privateClassBackToCoaches = function() {
+            step2.classList.add('hidden');
+            step1.classList.remove('hidden');
+            selectedCoach = null;
+        };
+
+        function openModalAndLoadCoaches() {
             modal.classList.remove('hidden');
             step2.classList.add('hidden');
             step1.classList.remove('hidden');
-            daysLoadingEl.classList.remove('hidden');
-            daysEmptyEl.classList.add('hidden');
-            daysEl.innerHTML = '';
-            fetch('{{ route("private-class.days") }}', { headers: { 'Accept': 'application/json' } })
+            coachesLoadingEl.classList.remove('hidden');
+            coachesEmptyEl.classList.add('hidden');
+            coachesEl.innerHTML = '';
+            fetch('{{ route("private-class.coaches") }}', { headers: { 'Accept': 'application/json' } })
                 .then(function(r) { return r.json(); })
-                .then(function(days) {
-                    daysLoadingEl.classList.add('hidden');
-                    if (!days || days.length === 0) {
-                        daysEmptyEl.classList.remove('hidden');
+                .then(function(coaches) {
+                    coachesLoadingEl.classList.add('hidden');
+                    if (!coaches || coaches.length === 0) {
+                        coachesEmptyEl.classList.remove('hidden');
                         return;
                     }
-                    days.forEach(function(d) {
+                    coaches.forEach(function(c) {
                         var btn = document.createElement('button');
                         btn.type = 'button';
-                        btn.className = 'w-full p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-violet-500/20 hover:border-violet-500/50 text-white text-sm text-left transition-colors';
-                        btn.textContent = d.label || d.date;
-                        btn.dataset.date = d.date;
-                        btn.onclick = function() { loadSlotsForDay(d.date, d.label); };
-                        daysEl.appendChild(btn);
+                        btn.className = 'w-full flex items-center gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-violet-500/20 hover:border-violet-500/50 text-white text-left transition-colors';
+                        var avatarHtml = c.avatar ? '<img src="' + c.avatar + '" alt="" class="w-12 h-12 rounded-full object-cover border-2 border-slate-600 flex-shrink-0">' : '<div class="w-12 h-12 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold flex-shrink-0">' + (c.name ? c.name.substring(0, 2).toUpperCase() : '') + '</div>';
+                        btn.innerHTML = '<div class="flex-shrink-0">' + avatarHtml + '</div><div class="flex-1 min-w-0"><span class="font-semibold text-white block">' + (c.name || '') + '</span>' + (c.price ? '<span class="text-slate-500 text-sm">NT$' + c.price.toLocaleString() + '</span>' : '') + '</div><span class="material-symbols-outlined text-slate-500 flex-shrink-0">chevron_right</span>';
+                        btn.onclick = function() { selectCoach(c); };
+                        coachesEl.appendChild(btn);
                     });
                 })
                 .catch(function() {
-                    daysLoadingEl.classList.add('hidden');
-                    daysEmptyEl.textContent = '{{ app()->getLocale() === "zh-TW" ? "載入失敗" : "Failed to load." }}';
-                    daysEmptyEl.classList.remove('hidden');
+                    coachesLoadingEl.classList.add('hidden');
+                    coachesEmptyEl.textContent = '{{ app()->getLocale() === "zh-TW" ? "載入失敗" : "Failed to load." }}';
+                    coachesEmptyEl.classList.remove('hidden');
                 });
         }
 
-        document.getElementById('openPrivateClassModal')?.addEventListener('click', openModalAndLoadDays);
-        document.getElementById('openPrivateClassModalSchedule')?.addEventListener('click', openModalAndLoadDays);
+        document.getElementById('openPrivateClassModal')?.addEventListener('click', openModalAndLoadCoaches);
+        document.getElementById('openPrivateClassModalSchedule')?.addEventListener('click', openModalAndLoadCoaches);
 
-        function loadSlotsForDay(date, dayLabel) {
+        function selectCoach(coach) {
+            selectedCoach = coach;
+            coachIdInput.value = coach.id;
             step1.classList.add('hidden');
             step2.classList.remove('hidden');
-            selectedDayEl.textContent = dayLabel || date;
-            slotsEl.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === "zh-TW" ? "載入時段…" : "Loading slots…" }}</p>';
-            fetch('{{ route("private-class.slots") }}?date=' + encodeURIComponent(date), { headers: { 'Accept': 'application/json' } })
+            coachNameEl.textContent = coach.name || '';
+            calendarEl.innerHTML = '';
+            calendarLoadingEl.classList.remove('hidden');
+            calendarEmptyEl.classList.add('hidden');
+            fetch(availabilityUrl + '/' + coach.id + '/availability?weeks=2', { headers: { 'Accept': 'application/json' } })
                 .then(function(r) { return r.json(); })
-                .then(function(slots) {
-                    slotsEl.innerHTML = '';
-                    if (!slots || slots.length === 0) {
-                        slotsEl.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === "zh-TW" ? "當日暫無可預約時段" : "No slots for this day." }}</p>';
+                .then(function(data) {
+                    calendarLoadingEl.classList.add('hidden');
+                    var slots = data.slots || {};
+                    var slotList = Object.keys(slots).map(function(k) { var s = slots[k]; s._key = k; return s; });
+                    if (slotList.length === 0) {
+                        calendarEmptyEl.classList.remove('hidden');
                         return;
                     }
-                    slots.forEach(function(s) {
-                        var btn = document.createElement('button');
-                        btn.type = 'button';
-                        btn.className = 'w-full flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:bg-violet-500/20 hover:border-violet-500/50 text-white text-sm text-left transition-colors';
-                        var coachHtml = s.coach_avatar ? '<img src="' + s.coach_avatar + '" alt="" class="w-10 h-10 rounded-full object-cover border-2 border-slate-600 flex-shrink-0">' : '<div class="w-10 h-10 rounded-full bg-slate-700 border-2 border-slate-600 flex items-center justify-center text-slate-400 font-bold text-sm flex-shrink-0">' + (s.coach_name ? s.coach_name.substring(0, 2).toUpperCase() : '') + '</div>';
-                        btn.innerHTML = '<div class="flex-shrink-0">' + coachHtml + '</div><div class="flex-1 min-w-0"><span class="font-semibold text-white">' + (s.label || '') + '</span><br><span class="text-slate-500 text-xs">' + (s.coach_name || '') + (s.coach_price ? ' · NT$' + s.coach_price.toLocaleString() : '') + '</span></div><span class="material-symbols-outlined text-slate-500 flex-shrink-0">chevron_right</span>';
-                        btn.onclick = function() {
-                            coachIdInput.value = s.coach_id;
-                            scheduledAtInput.value = s.datetime ? s.datetime.replace('Z', '').replace(/\.[0-9]+/, '').slice(0, 19) : (date + 'T' + (s.label || '').split(' at ')[1] || '09:00');
-                            form.submit();
-                        };
-                        slotsEl.appendChild(btn);
+                    var byDate = {};
+                    slotList.forEach(function(s) {
+                        var key = s._key ? s._key.slice(0, 10) : (s.datetime ? s.datetime.slice(0, 10) : '');
+                        if (!key) return;
+                        if (!byDate[key]) byDate[key] = [];
+                        byDate[key].push(s);
+                    });
+                    var sortedDates = Object.keys(byDate).sort();
+                    sortedDates.forEach(function(dateStr) {
+                        var daySlots = byDate[dateStr];
+                        var first = daySlots[0];
+                        var dayLabel = first && first.label ? first.label.split(' at ')[0].trim() : dateStr;
+                        var dayCard = document.createElement('div');
+                        dayCard.className = 'rounded-xl bg-slate-800/50 border border-slate-700/50 overflow-hidden';
+                        var dayHeader = document.createElement('div');
+                        dayHeader.className = 'px-3 py-2 bg-slate-800 border-b border-slate-700/50 text-white font-semibold text-sm';
+                        dayHeader.textContent = dayLabel;
+                        dayCard.appendChild(dayHeader);
+                        var slotsWrap = document.createElement('div');
+                        slotsWrap.className = 'p-2 flex flex-wrap gap-2';
+                        daySlots.forEach(function(s) {
+                            var slotBtn = document.createElement('button');
+                            slotBtn.type = 'button';
+                            slotBtn.className = 'px-3 py-2 rounded-lg bg-slate-700/80 border border-slate-600 hover:bg-violet-500/30 hover:border-violet-500/50 text-white text-sm transition-colors';
+                            slotBtn.textContent = (s.label && s.label.indexOf(' at ') !== -1) ? s.label.split(' at ')[1] : (s.datetime ? new Date(s.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
+                            slotBtn.onclick = function() {
+                                var iso = s.datetime ? s.datetime.replace('Z', '').replace(/\.[0-9]+/, '').slice(0, 19) : (dateStr + 'T09:00:00');
+                                scheduledAtInput.value = iso;
+                                form.submit();
+                            };
+                            slotsWrap.appendChild(slotBtn);
+                        });
+                        dayCard.appendChild(slotsWrap);
+                        calendarEl.appendChild(dayCard);
                     });
                 })
                 .catch(function() {
-                    slotsEl.innerHTML = '<p class="text-slate-500 text-sm py-4 text-center">{{ app()->getLocale() === "zh-TW" ? "載入失敗" : "Failed to load." }}</p>';
+                    calendarLoadingEl.classList.add('hidden');
+                    calendarEmptyEl.textContent = '{{ app()->getLocale() === "zh-TW" ? "載入失敗" : "Failed to load." }}';
+                    calendarEmptyEl.classList.remove('hidden');
                 });
         }
     })();

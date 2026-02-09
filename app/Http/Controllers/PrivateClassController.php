@@ -90,12 +90,14 @@ class PrivateClassController extends Controller
     }
 
     /**
-     * Get available time slots for a coach (next 4 weeks).
+     * Get available time slots for a coach (next N weeks, default 2 for booking calendar).
      */
-    public function availability($coachId)
+    public function availability(Request $request, $coachId)
     {
+        $weeks = (int) $request->get('weeks', 2);
+        $weeks = max(1, min(8, $weeks));
         $coach = User::where('id', $coachId)->where('is_coach', true)->where('accepting_private_classes', true)->firstOrFail();
-        $slots = $this->getAvailableSlotsForCoach($coach, 4);
+        $slots = $this->getAvailableSlotsForCoach($coach, $weeks);
 
         return response()->json([
             'coach' => [
