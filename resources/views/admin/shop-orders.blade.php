@@ -19,16 +19,21 @@
     <div class="space-y-4">
         @forelse($orders as $order)
             <div class="rounded-xl bg-slate-800/60 border border-slate-700/50 overflow-hidden" data-order-id="{{ $order->id }}">
-                <div class="p-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-700/50">
-                    <div>
-                        <p class="text-white font-semibold">#{{ $order->id }}</p>
-                        <p class="text-slate-400 text-sm">{{ $order->user->name }}{{ $order->user->chinese_name ? ' (' . $order->user->chinese_name . ')' : '' }}</p>
-                        <p class="text-slate-500 text-xs mt-0.5">{{ $order->created_at->format('M j, Y g:i A') }}</p>
+                <div class="p-4 border-b border-slate-700/50 space-y-3">
+                    {{-- Top row: order number, name, date across --}}
+                    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+                        <span class="text-white font-semibold">#{{ $order->id }}</span>
+                        <span class="text-slate-400">·</span>
+                        <span class="text-slate-300">{{ $order->user->name }}{{ $order->user->chinese_name ? ' (' . $order->user->chinese_name . ')' : '' }}</span>
+                        <span class="text-slate-500">·</span>
+                        <span class="text-slate-500 text-xs">{{ $order->created_at->format('M j, Y g:i A') }}</span>
                     </div>
+                    {{-- Row below: status + actions --}}
                     <div class="flex items-center gap-2 flex-wrap">
                         <span data-order-status class="px-3 py-1 rounded-full text-xs font-medium
                             @if($order->status === 'Pending') bg-amber-500/20 text-amber-400 border border-amber-500/40
                             @elseif($order->status === 'Processing') bg-[#00d4ff]/20 text-[#00d4ff] border border-[#00d4ff]/40
+                            @elseif($order->status === 'Cancelled') bg-slate-500/20 text-slate-400 border border-slate-500/40
                             @else bg-emerald-500/20 text-emerald-400 border border-emerald-500/40
                             @endif">{{ $order->status }}</span>
                         <div class="flex gap-2 flex-wrap items-center" data-order-actions>
