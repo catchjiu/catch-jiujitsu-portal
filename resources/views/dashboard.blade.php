@@ -52,7 +52,7 @@
 
     <!-- Check In Module (at front) -->
     <div id="checkInModule">
-        <button type="button" onclick="window.scrollTo(0,0); document.getElementById('qrFullscreen')?.classList.add('hidden'); document.getElementById('checkInModal').classList.remove('hidden')"
+        <button type="button" onclick="typeof openCheckInModal === 'function' && openCheckInModal()"
                 class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
             <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
             <div class="relative z-10 flex items-center gap-4">
@@ -565,7 +565,7 @@
 
             <p class="text-slate-400 text-sm font-semibold mb-2">{{ __('app.dashboard.scan_at_kiosk') }}</p>
             <button type="button" id="qrFullscreenBtn" class="block w-full"
-                    onclick="document.getElementById('checkInModal').classList.add('hidden'); document.getElementById('qrFullscreen').classList.remove('hidden')">
+                    onclick="typeof openQrFullscreen === 'function' && openQrFullscreen()">
                 <div class="p-4 rounded-xl bg-white flex justify-center">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=CATCH-{{ $user->id }}"
                          alt="Check-in QR code" class="w-40 h-40">
@@ -589,6 +589,22 @@
 
 <script>
 (function() {
+    // Move modals to body when opening so they are never inside main (fixes Android fixed-position)
+    window.openCheckInModal = function() {
+        var m = document.getElementById('checkInModal');
+        var q = document.getElementById('qrFullscreen');
+        if (q) { q.classList.add('hidden'); if (q.parentNode !== document.body) document.body.appendChild(q); }
+        if (m) { if (m.parentNode !== document.body) document.body.appendChild(m); m.classList.remove('hidden'); }
+        window.scrollTo(0, 0);
+    };
+    window.openQrFullscreen = function() {
+        var m = document.getElementById('checkInModal');
+        var q = document.getElementById('qrFullscreen');
+        if (m) m.classList.add('hidden');
+        if (q) { if (q.parentNode !== document.body) document.body.appendChild(q); q.classList.remove('hidden'); }
+        window.scrollTo(0, 0);
+    };
+
     var btn = document.getElementById('checkInTodayBtn');
     if (!btn) return;
     var originalHtml = btn.innerHTML;
