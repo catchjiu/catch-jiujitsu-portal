@@ -79,3 +79,17 @@
 @utility animate-fade-in {
     animation: fadeIn 0.3s ease-out;
 }
+
+/* Ensure check-in and private class modals always cover full viewport on Android.
+   Fixed positioning can be relative to a wrong containing block on some Android browsers;
+   explicit full viewport + scroll-to-top on open fixes "loading below homepage". */
+.modal-overlay-fixed {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    min-height: 100vh;
+    min-height: 100dvh;
+}

@@ -547,7 +547,7 @@
     </div>
 
     <!-- Check In Modal - at end of content with high z-index so it sits above all cards -->
-    <div id="checkInModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    <div id="checkInModal" class="hidden fixed inset-0 z-[9999] modal-overlay-fixed flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
          onclick="if(event.target===this) this.classList.add('hidden')">
         <div class="glass rounded-2xl p-6 max-w-sm w-full relative" onclick="event.stopPropagation()">
             <button type="button" onclick="document.getElementById('checkInModal').classList.add('hidden')"
@@ -576,7 +576,7 @@
     </div>
 
     <!-- QR Fullscreen overlay -->
-    <div id="qrFullscreen" class="hidden fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-center p-4"
+    <div id="qrFullscreen" class="hidden fixed inset-0 z-[9999] modal-overlay-fixed bg-black flex flex-col items-center justify-center p-4"
          onclick="this.classList.add('hidden')">
         <p class="text-white text-sm mb-4">{{ __('app.dashboard.tap_qr_fullscreen') }}</p>
         <div class="p-6 rounded-2xl bg-white">

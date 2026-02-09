@@ -114,7 +114,7 @@
     </nav>
 
     <!-- Private Class Modal: 1) Choose coach → 2) Next 2 weeks calendar → 3) Book -->
-    <div id="privateClassModal" class="hidden fixed inset-0 z-[9998] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+    <div id="privateClassModal" class="hidden fixed inset-0 z-[9998] modal-overlay-fixed flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
          onclick="if(event.target===this) typeof closePrivateClassModal === 'function' && closePrivateClassModal()">
         <div class="glass rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-hidden flex flex-col relative" onclick="event.stopPropagation()">
             <button type="button" onclick="typeof closePrivateClassModal === 'function' && closePrivateClassModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white z-10">
@@ -185,6 +185,7 @@
         };
 
         function openModalAndLoadCoaches() {
+            window.scrollTo(0, 0);
             modal.classList.remove('hidden');
             step2.classList.add('hidden');
             step1.classList.remove('hidden');
