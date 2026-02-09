@@ -26,7 +26,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('admin.members.store') }}" method="POST" class="space-y-4">
+            <form action="{{ route('admin.members.store') }}" method="POST" class="space-y-4" enctype="multipart/form-data">
                 @csrf
 
                 <div class="grid grid-cols-2 gap-4">
@@ -45,6 +45,13 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Chinese Name (optional)</label>
+                    <input type="text" name="chinese_name" value="{{ old('chinese_name') }}"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                        placeholder="中文姓名">
+                </div>
+
+                <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email</label>
                     <input type="email" name="email" value="{{ old('email') }}" required
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
@@ -60,8 +67,48 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Phone</label>
+                        <input type="tel" name="phone" value="{{ old('phone') }}"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="+886 912 345 678">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Date of Birth</label>
+                        <input type="date" name="dob" value="{{ old('dob') }}"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Line ID</label>
+                        <input type="text" name="line_id" value="{{ old('line_id') }}"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                            placeholder="Line ID">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gender</label>
+                        <select name="gender"
+                            class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                            <option value="">—</option>
+                            <option value="male" {{ old('gender') === 'male' ? 'selected' : '' }}>Male</option>
+                            <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>Female</option>
+                            <option value="other" {{ old('gender') === 'other' ? 'selected' : '' }}>Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Profile Picture (optional)</label>
+                    <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp,image/gif"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-slate-700 file:text-white file:text-sm">
+                    <p class="text-slate-500 text-xs mt-1">JPEG, PNG, WebP or GIF. Will be resized.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Age Group</label>
-                        <select name="age_group" required
+                        <select name="age_group" id="age_group" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                             <option value="Adults" {{ old('age_group', 'Adults') === 'Adults' ? 'selected' : '' }}>Adults</option>
                             <option value="Kids" {{ old('age_group') === 'Kids' ? 'selected' : '' }}>Kids</option>
@@ -69,19 +116,30 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Belt Rank</label>
-                        <select name="rank" required
+                        <select name="rank" id="rank" required
                             class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
-                            <option value="White" selected>White</option>
-                            <option value="Grey">Grey</option>
-                            <option value="Yellow">Yellow</option>
-                            <option value="Orange">Orange</option>
-                            <option value="Green">Green</option>
-                            <option value="Blue">Blue</option>
-                            <option value="Purple">Purple</option>
-                            <option value="Brown">Brown</option>
-                            <option value="Black">Black</option>
+                            <option value="White" {{ old('rank', 'White') === 'White' ? 'selected' : '' }}>White</option>
+                            <option value="Grey" {{ old('rank') === 'Grey' ? 'selected' : '' }}>Grey</option>
+                            <option value="Yellow" {{ old('rank') === 'Yellow' ? 'selected' : '' }}>Yellow</option>
+                            <option value="Orange" {{ old('rank') === 'Orange' ? 'selected' : '' }}>Orange</option>
+                            <option value="Green" {{ old('rank') === 'Green' ? 'selected' : '' }}>Green</option>
+                            <option value="Blue" {{ old('rank') === 'Blue' ? 'selected' : '' }}>Blue</option>
+                            <option value="Purple" {{ old('rank') === 'Purple' ? 'selected' : '' }}>Purple</option>
+                            <option value="Brown" {{ old('rank') === 'Brown' ? 'selected' : '' }}>Brown</option>
+                            <option value="Black" {{ old('rank') === 'Black' ? 'selected' : '' }}>Black</option>
                         </select>
                     </div>
+                </div>
+
+                <div id="belt_variation_row" class="hidden">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Belt Variation (Kids)</label>
+                    <select name="belt_variation"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        <option value="">—</option>
+                        <option value="white" {{ old('belt_variation') === 'white' ? 'selected' : '' }}>White Bar</option>
+                        <option value="solid" {{ old('belt_variation') === 'solid' ? 'selected' : '' }}>Solid (No Bar)</option>
+                        <option value="black" {{ old('belt_variation') === 'black' ? 'selected' : '' }}>Black Bar</option>
+                    </select>
                 </div>
 
                 <div>
@@ -89,7 +147,7 @@
                     <select name="stripes" required
                         class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
                         @for($i = 0; $i <= 4; $i++)
-                            <option value="{{ $i }}">{{ $i }}</option>
+                            <option value="{{ $i }}" {{ (string)old('stripes', '0') === (string)$i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
                     </select>
                 </div>
@@ -103,6 +161,19 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var rankSelect = document.getElementById('rank');
+            var beltRow = document.getElementById('belt_variation_row');
+            var kidsBelts = ['Grey', 'Yellow', 'Orange', 'Green'];
+            function toggleBeltVariation() {
+                beltRow.classList.toggle('hidden', !kidsBelts.includes(rankSelect.value));
+            }
+            rankSelect.addEventListener('change', toggleBeltVariation);
+            toggleBeltVariation();
+        });
+    </script>
 
     <!-- Info Card -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">

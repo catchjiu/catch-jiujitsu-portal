@@ -12,6 +12,9 @@
             </button>
             <h1 class="text-2xl font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">Member Directory</h1>
         </div>
+        <a href="{{ route('admin.members.create') }}" class="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center text-white transition-colors shrink-0" title="Add member">
+            <span class="material-symbols-outlined text-2xl">add</span>
+        </a>
     </div>
 
     <!-- Search Bar -->
