@@ -42,7 +42,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Locale switch (public: works for guests, members, admins; uses browser language when no preference set)
 Route::post('/locale', [SettingsController::class, 'updateLocale'])->name('locale.switch');
