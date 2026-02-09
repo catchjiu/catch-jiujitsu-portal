@@ -175,16 +175,5 @@
     </script>
 
     <!-- Info Card -->
-    <div class="glass rounded-2xl p-5 relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
-        <div class="relative z-10">
-            <div class="flex items-start gap-3">
-                <span class="material-symbols-outlined text-blue-500">info</span>
-                <div>
-                    <p class="text-slate-300 text-sm">A payment record for the current month will be automatically created with "Overdue" status.</p>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 @endsection

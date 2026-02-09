@@ -1124,14 +1124,6 @@ class AdminController extends Controller
             $member->update(['avatar_url' => $filename]);
         }
 
-        // Create initial payment record for current month
-        Payment::create([
-            'user_id' => $member->id,
-            'amount' => 1500,
-            'month' => now()->format('F Y'),
-            'status' => 'Overdue',
-        ]);
-
         return redirect()->route('admin.members')->with('success', 'Member added successfully.');
     }
 
