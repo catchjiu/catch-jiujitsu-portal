@@ -165,10 +165,11 @@ class LineMessagingService
 
     /**
      * Build Flex bubble for membership expiring in 3 days.
+     * Optional paymentsUrl adds a "Pay / 前往付款" button to the payments screen.
      */
-    public static function flexMembershipExpiring(string $dateStr): array
+    public static function flexMembershipExpiring(string $dateStr, string $paymentsUrl = ''): array
     {
-        return [
+        $bubble = [
             'type' => 'bubble',
             'size' => 'mega',
             'header' => [
@@ -218,14 +219,37 @@ class LineMessagingService
                 'paddingAll' => '16px',
             ],
         ];
+
+        if ($paymentsUrl !== '') {
+            $bubble['footer'] = [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'Pay / 前往付款',
+                            'uri' => $paymentsUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#B45309',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ];
+        }
+
+        return $bubble;
     }
 
     /**
      * Build Flex bubble for class pass at zero (no classes left).
+     * Optional paymentsUrl adds a "Pay / 前往付款" button to the payments screen.
      */
-    public static function flexClassPassZero(): array
+    public static function flexClassPassZero(string $paymentsUrl = ''): array
     {
-        return [
+        $bubble = [
             'type' => 'bubble',
             'size' => 'mega',
             'header' => [
@@ -267,6 +291,28 @@ class LineMessagingService
                 'paddingAll' => '16px',
             ],
         ];
+
+        if ($paymentsUrl !== '') {
+            $bubble['footer'] = [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'Pay / 前往付款',
+                            'uri' => $paymentsUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#059669',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ];
+        }
+
+        return $bubble;
     }
 
     /**

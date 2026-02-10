@@ -153,9 +153,10 @@ Artisan::command('reminders:send-membership', function () {
 
     $this->info("Expiry window: {$expiryWindowStart} to {$expiryWindowEnd} (today: {$today->toDateString()}). Found " . $expiryUsers->count() . " user(s) for expiry reminder.");
 
+    $paymentsUrl = rtrim(config('app.url'), '/') . '/payments';
     foreach ($expiryUsers as $user) {
         $dateStr = $user->membership_expires_at->format('M j, Y');
-        $flex = LineMessagingService::flexMembershipExpiring($dateStr);
+        $flex = LineMessagingService::flexMembershipExpiring($dateStr, $paymentsUrl);
         $altText = "Reminder: Your membership expires in 3 days ({$dateStr}). Contact us to renew.";
         if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
             $user->update(['membership_expiry_reminder_sent_at' => $user->membership_expires_at]);
@@ -174,8 +175,9 @@ Artisan::command('reminders:send-membership', function () {
         })
         ->get();
 
+    $paymentsUrl = rtrim(config('app.url'), '/') . '/payments';
     foreach ($zeroClassUsers as $user) {
-        $flex = LineMessagingService::flexClassPassZero();
+        $flex = LineMessagingService::flexClassPassZero($paymentsUrl);
         $altText = 'Reminder: Your class pass has no classes left. Contact us to top up.';
         if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
             $user->update(['classes_zero_reminder_sent_at' => now()]);
