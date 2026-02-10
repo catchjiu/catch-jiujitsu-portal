@@ -177,7 +177,7 @@ class LineMessagingService
                 'contents' => [
                     [
                         'type' => 'text',
-                        'text' => 'Membership reminder / 會籍提醒',
+                        'text' => 'Expiry / 到期',
                         'weight' => 'bold',
                         'size' => 'lg',
                         'color' => '#FFFFFF',

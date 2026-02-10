@@ -35,7 +35,7 @@
     "header": {
       "type": "box",
       "layout": "vertical",
-      "contents": [{ "type": "text", "text": "Membership reminder / 會籍提醒", "weight": "bold", "size": "lg", "color": "#FFFFFF", "align": "center" }],
+      "contents": [{ "type": "text", "text": "Expiry / 到期", "weight": "bold", "size": "lg", "color": "#FFFFFF", "align": "center" }],
       "backgroundColor": "#B45309",
       "paddingAll": "12px"
     },
