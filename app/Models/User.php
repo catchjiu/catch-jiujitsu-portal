@@ -45,6 +45,7 @@ class User extends Authenticatable
         'public_profile',
         'locale',
         'line_id',
+        'line_notify_token',
         'gender',
         'age_group',
         'dob',
@@ -62,6 +63,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'line_notify_token',
     ];
 
     /**
@@ -88,6 +90,14 @@ class User extends Authenticatable
             'membership_expires_at' => 'date',
             'classes_remaining' => 'integer',
         ];
+    }
+
+    /**
+     * Whether the user has linked LINE (Messaging API line_id) and can receive class reminders via LINE.
+     */
+    public function hasLineNotify(): bool
+    {
+        return ! empty($this->line_id);
     }
 
     /**
@@ -268,6 +278,51 @@ class User extends Authenticatable
         }
 
         return true;
+    }
+
+    /**
+     * Whether the member's package allows booking a class on this date (for weekend/weekday restrictions).
+     */
+    public function canBookClassOnDay($date): bool
+    {
+        $date = Carbon::parse($date);
+        if (! $this->membershipPackage) {
+            return true;
+        }
+        $allowed = $this->membershipPackage->allowed_days ?? \App\Models\MembershipPackage::ALLOWED_DAYS_ALL;
+        if ($allowed === \App\Models\MembershipPackage::ALLOWED_DAYS_ALL || $allowed === null || $allowed === '') {
+            return true;
+        }
+        $isWeekend = $date->isWeekend();
+        if ($allowed === \App\Models\MembershipPackage::ALLOWED_DAYS_WEEKENDS) {
+            return $isWeekend;
+        }
+        if ($allowed === \App\Models\MembershipPackage::ALLOWED_DAYS_WEEKDAYS) {
+            return ! $isWeekend;
+        }
+        return true;
+    }
+
+    /**
+     * Message to show when the member cannot book a class because of package day restriction.
+     * $classIsWeekend: true if the class is on Sat/Sun.
+     */
+    public function getPackageUpgradeMessageForDay(bool $classIsWeekend): string
+    {
+        if (! $this->membershipPackage) {
+            return '';
+        }
+        $allowed = $this->membershipPackage->allowed_days ?? null;
+        if (! $allowed || $allowed === \App\Models\MembershipPackage::ALLOWED_DAYS_ALL) {
+            return '';
+        }
+        if ($allowed === \App\Models\MembershipPackage::ALLOWED_DAYS_WEEKENDS && ! $classIsWeekend) {
+            return app()->getLocale() === 'zh-TW' ? '請升級方案以預約平日課程。' : 'Upgrade your package to book weekday classes.';
+        }
+        if ($allowed === \App\Models\MembershipPackage::ALLOWED_DAYS_WEEKDAYS && $classIsWeekend) {
+            return app()->getLocale() === 'zh-TW' ? '請升級方案以預約週末課程。' : 'Upgrade your package to book weekend classes.';
+        }
+        return '';
     }
 
     /**

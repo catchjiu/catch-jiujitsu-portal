@@ -12,11 +12,15 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\MembershipPackageController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\PrivateClassController;
+use App\Http\Controllers\LineWebhookController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopAdminController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
+
+// LINE Messaging API webhook (no auth; CSRF excluded in bootstrap/app.php)
+Route::post('/webhook/line', LineWebhookController::class)->name('webhook.line');
 
 // Check-in kiosk (no auth – open in new tab for monitor)
 Route::get('/checkin', [CheckInController::class, 'show'])->name('checkin');
@@ -86,6 +90,8 @@ Route::middleware(['auth', 'member'])->group(function () {
     Route::delete('/settings/avatar', [SettingsController::class, 'removeAvatar'])->name('settings.avatar.remove');
     Route::post('/settings/locale', [SettingsController::class, 'updateLocale'])->name('settings.locale');
     Route::post('/settings/private-class', [SettingsController::class, 'updatePrivateClass'])->name('settings.private-class');
+    Route::get('/settings/line/connect', [SettingsController::class, 'lineConnect'])->name('settings.line.connect');
+    Route::post('/settings/line/disconnect', [SettingsController::class, 'lineDisconnect'])->name('settings.line.disconnect');
 
     // Leaderboard
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');

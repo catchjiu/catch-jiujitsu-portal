@@ -15,7 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'member' => \App\Http\Middleware\MemberMiddleware::class,
         ]);
-        
+
+        $middleware->validateCsrfTokens(except: [
+            'webhook/line',
+        ]);
+
         // Add locale middleware to web group
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,

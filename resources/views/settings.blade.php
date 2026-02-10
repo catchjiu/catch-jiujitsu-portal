@@ -17,6 +17,16 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            {{ session('error') }}
+        </div>
+    @endif
+    @if(session('info'))
+        <div class="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
+            {{ session('info') }}
+        </div>
+    @endif
 
     <!-- Profile Picture -->
     <div class="space-y-3">
@@ -157,6 +167,50 @@
                                 <div class="w-12 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
                             </label>
                         </div>
+
+                        @if(isset($line_configured) && $line_configured)
+                        <div class="flex flex-col gap-2 pt-2">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white font-medium">{{ app()->getLocale() === 'zh-TW' ? 'LINE 通知' : 'LINE Notifications' }}</p>
+                                    <p class="text-slate-500 text-xs">
+                                        @if($user->hasLineNotify())
+                                            {{ app()->getLocale() === 'zh-TW' ? '已連結，提醒將發送到 LINE' : 'Connected — reminders will be sent to LINE' }}
+                                        @else
+                                            {{ app()->getLocale() === 'zh-TW' ? '連結 LINE 以接收課程提醒' : 'Connect LINE to receive class reminders' }}
+                                        @endif
+                                    </p>
+                                </div>
+                                <div>
+                                    @if($user->hasLineNotify())
+                                        <form action="{{ route('settings.line.disconnect') }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-slate-600 hover:bg-slate-500 text-white text-sm font-medium transition-colors">
+                                                {{ app()->getLocale() === 'zh-TW' ? '取消連結' : 'Disconnect' }}
+                                            </button>
+                                        </form>
+                                    @else
+                                        <a href="{{ route('settings.line.connect') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#06C755] hover:bg-[#05b04c] text-white text-sm font-medium transition-colors">
+                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738C0 14.696 4.383 19 12 19c1.894 0 3.635-.364 5.237-.946L20 22l-2.5-5.5c1.5-.9 2.5-2.1 2.5-3.5 0-.2-.02-.4-.04-.6.36-.22.74-.5 1.04-.9.3-.4.5-.8.5-1.3 0-.1 0-.2-.02-.3.18-.3.38-.6.38-1 0-.2 0-.4-.02-.5.18-.4.38-.8.38-1.2 0-.3-.1-.5-.2-.7.12-.24.22-.48.22-.76z"/></svg>
+                                            {{ app()->getLocale() === 'zh-TW' ? '連結 LINE' : 'Connect LINE' }}
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                            @if(session('line_connect_code'))
+                            <div class="mt-2 p-3 rounded-lg bg-slate-800/80 border border-slate-600 text-sm">
+                                <p class="text-slate-300 mb-2">{{ app()->getLocale() === 'zh-TW' ? '請加入我們的 LINE 帳號，然後在 LINE 裡回覆以下 6 位數連結碼：' : 'Add our LINE account, then reply in LINE with this 6-digit code:' }}</p>
+                                <p class="text-white font-mono text-lg font-bold tracking-widest">{{ session('line_connect_code') }}</p>
+                                <p class="text-slate-500 text-xs mt-2">{{ app()->getLocale() === 'zh-TW' ? '連結碼 5 分鐘內有效。' : 'Code expires in 5 minutes.' }}</p>
+                                @if(!empty($line_add_friend_url))
+                                <a href="{{ $line_add_friend_url }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-lg bg-[#06C755] hover:bg-[#05b04c] text-white text-sm font-medium transition-colors">
+                                    {{ app()->getLocale() === 'zh-TW' ? '加入 LINE 帳號' : 'Add LINE account' }}
+                                </a>
+                                @endif
+                            </div>
+                            @endif
+                        </div>
+                        @endif
                     </div>
 
                     <button type="submit"

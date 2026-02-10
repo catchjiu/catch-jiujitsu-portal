@@ -40,4 +40,16 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
+    /*
+    | LINE Messaging API (push messages from your LINE Official Account / bot)
+    | Create a channel at https://developers.line.biz/ → Messaging API.
+    | Set webhook URL to: APP_URL/webhook/line
+    | line_id on users = LINE user ID (from webhook follow/message events).
+    */
+    'line_messaging' => [
+        'channel_access_token' => env('LINE_CHANNEL_ACCESS_TOKEN'),
+        'channel_secret' => env('LINE_CHANNEL_SECRET'),
+        'add_friend_url' => env('LINE_ADD_FRIEND_URL'), // e.g. https://line.me/R/ti/p/@yourbot
+    ],
+
 ];

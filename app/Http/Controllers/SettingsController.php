@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Services\LineMessagingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
@@ -14,10 +17,17 @@ class SettingsController extends Controller
     /**
      * Display the settings page.
      */
-    public function index()
+    public function index(LineMessagingService $lineMessaging)
     {
+        $user = auth()->user();
+        if ($user->hasLineNotify()) {
+            Session::forget('line_connect_code');
+        }
+
         return view('settings', [
-            'user' => auth()->user(),
+            'user' => $user,
+            'line_configured' => $lineMessaging->isConfigured(),
+            'line_add_friend_url' => $lineMessaging->getAddFriendUrl(),
         ]);
     }
 
@@ -272,5 +282,34 @@ class SettingsController extends Controller
         ]);
 
         return back()->with('success', 'Private class settings updated.');
+    }
+
+    /**
+     * Start LINE connect flow: generate 6-digit code, store in cache, redirect to settings to show code.
+     * User adds the bot and replies in LINE with this code; webhook links their line_id to this user.
+     */
+    public function lineConnect(LineMessagingService $lineMessaging)
+    {
+        if (! $lineMessaging->isConfigured()) {
+            return redirect()->route('settings')->with('error', 'LINE is not configured.');
+        }
+
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        Cache::put('line_link:' . $code, auth()->id(), now()->addMinutes(5));
+
+        return redirect()->route('settings')->with('line_connect_code', $code);
+    }
+
+    /**
+     * Disconnect LINE (clear line_id so they no longer receive reminders via LINE).
+     */
+    public function lineDisconnect()
+    {
+        auth()->user()->update([
+            'line_id' => null,
+            'line_notify_token' => null,
+        ]);
+
+        return back()->with('success', app()->getLocale() === 'zh-TW' ? '已取消連結 LINE。' : 'LINE disconnected.');
     }
 }
