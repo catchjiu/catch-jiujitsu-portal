@@ -137,12 +137,14 @@ Artisan::command('reminders:send-membership', function () {
     $sentExpiry = 0;
     $sentZero = 0;
     $today = Carbon::today();
-    $threeDaysFromNow = $today->copy()->addDays(3);
+    $expiryWindowStart = $today->copy()->addDay();   // 1 day from now
+    $expiryWindowEnd = $today->copy()->addDays(3);   // 3 days from now
 
-    // 1) Membership expiring in 3 days: expiry date is exactly 3 days from today, and we haven't sent for this expiry yet
+    // 1) Membership expiring in 1–3 days: expiry date in that window, and we haven't sent for this expiry yet (sends once per expiry)
     $expiryUsers = User::whereNotNull('line_id')
         ->whereNotNull('membership_expires_at')
-        ->whereDate('membership_expires_at', $threeDaysFromNow)
+        ->whereDate('membership_expires_at', '>=', $expiryWindowStart)
+        ->whereDate('membership_expires_at', '<=', $expiryWindowEnd)
         ->where(function ($q) {
             $q->whereNull('membership_expiry_reminder_sent_at')
                 ->orWhereRaw('DATE(membership_expiry_reminder_sent_at) != DATE(membership_expires_at)');
