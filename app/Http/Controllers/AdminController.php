@@ -1404,10 +1404,9 @@ class AdminController extends Controller
             'membership_status' => $validated['membership_status'],
             'membership_expires_at' => $validated['membership_expires_at'],
             'classes_remaining' => $validated['classes_remaining'],
+            'membership_expiry_reminder_sent_at' => null,
+            'classes_zero_reminder_sent_at' => null,
         ];
-        if (isset($validated['classes_remaining']) && (int) $validated['classes_remaining'] > 0) {
-            $data['classes_zero_reminder_sent_at'] = null;
-        }
         $member->update($data);
 
         return redirect()->route('admin.members.show', $member->id)->with('success', 'Membership updated successfully.');
@@ -1510,10 +1509,9 @@ class AdminController extends Controller
             'membership_status' => $validated['membership_status'],
             'membership_expires_at' => $validated['membership_expires_at'],
             'classes_remaining' => $validated['classes_remaining'],
+            'membership_expiry_reminder_sent_at' => null,
+            'classes_zero_reminder_sent_at' => null,
         ];
-        if (isset($validated['classes_remaining']) && (int) $validated['classes_remaining'] > 0) {
-            $data['classes_zero_reminder_sent_at'] = null;
-        }
         $member->update($data);
 
         return back()->with('success', 'Payment approved and membership updated successfully.');
