@@ -101,10 +101,9 @@ Artisan::command('reminders:send-class', function () {
             ->get();
 
         $timeStr = $class->start_time->format('H:i');
-        $title = app()->getLocale() === 'zh-TW' && $class->title_zh ? $class->title_zh : $class->title;
-        $message = (app()->getLocale() === 'zh-TW')
-            ? "課程提醒：{$title} 將在 {$timeStr} 開始。See you on the mat!"
-            : "Reminder: {$title} at {$timeStr}. See you on the mat!";
+        $titleEn = $class->title;
+        $titleZh = $class->title_zh ?: $class->title;
+        $message = "Reminder: {$titleEn} at {$timeStr}. See you on the mat!\n\n課程提醒：{$titleZh} 將在 {$timeStr} 開始。See you on the mat!";
 
         foreach ($bookings as $booking) {
             $user = $booking->user;
@@ -149,12 +148,9 @@ Artisan::command('reminders:send-membership', function () {
         })
         ->get();
 
-    $locale = config('app.locale');
     foreach ($expiryUsers as $user) {
         $dateStr = $user->membership_expires_at->format('M j, Y');
-        $message = $locale === 'zh-TW'
-            ? "提醒：您的會籍將在 3 天後（{$dateStr}）到期。如需續期請聯絡我們。"
-            : "Reminder: Your membership expires in 3 days ({$dateStr}). Contact us to renew.";
+        $message = "Reminder: Your membership expires in 3 days ({$dateStr}). Contact us to renew.\n\n提醒：您的會籍將在 3 天後（{$dateStr}）到期。如需續期請聯絡我們。";
         if ($lineMessaging->sendPushMessage($user->line_id, $message)) {
             $user->update(['membership_expiry_reminder_sent_at' => $user->membership_expires_at]);
             $sentExpiry++;
@@ -171,9 +167,7 @@ Artisan::command('reminders:send-membership', function () {
         ->get();
 
     foreach ($zeroClassUsers as $user) {
-        $message = $locale === 'zh-TW'
-            ? '提醒：您的堂數已用完。如需再購買請聯絡我們。'
-            : 'Reminder: Your class pass has no classes left. Contact us to top up.';
+        $message = "Reminder: Your class pass has no classes left. Contact us to top up.\n\n提醒：您的堂數已用完。如需再購買請聯絡我們。";
         if ($lineMessaging->sendPushMessage($user->line_id, $message)) {
             $user->update(['classes_zero_reminder_sent_at' => now()]);
             $sentZero++;
