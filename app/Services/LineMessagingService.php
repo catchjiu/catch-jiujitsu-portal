@@ -125,7 +125,7 @@ class LineMessagingService
                         'color' => '#666666',
                         'wrap' => true,
                     ],
-                    ['type' => 'separator', 'margin' => 'md'],
+                    ['type' => 'separator'],
                     [
                         'type' => 'box',
                         'layout' => 'baseline',
@@ -139,7 +139,6 @@ class LineMessagingService
                         'text' => 'Starts in ~1 hour / 約 1 小時後開始',
                         'size' => 'xs',
                         'color' => '#888888',
-                        'margin' => 'md',
                         'wrap' => true,
                     ],
                 ],
@@ -205,9 +204,8 @@ class LineMessagingService
                         'size' => 'xl',
                         'weight' => 'bold',
                         'color' => '#B45309',
-                        'margin' => 'md',
                     ],
-                    ['type' => 'separator', 'margin' => 'md'],
+                    ['type' => 'separator'],
                     [
                         'type' => 'text',
                         'text' => 'Contact us to renew. / 如需續期請聯絡我們。',
@@ -279,7 +277,7 @@ class LineMessagingService
                         'size' => 'md',
                         'wrap' => true,
                     ],
-                    ['type' => 'separator', 'margin' => 'md'],
+                    ['type' => 'separator'],
                     [
                         'type' => 'text',
                         'text' => 'Contact us to top up. / 如需再購買請聯絡我們。',
@@ -358,7 +356,7 @@ class LineMessagingService
                         'color' => '#666666',
                         'wrap' => true,
                     ],
-                    ['type' => 'separator', 'margin' => 'md'],
+                    ['type' => 'separator'],
                     [
                         'type' => 'box',
                         'layout' => 'baseline',
@@ -372,7 +370,6 @@ class LineMessagingService
                         'text' => 'View schedule or cancel booking in the portal. / 在網站查看課表或取消預約。',
                         'size' => 'xs',
                         'color' => '#888888',
-                        'margin' => 'md',
                         'wrap' => true,
                     ],
                 ],
@@ -439,7 +436,6 @@ class LineMessagingService
                         'size' => 'xl',
                         'weight' => 'bold',
                         'color' => '#059669',
-                        'margin' => 'sm',
                         'wrap' => true,
                     ],
                     [
@@ -449,7 +445,7 @@ class LineMessagingService
                         'color' => '#666666',
                         'wrap' => true,
                     ],
-                    ['type' => 'separator', 'margin' => 'md'],
+                    ['type' => 'separator'],
                     [
                         'type' => 'text',
                         'text' => 'Book your next session! / 預約下一堂課！',
@@ -515,7 +511,7 @@ class LineMessagingService
                         'size' => 'md',
                         'wrap' => true,
                     ],
-                    ['type' => 'separator', 'margin' => 'md'],
+                    ['type' => 'separator'],
                     [
                         'type' => 'text',
                         'text' => "Here's this week's schedule — see you on the mat soon! / 這是本週課表，墊上見！",
@@ -606,6 +602,7 @@ class LineMessagingService
         if (! empty($liffId)) {
             return 'https://liff.line.me/'.$liffId.$path;
         }
+        Log::debug('LINE Flex button URL: LINE_LIFF_ID not set, using app URL', ['path' => $path]);
         return rtrim(config('app.url'), '/').$path;
     }
 }

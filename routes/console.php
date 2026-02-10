@@ -13,6 +13,16 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+Artisan::command('line:link-url {path=payments}', function (string $path) {
+    $url = LineMessagingService::getLinkUrl($path);
+    $liffId = config('services.liff.liff_id');
+    $this->line('URL: ' . $url);
+    $this->line('LINE_LIFF_ID: ' . ($liffId ?: '(not set)'));
+    if (empty($liffId)) {
+        $this->warn('LIFF ID not set — Pay/Schedule buttons use app URL. Set LINE_LIFF_ID in .env and run config:clear.');
+    }
+})->purpose('Show the URL used for LINE Flex Pay/Schedule buttons (for debugging)');
+
 /**
  * Ensure classes exist for the next 4 weeks by copying from a reference week.
  * Run daily so the schedule is always visible 4 weeks ahead.
