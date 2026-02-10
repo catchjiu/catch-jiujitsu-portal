@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Log;
 
 class LineMessagingService
 {
+    /** Last LINE API error (for CLI/logging when push fails). */
+    protected static ?string $lastPushError = null;
+
     protected string $channelAccessToken;
 
     protected string $channelSecret;
@@ -65,13 +68,17 @@ class LineMessagingService
             ]);
 
         if (! $response->successful()) {
+            $body = $response->body();
+            self::$lastPushError = "HTTP {$response->status()}: {$body}";
             Log::warning('LINE Messaging API Flex push failed', [
                 'status' => $response->status(),
-                'body' => $response->body(),
+                'body' => $body,
             ]);
 
             return false;
         }
+
+        self::$lastPushError = null;
 
         return true;
     }
@@ -305,5 +312,10 @@ class LineMessagingService
     public function isConfigured(): bool
     {
         return ! empty($this->channelAccessToken) && ! empty($this->channelSecret);
+    }
+
+    public static function getLastPushError(): ?string
+    {
+        return self::$lastPushError;
     }
 }

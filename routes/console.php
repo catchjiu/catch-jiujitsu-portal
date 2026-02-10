@@ -160,6 +160,8 @@ Artisan::command('reminders:send-membership', function () {
         if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
             $user->update(['membership_expiry_reminder_sent_at' => $user->membership_expires_at]);
             $sentExpiry++;
+        } else {
+            $this->warn("Failed to send expiry reminder to user {$user->id} ({$user->email}): " . (LineMessagingService::getLastPushError() ?? 'unknown'));
         }
     }
 
@@ -178,6 +180,8 @@ Artisan::command('reminders:send-membership', function () {
         if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
             $user->update(['classes_zero_reminder_sent_at' => now()]);
             $sentZero++;
+        } else {
+            $this->warn("Failed to send zero-class reminder to user {$user->id} ({$user->email}): " . (LineMessagingService::getLastPushError() ?? 'unknown'));
         }
     }
 
