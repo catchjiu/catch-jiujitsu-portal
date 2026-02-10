@@ -1,0 +1,75 @@
+{
+  "description": "LINE Flex Message templates reference. Built in code in LineMessagingService::flexClassReminder, flexMembershipExpiring, flexClassPassZero. Push API: { \"to\": \"LINE_USER_ID\", \"messages\": [{ \"type\": \"flex\", \"altText\": \"...\", \"contents\": <bubble> }] }",
+  "class_reminder": {
+    "type": "bubble",
+    "size": "mega",
+    "header": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [{ "type": "text", "text": "Class reminder / 課程提醒", "weight": "bold", "size": "lg", "color": "#FFFFFF", "align": "center" }],
+      "backgroundColor": "#1E40AF",
+      "paddingAll": "12px"
+    },
+    "body": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [
+        { "type": "text", "text": "BJJ Fundamentals", "weight": "bold", "size": "xl", "wrap": true },
+        { "type": "text", "text": "BJJ 基礎課", "size": "sm", "color": "#666666", "wrap": true },
+        { "type": "separator", "margin": "12px" },
+        { "type": "box", "layout": "baseline", "contents": [{ "type": "text", "text": "🕐", "size": "sm", "flex": 0 }, { "type": "text", "text": "19:00", "weight": "bold", "size": "lg", "flex": 1 }] },
+        { "type": "text", "text": "Starts in ~1 hour / 約 1 小時後開始", "size": "xs", "color": "#888888", "margin": "top", "wrap": true }
+      ],
+      "paddingAll": "16px"
+    },
+    "footer": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [{ "type": "text", "text": "See you on the mat! / 墊上見！", "size": "sm", "color": "#1E40AF", "align": "center", "weight": "bold" }],
+      "paddingAll": "12px"
+    }
+  },
+  "membership_expiring": {
+    "type": "bubble",
+    "size": "mega",
+    "header": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [{ "type": "text", "text": "Membership reminder / 會籍提醒", "weight": "bold", "size": "lg", "color": "#FFFFFF", "align": "center" }],
+      "backgroundColor": "#B45309",
+      "paddingAll": "12px"
+    },
+    "body": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [
+        { "type": "text", "text": "Expires in 3 days / 3 天後到期", "weight": "bold", "size": "md", "wrap": true },
+        { "type": "text", "text": "Feb 13, 2026", "size": "xl", "weight": "bold", "color": "#B45309", "margin": "top" },
+        { "type": "separator", "margin": "12px" },
+        { "type": "text", "text": "Contact us to renew. / 如需續期請聯絡我們。", "size": "sm", "color": "#666666", "wrap": true }
+      ],
+      "paddingAll": "16px"
+    }
+  },
+  "class_pass_zero": {
+    "type": "bubble",
+    "size": "mega",
+    "header": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [{ "type": "text", "text": "Class pass / 堂數", "weight": "bold", "size": "lg", "color": "#FFFFFF", "align": "center" }],
+      "backgroundColor": "#059669",
+      "paddingAll": "12px"
+    },
+    "body": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [
+        { "type": "text", "text": "No classes left / 堂數已用完", "weight": "bold", "size": "md", "wrap": true },
+        { "type": "separator", "margin": "12px" },
+        { "type": "text", "text": "Contact us to top up. / 如需再購買請聯絡我們。", "size": "sm", "color": "#666666", "wrap": true }
+      ],
+      "paddingAll": "16px"
+    }
+  }
+}

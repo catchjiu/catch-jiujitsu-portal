@@ -103,14 +103,15 @@ Artisan::command('reminders:send-class', function () {
         $timeStr = $class->start_time->format('H:i');
         $titleEn = $class->title;
         $titleZh = $class->title_zh ?: $class->title;
-        $message = "Reminder: {$titleEn} at {$timeStr}. See you on the mat!\n\n課程提醒：{$titleZh} 將在 {$timeStr} 開始。See you on the mat!";
+        $flex = LineMessagingService::flexClassReminder($titleEn, $titleZh, $timeStr);
+        $altText = "Reminder: {$titleEn} at {$timeStr}. See you on the mat!";
 
         foreach ($bookings as $booking) {
             $user = $booking->user;
             if (! $user || ! $user->reminders_enabled || ! $user->line_id) {
                 continue;
             }
-            if ($lineMessaging->sendPushMessage($user->line_id, $message)) {
+            if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
                 $sent++;
             }
         }
@@ -150,8 +151,9 @@ Artisan::command('reminders:send-membership', function () {
 
     foreach ($expiryUsers as $user) {
         $dateStr = $user->membership_expires_at->format('M j, Y');
-        $message = "Reminder: Your membership expires in 3 days ({$dateStr}). Contact us to renew.\n\n提醒：您的會籍將在 3 天後（{$dateStr}）到期。如需續期請聯絡我們。";
-        if ($lineMessaging->sendPushMessage($user->line_id, $message)) {
+        $flex = LineMessagingService::flexMembershipExpiring($dateStr);
+        $altText = "Reminder: Your membership expires in 3 days ({$dateStr}). Contact us to renew.";
+        if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
             $user->update(['membership_expiry_reminder_sent_at' => $user->membership_expires_at]);
             $sentExpiry++;
         }
@@ -167,8 +169,9 @@ Artisan::command('reminders:send-membership', function () {
         ->get();
 
     foreach ($zeroClassUsers as $user) {
-        $message = "Reminder: Your class pass has no classes left. Contact us to top up.\n\n提醒：您的堂數已用完。如需再購買請聯絡我們。";
-        if ($lineMessaging->sendPushMessage($user->line_id, $message)) {
+        $flex = LineMessagingService::flexClassPassZero();
+        $altText = 'Reminder: Your class pass has no classes left. Contact us to top up.';
+        if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
             $user->update(['classes_zero_reminder_sent_at' => now()]);
             $sentZero++;
         }
