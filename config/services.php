@@ -52,4 +52,16 @@ return [
         'add_friend_url' => env('LINE_ADD_FRIEND_URL'), // e.g. https://line.me/R/ti/p/@yourbot
     ],
 
+    /*
+    | LIFF (LINE Front-end Framework) – open links from LINE in-app browser and log in by line_id.
+    | LINE no longer allows adding LIFF to Messaging API channels. Use a LINE Login channel:
+    | create a LINE Login channel, add your LIFF app there (Endpoint URL = APP_URL/liff, permanent link "concat").
+    | Link that LINE Login channel to your Messaging API bot so the same user has the same ID (line_id).
+    | Channel ID below is the LINE Login channel's Channel ID (for Verify ID token API).
+    */
+    'liff' => [
+        'liff_id' => env('LINE_LIFF_ID'),
+        'channel_id' => env('LINE_CHANNEL_ID'), // LINE Login channel ID (for Verify ID token API)
+    ],
+
 ];

@@ -153,7 +153,7 @@ Artisan::command('reminders:send-membership', function () {
 
     $this->info("Expiry window: {$expiryWindowStart} to {$expiryWindowEnd} (today: {$today->toDateString()}). Found " . $expiryUsers->count() . " user(s) for expiry reminder.");
 
-    $paymentsUrl = rtrim(config('app.url'), '/') . '/payments';
+    $paymentsUrl = LineMessagingService::getLinkUrl('payments');
     foreach ($expiryUsers as $user) {
         $dateStr = $user->membership_expires_at->format('M j, Y');
         $flex = LineMessagingService::flexMembershipExpiring($dateStr, $paymentsUrl);
@@ -175,7 +175,7 @@ Artisan::command('reminders:send-membership', function () {
         })
         ->get();
 
-    $paymentsUrl = rtrim(config('app.url'), '/') . '/payments';
+    $paymentsUrl = LineMessagingService::getLinkUrl('payments');
     foreach ($zeroClassUsers as $user) {
         $flex = LineMessagingService::flexClassPassZero($paymentsUrl);
         $altText = 'Reminder: Your class pass has no classes left. Contact us to top up.';
@@ -207,7 +207,7 @@ Artisan::command('reminders:send-day-before', function () {
     $tz = config('app.timezone');
     $tomorrowStart = Carbon::now($tz)->addDay()->startOfDay();
     $tomorrowEnd = Carbon::now($tz)->addDay()->endOfDay();
-    $scheduleUrl = rtrim(config('app.url'), '/') . '/schedule';
+    $scheduleUrl = LineMessagingService::getLinkUrl('schedule');
 
     $classes = ClassSession::whereBetween('start_time', [$tomorrowStart, $tomorrowEnd])
         ->where('is_cancelled', false)
@@ -253,7 +253,7 @@ Artisan::command('reminders:send-post-class', function () {
     $tz = config('app.timezone');
     $windowEnd = Carbon::now($tz)->subHour();
     $windowStart = Carbon::now($tz)->subHours(2);
-    $scheduleUrl = rtrim(config('app.url'), '/') . '/schedule';
+    $scheduleUrl = LineMessagingService::getLinkUrl('schedule');
 
     $classes = ClassSession::where('is_cancelled', false)->get()->filter(function ($class) use ($windowStart, $windowEnd) {
         $endTime = $class->start_time->copy()->addMinutes((int) $class->duration_minutes);
@@ -299,7 +299,7 @@ Artisan::command('reminders:send-reengagement', function () {
     $tz = config('app.timezone');
     $sevenDaysAgo = Carbon::now($tz)->subDays(7);
     $reengagementCooldown = Carbon::now($tz)->subDays(7);
-    $scheduleUrl = rtrim(config('app.url'), '/') . '/schedule';
+    $scheduleUrl = LineMessagingService::getLinkUrl('schedule');
 
     $candidates = User::whereNotNull('line_id')
         ->where(function ($q) use ($reengagementCooldown) {

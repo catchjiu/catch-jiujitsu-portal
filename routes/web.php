@@ -13,6 +13,7 @@ use App\Http\Controllers\MembershipPackageController;
 use App\Http\Controllers\CheckInController;
 use App\Http\Controllers\PrivateClassController;
 use App\Http\Controllers\LineWebhookController;
+use App\Http\Controllers\LiffAuthController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopAdminController;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Route;
 
 // LINE Messaging API webhook (no auth; CSRF excluded in bootstrap/app.php)
 Route::post('/webhook/line', LineWebhookController::class)->name('webhook.line');
+
+// LIFF – open from LINE in-app browser to log in by line_id and redirect (e.g. /liff/payments, /liff/schedule)
+Route::get('/liff/{path?}', [LiffAuthController::class, 'show'])->where('path', '.*')->name('liff.auth');
+Route::post('/liff/session', [LiffAuthController::class, 'session'])->name('liff.session');
 
 // Check-in kiosk (no auth – open in new tab for monitor)
 Route::get('/checkin', [CheckInController::class, 'show'])->name('checkin');

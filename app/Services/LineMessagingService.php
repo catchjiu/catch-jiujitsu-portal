@@ -595,4 +595,17 @@ class LineMessagingService
     {
         return self::$lastPushError;
     }
+
+    /**
+     * URL for LINE Flex buttons: use LIFF when configured (so opening in LINE in-app browser logs in by line_id), otherwise app URL.
+     */
+    public static function getLinkUrl(string $path): string
+    {
+        $path = '/'.ltrim($path, '/');
+        $liffId = config('services.liff.liff_id');
+        if (! empty($liffId)) {
+            return 'https://liff.line.me/'.$liffId.$path;
+        }
+        return rtrim(config('app.url'), '/').$path;
+    }
 }

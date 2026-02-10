@@ -13,9 +13,15 @@ class AuthController extends Controller
 {
     /**
      * Show the login form.
+     * Accepts ?redirect=/path for post-login redirect (e.g. from LIFF fallback).
      */
-    public function showLogin()
+    public function showLogin(Request $request)
     {
+        $redirect = $request->query('redirect');
+        if (is_string($redirect) && str_starts_with($redirect, '/') && ! str_starts_with($redirect, '//')) {
+            $request->session()->put('url.intended', $redirect);
+        }
+
         return view('auth.login');
     }
 
