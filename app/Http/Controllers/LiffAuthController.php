@@ -30,22 +30,33 @@ class LiffAuthController extends Controller
     /**
      * Serve the LIFF entry page. When opened from LINE in-app browser, the script
      * gets an ID token and POSTs to /liff/session to log in, then redirects to the path.
+     * Wrapped in try-catch so we never return 500; LINE shows "System error" when the page fails to load.
      */
-    public function show(Request $request, ?string $path = null): View|RedirectResponse
+    public function show(Request $request, ?string $path = null): View|RedirectResponse|\Illuminate\Http\Response
     {
-        $liffId = config('services.liff.liff_id');
-        $redirectPath = $this->normalizeRedirectPath($path);
+        try {
+            $liffId = config('services.liff.liff_id');
+            $redirectPath = $this->normalizeRedirectPath($path);
 
-        if (empty($liffId)) {
-            return redirect()->guest(route('login').'?redirect='.urlencode($redirectPath));
+            if (empty($liffId)) {
+                return redirect()->guest(route('login').'?redirect='.urlencode($redirectPath));
+            }
+
+            return view('liff.auth', [
+                'liffId' => $liffId,
+                'redirectPath' => $redirectPath,
+                'sessionUrl' => url('/liff/session'),
+                'csrfToken' => csrf_token(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('LIFF show failed', ['exception' => $e->getMessage(), 'path' => $path]);
+            $loginUrl = route('login').'?redirect='.urlencode('/'.ltrim((string) $path, '/'));
+            return response(
+                '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Error</title></head><body style="margin:0;min-height:100vh;background:#0f172a;color:#e2e8f0;font-family:system-ui;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:2rem;"><p>Something went wrong. Please try again or log in below.</p><a href="'.e($loginUrl).'" style="color:#fbbf24;">Log in in browser</a></body></html>',
+                200,
+                ['Content-Type' => 'text/html; charset=UTF-8']
+            );
         }
-
-        return view('liff.auth', [
-            'liffId' => $liffId,
-            'redirectPath' => $redirectPath,
-            'sessionUrl' => url('/liff/session'),
-            'csrfToken' => csrf_token(),
-        ]);
     }
 
 /**
@@ -55,28 +66,43 @@ class LiffAuthController extends Controller
  */
     public function session(Request $request): JsonResponse
     {
-        $request->validate([
-            'id_token' => 'required|string',
-            'redirect' => 'nullable|string|max:255',
-        ]);
+        try {
+            $request->validate([
+                'id_token' => 'required|string',
+                'redirect' => 'nullable|string|max:255',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Invalid request',
+                'message' => $e->validator->errors()->first(),
+            ], 422);
+        }
 
         $channelId = config('services.liff.channel_id');
         if (empty($channelId)) {
             Log::warning('LIFF session: LINE_CHANNEL_ID not configured');
-            return response()->json(['error' => 'Server configuration error'], 500);
+            return response()->json(['error' => 'Server configuration error', 'message' => 'LINE_CHANNEL_ID is not set.'])->setStatusCode(500);
         }
 
-        $response = Http::asForm()->post('https://api.line.me/oauth2/v2.1/verify', [
-            'id_token' => $request->input('id_token'),
-            'client_id' => $channelId,
-        ]);
+        try {
+            $response = Http::asForm()->post('https://api.line.me/oauth2/v2.1/verify', [
+                'id_token' => $request->input('id_token'),
+                'client_id' => $channelId,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('LIFF session: verify request failed', ['exception' => $e->getMessage()]);
+            return response()->json(['error' => 'Server error', 'message' => 'Could not verify with LINE. Try again.'])->setStatusCode(500);
+        }
 
         if (! $response->successful()) {
             Log::warning('LIFF verify ID token failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
-            return response()->json(['error' => 'Invalid or expired token'], 401);
+            return response()->json([
+                'error' => 'Invalid or expired token',
+                'message' => 'LINE rejected the token. Check that LINE_CHANNEL_ID in .env matches the channel that owns the LIFF app.',
+            ], 401);
         }
 
         $payload = $response->json();

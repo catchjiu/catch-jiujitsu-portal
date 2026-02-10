@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'webhook/line',
+            'liff/session', // LINE in-app browser may not send session cookie; id_token is the auth
         ]);
 
         // Add locale middleware to web group
