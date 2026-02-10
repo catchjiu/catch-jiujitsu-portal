@@ -64,29 +64,55 @@
                 return window.liff.getIDToken();
             })
             .then(function(idToken) {
-                if (!idToken) return;
+                if (!idToken) {
+                    showErr('Could not get LINE identity. Use the link below to log in with email.');
+                    document.getElementById('fallback').style.display = 'inline';
+                    return;
+                }
                 var form = new FormData();
                 form.append('id_token', idToken);
                 form.append('redirect', redirectPath.replace(/^\//, ''));
                 form.append('_token', csrfToken);
+                var controller = new AbortController();
+                var timeoutId = setTimeout(function() { controller.abort(); }, 15000);
                 return fetch(sessionUrl, {
                     method: 'POST',
                     body: form,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+                    signal: controller.signal
+                }).then(function(res) {
+                    clearTimeout(timeoutId);
+                    return res;
+                }).catch(function(e) {
+                    clearTimeout(timeoutId);
+                    throw e;
                 });
             })
             .then(function(res) {
                 if (!res) return;
+                var ct = res.headers.get('Content-Type') || '';
+                if (!ct.includes('application/json')) {
+                    showErr('Server returned an error. Try logging in with the link below.');
+                    document.getElementById('fallback').style.display = 'inline';
+                    return;
+                }
                 return res.json().then(function(data) {
                     if (res.ok && data.redirect) {
                         window.location.href = data.redirect;
                     } else {
                         showErr(data.message || data.error || 'Login failed.');
+                        document.getElementById('fallback').style.display = 'inline';
                     }
                 });
             })
             .catch(function(e) {
-                showErr(e.message || 'Something went wrong.');
+                if (e.name === 'AbortError') {
+                    showErr('Request timed out. Try the link below to log in.');
+                } else {
+                    showErr(e.message || 'Something went wrong. Try the link below.');
+                }
+                document.getElementById('fallback').style.display = 'inline';
             });
     };
     script.onerror = function() {
