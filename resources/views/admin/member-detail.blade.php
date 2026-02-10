@@ -601,6 +601,37 @@
         </div>
     </div>
 
+    <!-- This week's booked classes -->
+    <div class="glass rounded-2xl p-5 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <h3 class="text-lg font-bold text-white mb-4" style="font-family: 'Bebas Neue', sans-serif;">This week's booked classes</h3>
+            @if($bookingsThisWeek->count() > 0)
+                <div class="space-y-2">
+                    @foreach($bookingsThisWeek as $booking)
+                        @php $class = $booking->classSession; @endphp
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                            <div>
+                                <p class="text-white font-medium">{{ $class->localized_title ?? $class->title }}</p>
+                                <p class="text-slate-500 text-xs mt-0.5">
+                                    {{ $class->start_time->format('D, M j \a\t g:i A') }}
+                                    @if($class->is_cancelled)
+                                        <span class="text-red-400 font-medium">(Cancelled)</span>
+                                    @endif
+                                </p>
+                            </div>
+                            @if($booking->checked_in)
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">Checked in</span>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-slate-500 text-sm text-center py-4">No classes booked this week.</p>
+            @endif
+        </div>
+    </div>
+
     <!-- Payment History -->
     <div class="glass rounded-2xl p-5 relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>

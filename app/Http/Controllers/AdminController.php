@@ -898,6 +898,18 @@ class AdminController extends Controller
         $member = User::where('is_admin', false)->with(['membershipPackage', 'familyMember.family.members.user'])->findOrFail($id);
         $payments = $member->payments()->orderBy('created_at', 'desc')->get();
         $bookings = $member->bookings()->with('classSession')->orderBy('booked_at', 'desc')->take(10)->get();
+
+        $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY);
+        $weekEnd = Carbon::now()->endOfWeek(Carbon::SUNDAY);
+        $bookingsThisWeek = $member->bookings()
+            ->whereHas('classSession', function ($q) use ($weekStart, $weekEnd) {
+                $q->whereBetween('start_time', [$weekStart, $weekEnd]);
+            })
+            ->with('classSession')
+            ->get()
+            ->sortBy(fn ($b) => $b->classSession?->start_time)
+            ->values();
+
         $packages = MembershipPackage::active()->ordered()->get();
         $memberFamily = $member->familyMember?->family;
         $memberFamilyUsers = $memberFamily ? $memberFamily->members()->with('user')->get() : collect();
@@ -906,6 +918,7 @@ class AdminController extends Controller
             'member' => $member,
             'payments' => $payments,
             'bookings' => $bookings,
+            'bookingsThisWeek' => $bookingsThisWeek,
             'packages' => $packages,
             'memberFamily' => $memberFamily,
             'memberFamilyUsers' => $memberFamilyUsers,
