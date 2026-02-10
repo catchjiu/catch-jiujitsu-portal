@@ -70,7 +70,7 @@
         <div id="welcomeAvatar" class="w-40 h-40 rounded-full overflow-hidden border-2 border-[#c9a962]/30 bg-slate-800/50 shadow-2xl mb-8 ring-2 ring-white/5"></div>
         <h2 class="font-display font-semibold text-4xl tracking-[0.12em] text-cream uppercase mb-1">{{ __('app.checkin.welcome_back') }}</h2>
         <p id="welcomeName" class="font-display font-semibold text-3xl text-[#c9a962] tracking-wide mb-8"></p>
-        <div id="welcomeBelt" class="h-12 w-full max-w-sm rounded-md shadow-inner relative flex items-center justify-end pr-4 mb-6 overflow-hidden"></div>
+        <div id="welcomeBelt" class="h-12 w-full max-w-sm rounded-md shadow-inner relative flex items-center pl-4 mb-6 overflow-hidden"></div>
         <p id="welcomeRank" class="text-slate-400 text-lg font-light tracking-wide mb-14"></p>
         <div class="grid grid-cols-3 gap-6 w-full max-w-2xl">
             <div class="rounded-xl border border-white/5 bg-white/[0.02] p-8 text-center backdrop-blur-sm">
@@ -205,9 +205,9 @@
         var stripeBarColor = rank === 'Black' ? 'bg-red-600' : 'bg-black';
         var stripeCount = data.stripes || 0;
         var stripeDivs = stripeCount > 0
-            ? Array(stripeCount).fill(0).map(function() { return '<div class="w-1 h-full rounded-sm bg-white flex-shrink-0"></div>'; }).join('')
+            ? Array(stripeCount).fill(0).map(function() { return '<div class="w-1.5 h-full rounded-sm bg-white shadow-sm flex-shrink-0"></div>'; }).join('')
             : '';
-        var stripeBar = '<div class="h-full w-16 ' + stripeBarColor + ' flex items-center justify-start gap-0.5 px-1 absolute left-4 z-10">' + stripeDivs + '</div>';
+        var stripeBar = '<div class="h-full w-16 ' + stripeBarColor + ' flex items-center justify-start gap-1 px-1 absolute left-4 z-10">' + stripeDivs + '</div>';
         beltEl.innerHTML = styles.bandHtml + stripeBar;
 
         playSound(data.isActive);

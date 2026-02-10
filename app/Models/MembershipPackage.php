@@ -15,9 +15,15 @@ class MembershipPackage extends Model
         'duration_value',
         'price',
         'age_group',
+        'allowed_days',
         'is_active',
         'sort_order',
     ];
+
+    /** Allowed days: null or 'all' = any day, 'weekdays' = Mon–Fri only, 'weekends' = Sat–Sun only. */
+    public const ALLOWED_DAYS_ALL = 'all';
+    public const ALLOWED_DAYS_WEEKDAYS = 'weekdays';
+    public const ALLOWED_DAYS_WEEKENDS = 'weekends';
 
     protected $casts = [
         'price' => 'decimal:2',

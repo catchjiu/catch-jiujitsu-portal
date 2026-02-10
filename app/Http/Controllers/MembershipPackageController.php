@@ -39,10 +39,12 @@ class MembershipPackageController extends Controller
             'duration_value' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
             'age_group' => 'required|in:Adults,Kids,All',
+            'allowed_days' => 'nullable|in:all,weekdays,weekends',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
+        $validated['allowed_days'] = $validated['allowed_days'] ?? 'all';
         $validated['sort_order'] = MembershipPackage::max('sort_order') + 1;
 
         MembershipPackage::create($validated);
@@ -76,10 +78,12 @@ class MembershipPackageController extends Controller
             'duration_value' => 'required|integer|min:1',
             'price' => 'required|numeric|min:0',
             'age_group' => 'required|in:Adults,Kids,All',
+            'allowed_days' => 'nullable|in:all,weekdays,weekends',
             'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
+        $validated['allowed_days'] = $validated['allowed_days'] ?? 'all';
 
         $package->update($validated);
 

@@ -111,6 +111,12 @@ class BookingController extends Controller
 
         $class = ClassSession::withCount('bookings')->findOrFail($request->class_id);
 
+        // Check package day restriction (weekend/weekday pass)
+        if (! $user->canBookClassOnDay($class->start_time)) {
+            $msg = $user->getPackageUpgradeMessageForDay($class->start_time->isWeekend());
+            return back()->with('error', $msg ?: 'Your package does not allow booking this class.');
+        }
+
         // Check if class is full
         if ($class->bookings_count >= $class->capacity) {
             return back()->with('error', 'Sorry, this class is full.');
@@ -219,6 +225,9 @@ class BookingController extends Controller
         $checkedIn = 0;
 
         foreach ($classes as $class) {
+            if (!$user->canBookClassOnDay($class->start_time)) {
+                continue;
+            }
             $existing = Booking::where('user_id', $user->id)->where('class_id', $class->id)->first();
             if ($existing) {
                 if (!$existing->checked_in) {

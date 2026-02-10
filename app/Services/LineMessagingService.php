@@ -97,7 +97,7 @@ class LineMessagingService
                 'contents' => [
                     [
                         'type' => 'text',
-                        'text' => 'Class reminder / 課程提醒',
+                        'text' => 'Class / 課程',
                         'weight' => 'bold',
                         'size' => 'lg',
                         'color' => '#FFFFFF',
@@ -113,14 +113,14 @@ class LineMessagingService
                 'contents' => [
                     [
                         'type' => 'text',
-                        'text' => $titleEn,
+                        'text' => mb_strlen($titleEn) > 40 ? mb_substr($titleEn, 0, 37) . '...' : $titleEn,
                         'weight' => 'bold',
                         'size' => 'xl',
                         'wrap' => true,
                     ],
                     [
                         'type' => 'text',
-                        'text' => $titleZh,
+                        'text' => mb_strlen($titleZh) > 40 ? mb_substr($titleZh, 0, 37) . '...' : $titleZh,
                         'size' => 'sm',
                         'color' => '#666666',
                         'wrap' => true,

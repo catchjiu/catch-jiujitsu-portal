@@ -306,11 +306,14 @@
                         </form>
                     @else
                         @php
-                            $canBook = $scheduleUser->hasActiveMembership() && !$isFull;
+                            $packageAllowsThisDay = $scheduleUser->canBookClassOnDay($class->start_time);
+                            $canBook = $scheduleUser->hasActiveMembership() && !$isFull && $packageAllowsThisDay;
                             if ($isFull) {
                                 $buttonText = __('app.schedule.full');
                             } elseif (!$scheduleUser->hasActiveMembership()) {
                                 $buttonText = app()->getLocale() === 'zh-TW' ? '需要會籍' : 'Membership Required';
+                            } elseif (!$packageAllowsThisDay) {
+                                $buttonText = $scheduleUser->getPackageUpgradeMessageForDay($class->start_time->isWeekend());
                             } else {
                                 $buttonText = __('app.schedule.book_class');
                             }

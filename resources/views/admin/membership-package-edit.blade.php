@@ -82,6 +82,17 @@
                     </select>
                 </div>
 
+                <!-- Allowed Days (for day-restricted packages e.g. Weekend / Weekday only) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Allowed Days</label>
+                    <select name="allowed_days"
+                        class="w-full px-4 py-3 rounded-lg bg-slate-800 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        <option value="all" {{ old('allowed_days', $package->allowed_days ?? 'all') === 'all' ? 'selected' : '' }}>All days</option>
+                        <option value="weekdays" {{ old('allowed_days', $package->allowed_days) === 'weekdays' ? 'selected' : '' }}>Weekdays only</option>
+                        <option value="weekends" {{ old('allowed_days', $package->allowed_days) === 'weekends' ? 'selected' : '' }}>Weekends only</option>
+                    </select>
+                </div>
+
                 <!-- Active Status -->
                 <div class="flex items-center gap-3">
                     <input type="checkbox" name="is_active" id="is_active" value="1" {{ $package->is_active ? 'checked' : '' }}
