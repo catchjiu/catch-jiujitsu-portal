@@ -125,7 +125,7 @@ class LineMessagingService
                         'color' => '#666666',
                         'wrap' => true,
                     ],
-                    ['type' => 'separator', 'margin' => '12px'],
+                    ['type' => 'separator', 'margin' => 'md'],
                     [
                         'type' => 'box',
                         'layout' => 'baseline',
@@ -139,7 +139,7 @@ class LineMessagingService
                         'text' => 'Starts in ~1 hour / 約 1 小時後開始',
                         'size' => 'xs',
                         'color' => '#888888',
-                        'margin' => 'top',
+                        'margin' => 'md',
                         'wrap' => true,
                     ],
                 ],
@@ -204,9 +204,9 @@ class LineMessagingService
                         'size' => 'xl',
                         'weight' => 'bold',
                         'color' => '#B45309',
-                        'margin' => 'top',
+                        'margin' => 'md',
                     ],
-                    ['type' => 'separator', 'margin' => '12px'],
+                    ['type' => 'separator', 'margin' => 'md'],
                     [
                         'type' => 'text',
                         'text' => 'Contact us to renew. / 如需續期請聯絡我們。',
@@ -255,7 +255,7 @@ class LineMessagingService
                         'size' => 'md',
                         'wrap' => true,
                     ],
-                    ['type' => 'separator', 'margin' => '12px'],
+                    ['type' => 'separator', 'margin' => 'md'],
                     [
                         'type' => 'text',
                         'text' => 'Contact us to top up. / 如需再購買請聯絡我們。',
