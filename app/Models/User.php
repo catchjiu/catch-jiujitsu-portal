@@ -53,6 +53,8 @@ class User extends Authenticatable
         'membership_status',
         'membership_expires_at',
         'classes_remaining',
+        'membership_expiry_reminder_sent_at',
+        'classes_zero_reminder_sent_at',
     ];
 
     /**
@@ -89,6 +91,8 @@ class User extends Authenticatable
             'dob' => 'date',
             'membership_expires_at' => 'date',
             'classes_remaining' => 'integer',
+            'membership_expiry_reminder_sent_at' => 'date',
+            'classes_zero_reminder_sent_at' => 'datetime',
         ];
     }
 

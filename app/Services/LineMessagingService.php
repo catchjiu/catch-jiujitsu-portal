@@ -15,8 +15,8 @@ class LineMessagingService
 
     public function __construct()
     {
-        $this->channelAccessToken = config('services.line_messaging.channel_access_token', '');
-        $this->channelSecret = config('services.line_messaging.channel_secret', '');
+        $this->channelAccessToken = config('services.line_messaging.channel_access_token') ?? '';
+        $this->channelSecret = config('services.line_messaging.channel_secret') ?? '';
         $this->addFriendUrl = config('services.line_messaging.add_friend_url') ?: null;
     }
 

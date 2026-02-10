@@ -2,6 +2,7 @@
 
 use App\Models\Booking;
 use App\Models\ClassSession;
+use App\Models\User;
 use App\Services\LineMessagingService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
@@ -121,3 +122,66 @@ Artisan::command('reminders:send-class', function () {
 })->purpose('Send LINE reminders for classes starting in 1 hour');
 
 Schedule::command('reminders:send-class')->everyFifteenMinutes();
+
+/**
+ * Send LINE messages: membership expiring in 3 days, and class pass at zero.
+ * Run daily. Only sends to users with line_id; tracks sent state to avoid duplicates.
+ */
+Artisan::command('reminders:send-membership', function () {
+    $lineMessaging = app(LineMessagingService::class);
+    if (! $lineMessaging->isConfigured()) {
+        $this->warn('LINE Messaging API not configured. Skip.');
+        return 0;
+    }
+
+    $sentExpiry = 0;
+    $sentZero = 0;
+    $today = Carbon::today();
+    $threeDaysFromNow = $today->copy()->addDays(3);
+
+    // 1) Membership expiring in 3 days: expiry date is exactly 3 days from today, and we haven't sent for this expiry yet
+    $expiryUsers = User::whereNotNull('line_id')
+        ->whereNotNull('membership_expires_at')
+        ->whereDate('membership_expires_at', $threeDaysFromNow)
+        ->where(function ($q) {
+            $q->whereNull('membership_expiry_reminder_sent_at')
+                ->orWhereRaw('DATE(membership_expiry_reminder_sent_at) != DATE(membership_expires_at)');
+        })
+        ->get();
+
+    $locale = config('app.locale');
+    foreach ($expiryUsers as $user) {
+        $dateStr = $user->membership_expires_at->format('M j, Y');
+        $message = $locale === 'zh-TW'
+            ? "提醒：您的會籍將在 3 天後（{$dateStr}）到期。如需續期請聯絡我們。"
+            : "Reminder: Your membership expires in 3 days ({$dateStr}). Contact us to renew.";
+        if ($lineMessaging->sendPushMessage($user->line_id, $message)) {
+            $user->update(['membership_expiry_reminder_sent_at' => $user->membership_expires_at]);
+            $sentExpiry++;
+        }
+    }
+
+    // 2) Class pass at zero: classes_remaining is 0, and we haven't sent the zero reminder yet (class-based package)
+    $zeroClassUsers = User::whereNotNull('line_id')
+        ->where('classes_remaining', 0)
+        ->whereNull('classes_zero_reminder_sent_at')
+        ->whereHas('membershipPackage', function ($q) {
+            $q->where('duration_type', 'classes');
+        })
+        ->get();
+
+    foreach ($zeroClassUsers as $user) {
+        $message = $locale === 'zh-TW'
+            ? '提醒：您的堂數已用完。如需再購買請聯絡我們。'
+            : 'Reminder: Your class pass has no classes left. Contact us to top up.';
+        if ($lineMessaging->sendPushMessage($user->line_id, $message)) {
+            $user->update(['classes_zero_reminder_sent_at' => now()]);
+            $sentZero++;
+        }
+    }
+
+    $this->info("Sent {$sentExpiry} expiry reminder(s), {$sentZero} zero-class reminder(s).");
+    return 0;
+})->purpose('Send LINE reminders for membership expiring in 3 days and class pass at zero');
+
+Schedule::command('reminders:send-membership')->daily();
