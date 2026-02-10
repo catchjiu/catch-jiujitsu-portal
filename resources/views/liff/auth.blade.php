@@ -61,11 +61,15 @@
                     goLogin();
                     return;
                 }
+                if (!window.liff.isLoggedIn()) {
+                    window.liff.login();
+                    return;
+                }
                 return window.liff.getIDToken();
             })
             .then(function(idToken) {
                 if (!idToken) {
-                    showErr('Could not get LINE identity. Use the link below to log in with email.');
+                    showErr('Could not get LINE identity. Ensure the LIFF app has "openid" scope in LINE Developers. Use the link below to log in with email.');
                     document.getElementById('fallback').style.display = 'inline';
                     return;
                 }
