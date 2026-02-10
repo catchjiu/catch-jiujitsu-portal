@@ -42,17 +42,41 @@ class LiffAuthController extends Controller
                 return redirect()->guest(route('login').'?redirect='.urlencode($redirectPath));
             }
 
-            return view('liff.auth', [
-                'liffId' => $liffId,
-                'redirectPath' => $redirectPath,
-                'sessionUrl' => url('/liff/session'),
-                'csrfToken' => csrf_token(),
-            ]);
+            $sessionUrl = url('/liff/session');
+            $csrfToken = csrf_token();
+
+            try {
+                return view('liff.auth', [
+                    'liffId' => $liffId,
+                    'redirectPath' => $redirectPath,
+                    'sessionUrl' => $sessionUrl,
+                    'csrfToken' => $csrfToken,
+                ]);
+            } catch (\Throwable $viewError) {
+                Log::error('LIFF view failed', [
+                    'exception' => $viewError->getMessage(),
+                    'trace' => $viewError->getTraceAsString(),
+                ]);
+                $baseUrl = rtrim(config('app.url', 'https://catchjiujitsu.com'), '/');
+                $loginUrl = $baseUrl.'/login?redirect='.rawurlencode($redirectPath);
+                return response(
+                    '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in</title></head><body style="margin:0;min-height:100vh;background:#0f172a;color:#e2e8f0;font-family:system-ui;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:2rem;"><p>Loading failed. <a href="'.htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8').'" style="color:#fbbf24;">Log in here</a>.</p></body></html>',
+                    200,
+                    ['Content-Type' => 'text/html; charset=UTF-8']
+                );
+            }
         } catch (\Throwable $e) {
-            Log::error('LIFF show failed', ['exception' => $e->getMessage(), 'path' => $path]);
-            $loginUrl = route('login').'?redirect='.urlencode('/'.ltrim((string) $path, '/'));
+            Log::error('LIFF show failed', [
+                'exception' => $e->getMessage(),
+                'path' => $path,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $baseUrl = config('app.url', 'https://catchjiujitsu.com');
+            $baseUrl = rtrim($baseUrl, '/');
+            $redirect = in_array(trim((string) $path, '/'), self::ALLOWED_PATHS, true) ? trim($path, '/') : 'dashboard';
+            $loginUrl = $baseUrl.'/login?redirect='.rawurlencode('/'.$redirect);
             return response(
-                '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Error</title></head><body style="margin:0;min-height:100vh;background:#0f172a;color:#e2e8f0;font-family:system-ui;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:2rem;"><p>Something went wrong. Please try again or log in below.</p><a href="'.e($loginUrl).'" style="color:#fbbf24;">Log in in browser</a></body></html>',
+                '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Error</title></head><body style="margin:0;min-height:100vh;background:#0f172a;color:#e2e8f0;font-family:system-ui;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:2rem;"><p>Something went wrong. Please try again or log in below.</p><a href="'.htmlspecialchars($loginUrl, ENT_QUOTES, 'UTF-8').'" style="color:#fbbf24;">Log in in browser</a></body></html>',
                 200,
                 ['Content-Type' => 'text/html; charset=UTF-8']
             );

@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/webhook/line', LineWebhookController::class)->name('webhook.line');
 
 // LIFF – open from LINE in-app browser to log in by line_id and redirect (e.g. /liff/payments, /liff/schedule)
+Route::get('/liff/ping', fn () => response('<html><body>OK</body></html>', 200, ['Content-Type' => 'text/html; charset=UTF-8']))->name('liff.ping');
 Route::get('/liff/{path?}', [LiffAuthController::class, 'show'])->where('path', '.*')->name('liff.auth');
 Route::post('/liff/session', [LiffAuthController::class, 'session'])->name('liff.session');
 
