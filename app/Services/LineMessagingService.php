@@ -270,6 +270,237 @@ class LineMessagingService
     }
 
     /**
+     * Build Flex bubble for day-before class reminder (tomorrow's class).
+     * Includes button to open schedule (view/cancel).
+     */
+    public static function flexDayBeforeReminder(string $titleEn, string $titleZh, string $timeStr, string $scheduleUrl): array
+    {
+        return [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Tomorrow / 明天',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#4F46E5',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleEn) > 40 ? mb_substr($titleEn, 0, 37) . '...' : $titleEn,
+                        'weight' => 'bold',
+                        'size' => 'xl',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleZh) > 40 ? mb_substr($titleZh, 0, 37) . '...' : $titleZh,
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator', 'margin' => 'md'],
+                    [
+                        'type' => 'box',
+                        'layout' => 'baseline',
+                        'contents' => [
+                            ['type' => 'text', 'text' => '🕐', 'size' => 'sm', 'flex' => 0],
+                            ['type' => 'text', 'text' => $timeStr, 'weight' => 'bold', 'size' => 'lg', 'flex' => 1],
+                        ],
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => 'View schedule or cancel booking in the portal. / 在網站查看課表或取消預約。',
+                        'size' => 'xs',
+                        'color' => '#888888',
+                        'margin' => 'md',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+            'footer' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'View schedule / 查看課表',
+                            'uri' => $scheduleUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#4F46E5',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ],
+        ];
+    }
+
+    /**
+     * Build Flex bubble for post-class thank you (book your next session).
+     */
+    public static function flexPostClass(string $titleEn, string $titleZh, string $scheduleUrl): array
+    {
+        return [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Thanks! / 謝謝',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#059669',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Thanks for attending / 感謝參加',
+                        'weight' => 'bold',
+                        'size' => 'md',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleEn) > 40 ? mb_substr($titleEn, 0, 37) . '...' : $titleEn,
+                        'size' => 'xl',
+                        'weight' => 'bold',
+                        'color' => '#059669',
+                        'margin' => 'sm',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleZh) > 30 ? mb_substr($titleZh, 0, 27) . '...' : $titleZh,
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator', 'margin' => 'md'],
+                    [
+                        'type' => 'text',
+                        'text' => 'Book your next session! / 預約下一堂課！',
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+            'footer' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'View schedule / 查看課表',
+                            'uri' => $scheduleUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#059669',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ],
+        ];
+    }
+
+    /**
+     * Build Flex bubble for re-engagement (no booking in a while).
+     */
+    public static function flexReengagement(string $scheduleUrl): array
+    {
+        return [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'We miss you! / 我們想你了',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#7C3AED',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => "You haven't booked a class in a while. / 您有一段時間沒預約課程了。",
+                        'weight' => 'bold',
+                        'size' => 'md',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator', 'margin' => 'md'],
+                    [
+                        'type' => 'text',
+                        'text' => "Here's this week's schedule — see you on the mat soon! / 這是本週課表，墊上見！",
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+            'footer' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'View schedule / 查看課表',
+                            'uri' => $scheduleUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#7C3AED',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ],
+        ];
+    }
+
+    /**
      * Reply to a webhook event (e.g. when user sends a message).
      */
     public function reply(string $replyToken, string $message): bool

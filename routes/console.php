@@ -190,3 +190,146 @@ Artisan::command('reminders:send-membership', function () {
 })->purpose('Send LINE reminders for membership expiring in 3 days and class pass at zero');
 
 Schedule::command('reminders:send-membership')->daily();
+
+/**
+ * Send LINE day-before reminders: "You have [Class] tomorrow at [time]" with link to schedule.
+ * Run daily (e.g. evening); finds classes tomorrow and notifies users who have reminders_enabled and line_id.
+ */
+Artisan::command('reminders:send-day-before', function () {
+    $lineMessaging = app(LineMessagingService::class);
+    if (! $lineMessaging->isConfigured()) {
+        $this->warn('LINE Messaging API not configured. Skip.');
+        return 0;
+    }
+
+    $tz = config('app.timezone');
+    $tomorrowStart = Carbon::now($tz)->addDay()->startOfDay();
+    $tomorrowEnd = Carbon::now($tz)->addDay()->endOfDay();
+    $scheduleUrl = rtrim(config('app.url'), '/') . '/schedule';
+
+    $classes = ClassSession::whereBetween('start_time', [$tomorrowStart, $tomorrowEnd])
+        ->where('is_cancelled', false)
+        ->get();
+
+    $sent = 0;
+    foreach ($classes as $class) {
+        $bookings = Booking::where('class_id', $class->id)->with('user')->get();
+        $timeStr = $class->start_time->format('H:i');
+        $titleEn = $class->title;
+        $titleZh = $class->title_zh ?: $class->title;
+        $flex = LineMessagingService::flexDayBeforeReminder($titleEn, $titleZh, $timeStr, $scheduleUrl);
+        $altText = "Reminder: You have {$titleEn} tomorrow at {$timeStr}. View schedule to cancel.";
+
+        foreach ($bookings as $booking) {
+            $user = $booking->user;
+            if (! $user || ! $user->reminders_enabled || ! $user->line_id) {
+                continue;
+            }
+            if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
+                $sent++;
+            }
+        }
+    }
+
+    $this->info("Sent {$sent} day-before reminder(s).");
+    return 0;
+})->purpose('Send LINE day-before class reminders');
+
+Schedule::command('reminders:send-day-before')->dailyAt('20:00');
+
+/**
+ * Send LINE post-class messages: "Thanks for attending [Class]. Book your next session!"
+ * Run every hour; finds classes that ended 1–2 hours ago and sends to users who had a booking.
+ */
+Artisan::command('reminders:send-post-class', function () {
+    $lineMessaging = app(LineMessagingService::class);
+    if (! $lineMessaging->isConfigured()) {
+        $this->warn('LINE Messaging API not configured. Skip.');
+        return 0;
+    }
+
+    $tz = config('app.timezone');
+    $windowEnd = Carbon::now($tz)->subHour();
+    $windowStart = Carbon::now($tz)->subHours(2);
+    $scheduleUrl = rtrim(config('app.url'), '/') . '/schedule';
+
+    $classes = ClassSession::where('is_cancelled', false)->get()->filter(function ($class) use ($windowStart, $windowEnd) {
+        $endTime = $class->start_time->copy()->addMinutes((int) $class->duration_minutes);
+        return $endTime->between($windowStart, $windowEnd);
+    });
+
+    $sent = 0;
+    foreach ($classes as $class) {
+        $bookings = Booking::where('class_id', $class->id)->with('user')->get();
+        $titleEn = $class->title;
+        $titleZh = $class->title_zh ?: $class->title;
+        $flex = LineMessagingService::flexPostClass($titleEn, $titleZh, $scheduleUrl);
+        $altText = "Thanks for attending {$titleEn}! Book your next session.";
+
+        foreach ($bookings as $booking) {
+            $user = $booking->user;
+            if (! $user || ! $user->line_id) {
+                continue;
+            }
+            if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
+                $sent++;
+            }
+        }
+    }
+
+    $this->info("Sent {$sent} post-class message(s).");
+    return 0;
+})->purpose('Send LINE post-class thank-you messages');
+
+Schedule::command('reminders:send-post-class')->hourly();
+
+/**
+ * Send LINE re-engagement: "We miss you! Here's this week's schedule" to users with no booking in 7 days.
+ * Run daily; at most once per 7 days per user (tracked by last_reengagement_line_sent_at).
+ */
+Artisan::command('reminders:send-reengagement', function () {
+    $lineMessaging = app(LineMessagingService::class);
+    if (! $lineMessaging->isConfigured()) {
+        $this->warn('LINE Messaging API not configured. Skip.');
+        return 0;
+    }
+
+    $tz = config('app.timezone');
+    $sevenDaysAgo = Carbon::now($tz)->subDays(7);
+    $reengagementCooldown = Carbon::now($tz)->subDays(7);
+    $scheduleUrl = rtrim(config('app.url'), '/') . '/schedule';
+
+    $candidates = User::whereNotNull('line_id')
+        ->where(function ($q) use ($reengagementCooldown) {
+            $q->whereNull('last_reengagement_line_sent_at')
+                ->orWhere('last_reengagement_line_sent_at', '<', $reengagementCooldown);
+        })
+        ->get();
+
+    $sent = 0;
+    foreach ($candidates as $user) {
+        $hasRecentBooking = Booking::where('user_id', $user->id)
+            ->whereHas('classSession', function ($q) use ($sevenDaysAgo) {
+                $q->where('start_time', '>=', $sevenDaysAgo);
+            })
+            ->exists();
+
+        if ($hasRecentBooking) {
+            continue;
+        }
+
+        $flex = LineMessagingService::flexReengagement($scheduleUrl);
+        $altText = "We miss you! Here's this week's schedule — see you on the mat soon!";
+        if ($lineMessaging->sendPushFlex($user->line_id, $flex, $altText)) {
+            $user->update(['last_reengagement_line_sent_at' => now()]);
+            $sent++;
+        } else {
+            $this->warn("Failed to send re-engagement to user {$user->id}: " . (LineMessagingService::getLastPushError() ?? 'unknown'));
+        }
+    }
+
+    $this->info("Sent {$sent} re-engagement message(s).");
+    return 0;
+})->purpose('Send LINE re-engagement to users with no booking in 7 days');
+
+Schedule::command('reminders:send-reengagement')->dailyAt('10:00');

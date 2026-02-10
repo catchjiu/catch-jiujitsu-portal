@@ -55,6 +55,7 @@ class User extends Authenticatable
         'classes_remaining',
         'membership_expiry_reminder_sent_at',
         'classes_zero_reminder_sent_at',
+        'last_reengagement_line_sent_at',
     ];
 
     /**
@@ -93,6 +94,7 @@ class User extends Authenticatable
             'classes_remaining' => 'integer',
             'membership_expiry_reminder_sent_at' => 'date',
             'classes_zero_reminder_sent_at' => 'datetime',
+            'last_reengagement_line_sent_at' => 'datetime',
         ];
     }
 
