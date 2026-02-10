@@ -136,20 +136,22 @@ Artisan::command('reminders:send-membership', function () {
 
     $sentExpiry = 0;
     $sentZero = 0;
-    $today = Carbon::today();
-    $expiryWindowStart = $today->copy()->addDay();   // 1 day from now
-    $expiryWindowEnd = $today->copy()->addDays(3);   // 3 days from now
+    // Use app timezone so "today" is correct for the gym (e.g. Asia/Taipei)
+    $today = Carbon::now(config('app.timezone'))->startOfDay();
+    $expiryWindowStart = $today->copy()->addDay()->toDateString();   // 1 day from now (Y-m-d)
+    $expiryWindowEnd = $today->copy()->addDays(3)->toDateString();   // 3 days from now (Y-m-d)
 
     // 1) Membership expiring in 1–3 days: expiry date in that window, and we haven't sent for this expiry yet (sends once per expiry)
     $expiryUsers = User::whereNotNull('line_id')
         ->whereNotNull('membership_expires_at')
-        ->whereDate('membership_expires_at', '>=', $expiryWindowStart)
-        ->whereDate('membership_expires_at', '<=', $expiryWindowEnd)
+        ->whereRaw('DATE(membership_expires_at) >= ? AND DATE(membership_expires_at) <= ?', [$expiryWindowStart, $expiryWindowEnd])
         ->where(function ($q) {
             $q->whereNull('membership_expiry_reminder_sent_at')
                 ->orWhereRaw('DATE(membership_expiry_reminder_sent_at) != DATE(membership_expires_at)');
         })
         ->get();
+
+    $this->info("Expiry window: {$expiryWindowStart} to {$expiryWindowEnd} (today: {$today->toDateString()}). Found " . $expiryUsers->count() . " user(s) for expiry reminder.");
 
     foreach ($expiryUsers as $user) {
         $dateStr = $user->membership_expires_at->format('M j, Y');
