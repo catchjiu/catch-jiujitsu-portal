@@ -16,9 +16,89 @@ use App\Http\Controllers\LineWebhookController;
 use App\Http\Controllers\LiffAuthController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopAdminController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 
 // Public routes
+
+Route::get('/debug/runtime', function (Request $request) {
+    $token = (string) env('DEBUG_TOKEN', '');
+    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403, 'Forbidden');
+    }
+
+    $tableChecks = [];
+    foreach ([
+        'users',
+        'sessions',
+        'classes',
+        'bookings',
+        'membership_packages',
+        'orders',
+        'order_items',
+        'products',
+        'product_variants',
+        'private_class_bookings',
+        'family_members',
+    ] as $table) {
+        try {
+            $tableChecks[$table] = Schema::hasTable($table);
+        } catch (\Throwable $e) {
+            $tableChecks[$table] = 'error: '.$e->getMessage();
+        }
+    }
+
+    try {
+        DB::connection()->getPdo();
+        $dbStatus = [
+            'ok' => true,
+            'driver' => DB::getDriverName(),
+            'default_connection' => config('database.default'),
+        ];
+    } catch (\Throwable $e) {
+        $dbStatus = [
+            'ok' => false,
+            'driver' => config('database.default'),
+            'error' => $e->getMessage(),
+        ];
+    }
+
+    $lastException = null;
+    $lastExceptionFile = storage_path('app/runtime-last-exception.json');
+    if (is_file($lastExceptionFile)) {
+        $raw = @file_get_contents($lastExceptionFile);
+        $decoded = is_string($raw) ? json_decode($raw, true) : null;
+        $lastException = is_array($decoded) ? $decoded : ['raw' => $raw];
+    }
+
+    return response()->json([
+        'app_runtime_debug' => (bool) env('APP_RUNTIME_DEBUG', false),
+        'app_env' => config('app.env'),
+        'app_url' => config('app.url'),
+        'php_version' => PHP_VERSION,
+        'db' => $dbStatus,
+        'tables' => $tableChecks,
+        'writable' => [
+            'storage' => is_writable(storage_path()),
+            'storage_sessions' => is_writable(storage_path('framework/sessions')),
+            'storage_cache' => is_writable(storage_path('framework/cache')),
+            'bootstrap_cache' => is_writable(base_path('bootstrap/cache')),
+        ],
+        'last_exception' => $lastException,
+        'now' => now()->toIso8601String(),
+    ]);
+})->name('debug.runtime');
+
+Route::get('/debug/throw', function (Request $request) {
+    $token = (string) env('DEBUG_TOKEN', '');
+    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403, 'Forbidden');
+    }
+
+    throw new \RuntimeException('Debug throw endpoint triggered intentionally.');
+})->name('debug.throw');
 
 // LINE Messaging API webhook (no auth; CSRF excluded in bootstrap/app.php)
 Route::post('/webhook/line', LineWebhookController::class)->name('webhook.line');
