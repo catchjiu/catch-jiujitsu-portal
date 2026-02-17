@@ -40,6 +40,7 @@ WORKDIR /var/www/html
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        curl \
         git \
         unzip \
         libzip-dev \
@@ -67,15 +68,21 @@ RUN apt-get update \
         /etc/apache2/sites-available/*.conf \
         /etc/apache2/apache2.conf \
         /etc/apache2/conf-available/*.conf \
+    && printf "Listen 80\nListen 3000\nListen 8080\n" > /etc/apache2/ports.conf \
+    && sed -ri -e "s!<VirtualHost \\*:80>!<VirtualHost *:80 *:3000 *:8080>!g" /etc/apache2/sites-available/000-default.conf \
     && sed -ri -e '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer /app /var/www/html
 
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
+    && echo "ok" > public/healthz \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwx storage bootstrap/cache
 
-EXPOSE 80
+EXPOSE 80 3000 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS http://127.0.0.1/healthz || exit 1
 
 CMD ["apache2-foreground"]
