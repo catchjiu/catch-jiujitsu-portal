@@ -44,6 +44,7 @@ RUN apt-get update \
         git \
         unzip \
         libzip-dev \
+        libpq-dev \
         libpng-dev \
         libjpeg62-turbo-dev \
         libfreetype6-dev \
@@ -60,7 +61,9 @@ RUN apt-get update \
         mbstring \
         pcntl \
         pdo_mysql \
+        pdo_pgsql \
         pdo_sqlite \
+        pgsql \
         xml \
         zip \
     && a2enmod rewrite \
