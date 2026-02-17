@@ -29,27 +29,6 @@ Route::get('/debug/runtime', function (Request $request) {
         abort(403, 'Forbidden');
     }
 
-    $tableChecks = [];
-    foreach ([
-        'users',
-        'sessions',
-        'classes',
-        'bookings',
-        'membership_packages',
-        'orders',
-        'order_items',
-        'products',
-        'product_variants',
-        'private_class_bookings',
-        'family_members',
-    ] as $table) {
-        try {
-            $tableChecks[$table] = Schema::hasTable($table);
-        } catch (\Throwable $e) {
-            $tableChecks[$table] = 'error: '.$e->getMessage();
-        }
-    }
-
     try {
         DB::connection()->getPdo();
         $dbStatus = [
@@ -63,6 +42,32 @@ Route::get('/debug/runtime', function (Request $request) {
             'driver' => config('database.default'),
             'error' => $e->getMessage(),
         ];
+    }
+
+    // Avoid hammering Supabase pooler when credentials are wrong (can trigger circuit breaker).
+    $tableChecks = [];
+    if ($dbStatus['ok'] === true) {
+        foreach ([
+            'users',
+            'sessions',
+            'classes',
+            'bookings',
+            'membership_packages',
+            'orders',
+            'order_items',
+            'products',
+            'product_variants',
+            'private_class_bookings',
+            'family_members',
+        ] as $table) {
+            try {
+                $tableChecks[$table] = Schema::hasTable($table);
+            } catch (\Throwable $e) {
+                $tableChecks[$table] = 'error: '.$e->getMessage();
+            }
+        }
+    } else {
+        $tableChecks = ['skipped' => 'db connection failed'];
     }
 
     $lastException = null;
