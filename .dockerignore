@@ -1,0 +1,38 @@
+# Dependencies (reinstalled in container)
+node_modules
+laravel/node_modules
+laravel/vendor
+
+# Build outputs (rebuilt in container)
+dist
+laravel/public/build
+laravel/public/hot
+
+# Git
+.git
+.gitignore
+
+# Environment (Coolify injects these)
+.env
+.env.*
+!.env.example
+
+# IDE and OS
+.vscode
+.idea
+.DS_Store
+
+# Logs and caches
+*.log
+laravel/storage/logs/*
+laravel/storage/framework/cache/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/views/*
+.phpunit.result.cache
+
+# Database dumps (sensitive)
+*.sql
+
+# Docs (not needed for runtime)
+*.md
+!README.md
