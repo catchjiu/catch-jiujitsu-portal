@@ -120,6 +120,14 @@ RUN printf '%s\n' \
   'touch database/database.sqlite' \
   'chown -R www-data:www-data storage bootstrap/cache database' \
   '' \
+  '# Keep public storage symlink present (safe to re-run).' \
+  'php artisan storage:link --no-interaction || true' \
+  '' \
+  '# Auto-run migrations on each deploy by default. Disable with AUTO_RUN_MIGRATIONS=false.' \
+  'if [ "${AUTO_RUN_MIGRATIONS:-true}" = "true" ]; then' \
+  '  php artisan migrate --force --no-interaction || true' \
+  'fi' \
+  '' \
   'exec apache2-foreground' \
   > /usr/local/bin/start-container.sh \
   && chmod +x /usr/local/bin/start-container.sh
