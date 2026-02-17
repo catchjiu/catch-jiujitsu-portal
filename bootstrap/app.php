@@ -45,13 +45,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 'trace' => array_slice($e->getTrace(), 0, 20),
             ];
 
-            try {
-                @file_put_contents(
-                    storage_path('app/runtime-last-exception.json'),
-                    json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-                );
-            } catch (\Throwable) {
-                // Best-effort debug capture only.
+            // Only store "last exception" for HTTP requests. Console commands (e.g. migrations)
+            // can fail safely and would otherwise overwrite the real web error we want to debug.
+            if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'phpdbg') {
+                try {
+                    @file_put_contents(
+                        storage_path('app/runtime-last-exception.json'),
+                        json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                    );
+                } catch (\Throwable) {
+                    // Best-effort debug capture only.
+                }
             }
 
             Log::error('Unhandled runtime exception captured', $payload);
