@@ -80,9 +80,50 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwx storage bootstrap/cache
 
+RUN printf '%s\n' \
+  '#!/bin/sh' \
+  'set -eu' \
+  'cd /var/www/html' \
+  '' \
+  'if [ ! -f .env ]; then' \
+  '  cp .env.example .env' \
+  'fi' \
+  '' \
+  'set_env_if_missing() {' \
+  '  key="$1"' \
+  '  value="$2"' \
+  '  env_value="$(printenv "${key}" 2>/dev/null || true)"' \
+  '  if [ -z "${env_value}" ]; then' \
+  '    if grep -q "^${key}=" .env; then' \
+  '      sed -i "s|^${key}=.*|${key}=${value}|" .env' \
+  '    else' \
+  '      printf "\n%s=%s\n" "${key}" "${value}" >> .env' \
+  '    fi' \
+  '  fi' \
+  '}' \
+  '' \
+  'set_env_if_missing APP_ENV production' \
+  'set_env_if_missing APP_DEBUG false' \
+  'set_env_if_missing SESSION_DRIVER file' \
+  'set_env_if_missing CACHE_STORE file' \
+  'set_env_if_missing QUEUE_CONNECTION sync' \
+  '' \
+  'current_app_key="${APP_KEY:-$(awk -F= '\''$1=="APP_KEY"{print $2}'\'' .env | tr -d "\r")}"' \
+  'if [ -z "${current_app_key}" ]; then' \
+  '  php artisan key:generate --force --no-interaction' \
+  'fi' \
+  '' \
+  'mkdir -p database' \
+  'touch database/database.sqlite' \
+  'chown -R www-data:www-data storage bootstrap/cache database' \
+  '' \
+  'exec apache2-foreground' \
+  > /usr/local/bin/start-container.sh \
+  && chmod +x /usr/local/bin/start-container.sh
+
 EXPOSE 80 3000 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD curl -fsS http://127.0.0.1/healthz || exit 1
 
-CMD ["apache2-foreground"]
+CMD ["/usr/local/bin/start-container.sh"]
