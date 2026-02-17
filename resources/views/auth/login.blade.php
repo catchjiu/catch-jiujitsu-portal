@@ -45,6 +45,12 @@
         <div class="glass rounded-2xl p-6">
             <h2 class="text-xl font-bold text-white mb-6">{{ __('app.auth.welcome_back') }}</h2>
 
+            @if(!empty($runtimeError))
+                <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    {{ $runtimeError }}
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
                     {{ $errors->first() }}

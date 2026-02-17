@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
@@ -35,15 +36,28 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        try {
+            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+                $request->session()->regenerate();
 
-            // Redirect based on user role
-            if (Auth::user()->isAdmin()) {
-                return redirect()->intended('/admin');
+                // Redirect based on user role
+                if (Auth::user()->isAdmin()) {
+                    return redirect()->intended('/admin');
+                }
+
+                return redirect()->intended('/dashboard');
             }
+        } catch (\Throwable $e) {
+            Log::error('Login failed with runtime error', [
+                'email' => $request->input('email'),
+                'error' => $e->getMessage(),
+            ]);
 
-            return redirect()->intended('/dashboard');
+            return response()->view('auth.login', [
+                'runtimeError' => app()->getLocale() === 'zh-TW'
+                    ? '目前無法登入，請稍後再試。'
+                    : 'Login is temporarily unavailable. Please try again in a moment.',
+            ], 503);
         }
 
         return back()->withErrors([

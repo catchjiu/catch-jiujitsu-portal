@@ -92,6 +92,14 @@ RUN printf '%s\n' \
   '  cp .env.example .env' \
   'fi' \
   '' \
+  '# If runtime env accidentally injects DB-backed defaults, force safe drivers.' \
+  'if [ "${SESSION_DRIVER:-database}" = "database" ]; then export SESSION_DRIVER=file; fi' \
+  'if [ "${CACHE_STORE:-database}" = "database" ]; then export CACHE_STORE=file; fi' \
+  'if [ "${QUEUE_CONNECTION:-database}" = "database" ]; then export QUEUE_CONNECTION=sync; fi' \
+  '' \
+  '# Ignore placeholder APP_KEY from env so a real key can be generated.' \
+  'if [ "${APP_KEY:-}" = "base64:REPLACE_WITH_YOUR_KEY" ]; then unset APP_KEY; fi' \
+  '' \
   'set_env_if_missing() {' \
   '  key="$1"' \
   '  value="$2"' \
@@ -111,10 +119,15 @@ RUN printf '%s\n' \
   'set_env_if_missing CACHE_STORE file' \
   'set_env_if_missing QUEUE_CONNECTION sync' \
   '' \
-  'current_app_key="${APP_KEY:-$(awk -F= '\''$1=="APP_KEY"{print $2}'\'' .env | tr -d "\r")}"' \
+  'file_app_key="$(awk -F= '\''$1=="APP_KEY"{print $2}'\'' .env | tr -d "\r")"' \
+  'if [ "${file_app_key}" = "base64:REPLACE_WITH_YOUR_KEY" ]; then file_app_key=""; fi' \
+  'current_app_key="${APP_KEY:-${file_app_key}}"' \
   'if [ -z "${current_app_key}" ]; then' \
   '  php artisan key:generate --force --no-interaction' \
   'fi' \
+  '' \
+  '# Ensure stale config cache never keeps wrong env values.' \
+  'php artisan config:clear --no-interaction || true' \
   '' \
   'mkdir -p database' \
   'touch database/database.sqlite' \
