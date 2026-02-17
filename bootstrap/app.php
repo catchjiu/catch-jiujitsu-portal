@@ -6,7 +6,6 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -31,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->report(function (Throwable $e): void {
+        $exceptions->report(function (\Throwable $e): void {
             // Skip noisy non-server errors.
             if ($e instanceof HttpExceptionInterface && $e->getStatusCode() < 500) {
                 return;
@@ -51,14 +50,14 @@ return Application::configure(basePath: dirname(__DIR__))
                     storage_path('app/runtime-last-exception.json'),
                     json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
                 );
-            } catch (Throwable) {
+            } catch (\Throwable) {
                 // Best-effort debug capture only.
             }
 
             Log::error('Unhandled runtime exception captured', $payload);
         });
 
-        $exceptions->render(function (Throwable $e, Request $request) {
+        $exceptions->render(function (\Throwable $e, Request $request) {
             $runtimeDebug = filter_var(env('APP_RUNTIME_DEBUG', false), FILTER_VALIDATE_BOOL);
             if (! $runtimeDebug) {
                 return null;
