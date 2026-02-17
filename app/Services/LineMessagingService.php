@@ -1,0 +1,608 @@
+<?php
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+
+class LineMessagingService
+{
+    /** Last LINE API error (for CLI/logging when push fails). */
+    protected static ?string $lastPushError = null;
+
+    protected string $channelAccessToken;
+
+    protected string $channelSecret;
+
+    protected ?string $addFriendUrl;
+
+    public function __construct()
+    {
+        $this->channelAccessToken = config('services.line_messaging.channel_access_token') ?? '';
+        $this->channelSecret = config('services.line_messaging.channel_secret') ?? '';
+        $this->addFriendUrl = config('services.line_messaging.add_friend_url') ?: null;
+    }
+
+    /**
+     * Send a text push message to a LINE user.
+     */
+    public function sendPushMessage(string $lineUserId, string $message): bool
+    {
+        $response = Http::withToken($this->channelAccessToken)
+            ->post('https://api.line.me/v2/bot/message/push', [
+                'to' => $lineUserId,
+                'messages' => [
+                    ['type' => 'text', 'text' => $message],
+                ],
+            ]);
+
+        if (! $response->successful()) {
+            Log::warning('LINE Messaging API push failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Send a Flex Message push to a LINE user.
+     * $contents = Flex bubble container (array, will be JSON-encoded).
+     * $altText = fallback text when Flex is not supported.
+     */
+    public function sendPushFlex(string $lineUserId, array $contents, string $altText): bool
+    {
+        $response = Http::withToken($this->channelAccessToken)
+            ->post('https://api.line.me/v2/bot/message/push', [
+                'to' => $lineUserId,
+                'messages' => [
+                    [
+                        'type' => 'flex',
+                        'altText' => $altText,
+                        'contents' => $contents,
+                    ],
+                ],
+            ]);
+
+        if (! $response->successful()) {
+            $body = $response->body();
+            self::$lastPushError = "HTTP {$response->status()}: {$body}";
+            Log::warning('LINE Messaging API Flex push failed', [
+                'status' => $response->status(),
+                'body' => $body,
+            ]);
+
+            return false;
+        }
+
+        self::$lastPushError = null;
+
+        return true;
+    }
+
+    /**
+     * Build Flex bubble for class reminder (~1 hour before class).
+     */
+    public static function flexClassReminder(string $titleEn, string $titleZh, string $timeStr): array
+    {
+        return [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Class / 課程',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#1E40AF',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleEn) > 40 ? mb_substr($titleEn, 0, 37) . '...' : $titleEn,
+                        'weight' => 'bold',
+                        'size' => 'xl',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleZh) > 40 ? mb_substr($titleZh, 0, 37) . '...' : $titleZh,
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator'],
+                    [
+                        'type' => 'box',
+                        'layout' => 'baseline',
+                        'contents' => [
+                            ['type' => 'text', 'text' => '🕐', 'size' => 'sm', 'flex' => 0],
+                            ['type' => 'text', 'text' => $timeStr, 'weight' => 'bold', 'size' => 'lg', 'flex' => 1],
+                        ],
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => 'Starts in ~1 hour / 約 1 小時後開始',
+                        'size' => 'xs',
+                        'color' => '#888888',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+            'footer' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'See you on the mat! / 墊上見！',
+                        'size' => 'sm',
+                        'color' => '#1E40AF',
+                        'align' => 'center',
+                        'weight' => 'bold',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ],
+        ];
+    }
+
+    /**
+     * Build Flex bubble for membership expiring in 3 days.
+     * Optional paymentsUrl adds a "Pay / 前往付款" button to the payments screen.
+     */
+    public static function flexMembershipExpiring(string $dateStr, string $paymentsUrl = ''): array
+    {
+        $bubble = [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Expiry / 到期',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#B45309',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Expires in 3 days / 3 天後到期',
+                        'weight' => 'bold',
+                        'size' => 'md',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => $dateStr,
+                        'size' => 'xl',
+                        'weight' => 'bold',
+                        'color' => '#B45309',
+                    ],
+                    ['type' => 'separator'],
+                    [
+                        'type' => 'text',
+                        'text' => 'Contact us to renew. / 如需續期請聯絡我們。',
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+        ];
+
+        if ($paymentsUrl !== '') {
+            $bubble['footer'] = [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'Pay / 前往付款',
+                            'uri' => $paymentsUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#B45309',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ];
+        }
+
+        return $bubble;
+    }
+
+    /**
+     * Build Flex bubble for class pass at zero (no classes left).
+     * Optional paymentsUrl adds a "Pay / 前往付款" button to the payments screen.
+     */
+    public static function flexClassPassZero(string $paymentsUrl = ''): array
+    {
+        $bubble = [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Class pass / 堂數',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#059669',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'No classes left / 堂數已用完',
+                        'weight' => 'bold',
+                        'size' => 'md',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator'],
+                    [
+                        'type' => 'text',
+                        'text' => 'Contact us to top up. / 如需再購買請聯絡我們。',
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+        ];
+
+        if ($paymentsUrl !== '') {
+            $bubble['footer'] = [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'Pay / 前往付款',
+                            'uri' => $paymentsUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#059669',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ];
+        }
+
+        return $bubble;
+    }
+
+    /**
+     * Build Flex bubble for day-before class reminder (tomorrow's class).
+     * Includes button to open schedule (view/cancel).
+     */
+    public static function flexDayBeforeReminder(string $titleEn, string $titleZh, string $timeStr, string $scheduleUrl): array
+    {
+        return [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Tomorrow / 明天',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#4F46E5',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleEn) > 40 ? mb_substr($titleEn, 0, 37) . '...' : $titleEn,
+                        'weight' => 'bold',
+                        'size' => 'xl',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleZh) > 40 ? mb_substr($titleZh, 0, 37) . '...' : $titleZh,
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator'],
+                    [
+                        'type' => 'box',
+                        'layout' => 'baseline',
+                        'contents' => [
+                            ['type' => 'text', 'text' => '🕐', 'size' => 'sm', 'flex' => 0],
+                            ['type' => 'text', 'text' => $timeStr, 'weight' => 'bold', 'size' => 'lg', 'flex' => 1],
+                        ],
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => 'View schedule or cancel booking in the portal. / 在網站查看課表或取消預約。',
+                        'size' => 'xs',
+                        'color' => '#888888',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+            'footer' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'View schedule / 查看課表',
+                            'uri' => $scheduleUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#4F46E5',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ],
+        ];
+    }
+
+    /**
+     * Build Flex bubble for post-class thank you (book your next session).
+     */
+    public static function flexPostClass(string $titleEn, string $titleZh, string $scheduleUrl): array
+    {
+        return [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Thanks! / 謝謝',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#059669',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'Thanks for attending / 感謝參加',
+                        'weight' => 'bold',
+                        'size' => 'md',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleEn) > 40 ? mb_substr($titleEn, 0, 37) . '...' : $titleEn,
+                        'size' => 'xl',
+                        'weight' => 'bold',
+                        'color' => '#059669',
+                        'wrap' => true,
+                    ],
+                    [
+                        'type' => 'text',
+                        'text' => mb_strlen($titleZh) > 30 ? mb_substr($titleZh, 0, 27) . '...' : $titleZh,
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator'],
+                    [
+                        'type' => 'text',
+                        'text' => 'Book your next session! / 預約下一堂課！',
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+            'footer' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'View schedule / 查看課表',
+                            'uri' => $scheduleUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#059669',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ],
+        ];
+    }
+
+    /**
+     * Build Flex bubble for re-engagement (no booking in a while).
+     */
+    public static function flexReengagement(string $scheduleUrl): array
+    {
+        return [
+            'type' => 'bubble',
+            'size' => 'mega',
+            'header' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'We miss you! / 我們想你了',
+                        'weight' => 'bold',
+                        'size' => 'lg',
+                        'color' => '#FFFFFF',
+                        'align' => 'center',
+                    ],
+                ],
+                'backgroundColor' => '#7C3AED',
+                'paddingAll' => '12px',
+            ],
+            'body' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'text',
+                        'text' => "You haven't booked a class in a while. / 您有一段時間沒預約課程了。",
+                        'weight' => 'bold',
+                        'size' => 'md',
+                        'wrap' => true,
+                    ],
+                    ['type' => 'separator'],
+                    [
+                        'type' => 'text',
+                        'text' => "Here's this week's schedule — see you on the mat soon! / 這是本週課表，墊上見！",
+                        'size' => 'sm',
+                        'color' => '#666666',
+                        'wrap' => true,
+                    ],
+                ],
+                'paddingAll' => '16px',
+            ],
+            'footer' => [
+                'type' => 'box',
+                'layout' => 'vertical',
+                'contents' => [
+                    [
+                        'type' => 'button',
+                        'action' => [
+                            'type' => 'uri',
+                            'label' => 'View schedule / 查看課表',
+                            'uri' => $scheduleUrl,
+                        ],
+                        'style' => 'primary',
+                        'color' => '#7C3AED',
+                    ],
+                ],
+                'paddingAll' => '12px',
+            ],
+        ];
+    }
+
+    /**
+     * Reply to a webhook event (e.g. when user sends a message).
+     */
+    public function reply(string $replyToken, string $message): bool
+    {
+        $response = Http::withToken($this->channelAccessToken)
+            ->post('https://api.line.me/v2/bot/message/reply', [
+                'replyToken' => $replyToken,
+                'messages' => [
+                    ['type' => 'text', 'text' => $message],
+                ],
+            ]);
+
+        if (! $response->successful()) {
+            Log::warning('LINE Messaging API reply failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Verify webhook signature from LINE.
+     */
+    public function validateSignature(string $body, string $signature): bool
+    {
+        $hash = hash_hmac('sha256', $body, $this->channelSecret, true);
+
+        return hash_equals(base64_encode($hash), $signature);
+    }
+
+    public function getAddFriendUrl(): ?string
+    {
+        return $this->addFriendUrl;
+    }
+
+    public function isConfigured(): bool
+    {
+        return ! empty($this->channelAccessToken) && ! empty($this->channelSecret);
+    }
+
+    public static function getLastPushError(): ?string
+    {
+        return self::$lastPushError;
+    }
+
+    /**
+     * URL for LINE Flex buttons: use LIFF when configured (so opening in LINE in-app browser logs in by line_id), otherwise app URL.
+     */
+    public static function getLinkUrl(string $path): string
+    {
+        $path = '/'.ltrim($path, '/');
+        $liffId = config('services.liff.liff_id');
+        if (! empty($liffId)) {
+            return 'https://liff.line.me/'.$liffId.$path;
+        }
+        Log::debug('LINE Flex button URL: LINE_LIFF_ID not set, using app URL', ['path' => $path]);
+        return rtrim(config('app.url'), '/').$path;
+    }
+}
