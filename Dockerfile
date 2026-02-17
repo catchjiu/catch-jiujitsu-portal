@@ -17,7 +17,7 @@ COPY . .
 # VITE_API_URL empty = same-origin API; VITE_BASE_PATH=/portal/
 ENV VITE_API_URL=
 ENV VITE_BASE_PATH=/portal/
-RUN npm run build
+RUN npm run build -- --config vite.config.ts
 
 # ========== Stage 2: Composer dependencies ==========
 FROM composer:2 AS composer
