@@ -477,6 +477,10 @@ class User extends Authenticatable
      */
     public function nextBookedClass(): ?ClassSession
     {
+        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+            return null;
+        }
+
         return $this->bookedClasses()
                     ->with('instructor')
                     ->where('start_time', '>', now())
@@ -489,6 +493,10 @@ class User extends Authenticatable
      */
     public function getMonthlyClassesAttendedAttribute(): int
     {
+        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+            return 0;
+        }
+
         return $this->bookings()
             ->whereHas('classSession', function($query) {
                 $query->whereMonth('start_time', now()->month)
@@ -503,6 +511,10 @@ class User extends Authenticatable
      */
     public function getMonthlyHoursTrainedAttribute(): float
     {
+        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+            return 0.0;
+        }
+
         $totalMinutes = $this->bookings()
             ->whereHas('classSession', function($query) {
                 $query->whereMonth('start_time', now()->month)
@@ -523,6 +535,10 @@ class User extends Authenticatable
      */
     public function getCalculatedMatHoursAttribute(): int
     {
+        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+            return 0;
+        }
+
         $totalMinutes = $this->bookings()
             ->whereHas('classSession', function($query) {
                 $query->where('start_time', '<', now()); // Only count past classes
@@ -541,6 +557,10 @@ class User extends Authenticatable
      */
     public function getTotalMatHoursAttribute(): int
     {
+        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+            return (int) ($this->mat_hours ?? 0);
+        }
+
         return ($this->mat_hours ?? 0) + $this->calculated_mat_hours;
     }
 
@@ -549,6 +569,10 @@ class User extends Authenticatable
      */
     public function getHoursThisYearAttribute(): float
     {
+        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+            return 0.0;
+        }
+
         $totalMinutes = $this->bookings()
             ->whereHas('classSession', function ($query) {
                 $query->whereYear('start_time', now()->year)
@@ -568,6 +592,10 @@ class User extends Authenticatable
      */
     public function getTotalHoursThisYearAttribute(): float
     {
+        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+            return (float) ($this->mat_hours ?? 0);
+        }
+
         return ($this->mat_hours ?? 0) + $this->hours_this_year;
     }
 }
