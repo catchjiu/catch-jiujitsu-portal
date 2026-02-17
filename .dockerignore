@@ -4,22 +4,40 @@
 .idea
 .vscode
 
+# Dependencies (reinstalled in container)
+node_modules
+vendor
+
+# Build outputs (rebuilt in container)
+dist
+public/build
+public/hot
+public/portal
+
+# Environment (Coolify injects these)
 .env
 .env.*
 !.env.example
 
-node_modules
-vendor
+# IDE and OS
+.DS_Store
 
-public/hot
-public/storage
-
+# Logs and caches
+*.log
 storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
-storage/framework/testing/*
 storage/framework/views/*
+storage/framework/testing/*
 bootstrap/cache/*.php
+.phpunit.result.cache
+
+# Database dumps (sensitive)
+*.sql
+
+# Docs (not needed for runtime)
+*.md
+!README.md
 
 npm-debug.log*
 yarn-debug.log*

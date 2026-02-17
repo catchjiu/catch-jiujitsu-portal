@@ -1,64 +1,102 @@
-# syntax=docker/dockerfile:1
+# Catch Jiu Jitsu Portal - Coolify deployment
+# React frontend (Vite) + Laravel backend
 
-FROM node:22-bookworm-slim AS frontend
+# ========== Stage 1: Build React frontend ==========
+FROM node:20-alpine AS frontend
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy root package files and install dependencies
+COPY package.json package-lock.json ./
 RUN npm ci
 
+# Copy frontend source
 COPY . .
+
+# Build React portal (outputs to /app/dist)
+# VITE_API_URL empty = same-origin API; VITE_BASE_PATH=/portal/
+ENV VITE_API_URL=
+ENV VITE_BASE_PATH=/portal/
 RUN npm run build
 
-FROM php:8.3-apache AS app
+# ========== Stage 2: Composer dependencies ==========
+FROM composer:2 AS composer
 
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public \
-    COMPOSER_ALLOW_SUPERUSER=1
+WORKDIR /app
+
+# Copy Composer files first for cache efficiency
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies (no dev for production)
+RUN composer install \
+    --no-dev \
+    --no-scripts \
+    --optimize-autoloader \
+    --prefer-dist \
+    --no-interaction
+
+# Copy full application source (excluding vendor via .dockerignore)
+COPY . .
+
+# Copy built portal to Laravel public directory
+RUN mkdir -p public/portal
+COPY --from=frontend /app/dist/ ./public/portal/
+
+# ========== Stage 3: Production image ==========
+FROM php:8.2-fpm-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
+    curl \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libzip-dev \
+    icu-dev \
+    libxml2-dev \
+    linux-headers \
+    oniguruma-dev
+
+# Install PHP extensions (Laravel + Intervention Image)
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd \
+        zip \
+        intl \
+        xml
+
+# PHP config for Laravel
+RUN echo "memory_limit=256M" > /usr/local/etc/php/conf.d/memory.ini \
+    && echo "upload_max_filesize=30M" >> /usr/local/etc/php/conf.d/memory.ini \
+    && echo "post_max_size=35M" >> /usr/local/etc/php/conf.d/memory.ini
 
 WORKDIR /var/www/html
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        git \
-        unzip \
-        libzip-dev \
-        libpng-dev \
-        libjpeg62-turbo-dev \
-        libfreetype6-dev \
-        libonig-dev \
-        libxml2-dev \
-        libicu-dev \
-        libsqlite3-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" \
-        bcmath \
-        exif \
-        gd \
-        intl \
-        mbstring \
-        pcntl \
-        pdo_mysql \
-        pdo_sqlite \
-        zip \
-    && a2enmod rewrite \
-    && sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" \
-        /etc/apache2/sites-available/*.conf \
-        /etc/apache2/apache2.conf \
-        /etc/apache2/conf-available/*.conf \
-    && rm -rf /var/lib/apt/lists/*
+# Copy Laravel app from composer stage
+COPY --from=composer /app .
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Create required directories and set permissions
+RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-COPY . .
+# Nginx config
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/default.conf /etc/nginx/http.d/default.conf
 
-RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+# Supervisor (nginx + php-fpm + queue worker)
+COPY docker/supervisord.conf /etc/supervisord.conf
 
-COPY --from=frontend /app/public/build ./public/build
-
-RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache database \
-    && touch database/database.sqlite \
-    && chown -R www-data:www-data storage bootstrap/cache database
-
+# Expose port 80 (Coolify expects this)
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
