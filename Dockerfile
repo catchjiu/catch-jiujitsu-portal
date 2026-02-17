@@ -97,6 +97,9 @@ RUN printf '%s\n' \
   'if [ "${CACHE_STORE:-database}" = "database" ]; then export CACHE_STORE=file; fi' \
   'if [ "${QUEUE_CONNECTION:-database}" = "database" ]; then export QUEUE_CONNECTION=sync; fi' \
   '' \
+  '# DB_URL overrides DB_HOST/DB_USERNAME in Laravel; avoid accidental mismatch from old env.' \
+  'if [ -n "${DB_HOST:-}" ] && [ -n "${DB_URL:-}" ]; then unset DB_URL; fi' \
+  '' \
   '# Ignore placeholder APP_KEY from env so a real key can be generated.' \
   'if [ "${APP_KEY:-}" = "base64:REPLACE_WITH_YOUR_KEY" ]; then unset APP_KEY; fi' \
   '' \

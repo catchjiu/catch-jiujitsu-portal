@@ -73,12 +73,24 @@ Route::get('/debug/runtime', function (Request $request) {
         $lastException = is_array($decoded) ? $decoded : ['raw' => $raw];
     }
 
+    $defaultConnection = (string) config('database.default');
+    $connectionConfig = (array) config("database.connections.$defaultConnection", []);
+    $effectiveDbConfig = [
+        'default' => $defaultConnection,
+        'host' => $connectionConfig['host'] ?? null,
+        'port' => $connectionConfig['port'] ?? null,
+        'database' => $connectionConfig['database'] ?? null,
+        'username' => $connectionConfig['username'] ?? null,
+        'url_present' => !empty($connectionConfig['url'] ?? null),
+    ];
+
     return response()->json([
         'app_runtime_debug' => (bool) env('APP_RUNTIME_DEBUG', false),
         'app_env' => config('app.env'),
         'app_url' => config('app.url'),
         'php_version' => PHP_VERSION,
         'db' => $dbStatus,
+        'effective_db_config' => $effectiveDbConfig,
         'tables' => $tableChecks,
         'writable' => [
             'storage' => is_writable(storage_path()),
