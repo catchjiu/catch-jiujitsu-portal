@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class User extends Authenticatable
 {
@@ -127,6 +128,10 @@ class User extends Authenticatable
      */
     public function isInFamily(): bool
     {
+        if (!Schema::hasTable('family_members')) {
+            return false;
+        }
+
         return $this->familyMember()->exists();
     }
 
@@ -135,6 +140,10 @@ class User extends Authenticatable
      */
     public function familyMembers(): \Illuminate\Support\Collection
     {
+        if (!Schema::hasTable('family_members') || !Schema::hasTable('families')) {
+            return collect();
+        }
+
         $fm = $this->familyMember;
         if (!$fm || !$fm->family) {
             return collect();
@@ -147,6 +156,10 @@ class User extends Authenticatable
      */
     public function familyMembersWithSelf(): \Illuminate\Support\Collection
     {
+        if (!Schema::hasTable('family_members') || !Schema::hasTable('families')) {
+            return collect([$this]);
+        }
+
         $fm = $this->familyMember;
         if (!$fm || !$fm->family) {
             return collect([$this]);
@@ -161,7 +174,7 @@ class User extends Authenticatable
     public static function currentFamilyMember(): ?User
     {
         $me = \Illuminate\Support\Facades\Auth::user();
-        if (!$me || !$me->isInFamily()) {
+        if (!$me || !Schema::hasTable('family_members') || !$me->isInFamily()) {
             return $me;
         }
         $viewingId = session('viewing_family_user_id');

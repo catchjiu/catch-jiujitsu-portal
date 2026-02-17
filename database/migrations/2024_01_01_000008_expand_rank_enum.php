@@ -13,11 +13,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasColumn('users', 'dob')) {
+        $driver = DB::getDriverName();
+
+        if ($driver === 'mysql' && Schema::hasColumn('users', 'dob')) {
             DB::statement("UPDATE users SET dob = NULL WHERE dob = '0000-00-00' OR dob < '1900-01-01'");
         }
-        // For MySQL, we need to modify the enum to include new values
-        DB::statement("ALTER TABLE users MODIFY COLUMN `rank` ENUM('White', 'Grey', 'Yellow', 'Orange', 'Green', 'Blue', 'Purple', 'Brown', 'Black') DEFAULT 'White'");
+
+        // MySQL uses native ENUM and needs explicit ALTER; PostgreSQL / SQLite store as text+check
+        // in this project, so we skip this driver-specific statement there.
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN `rank` ENUM('White', 'Grey', 'Yellow', 'Orange', 'Green', 'Blue', 'Purple', 'Brown', 'Black') DEFAULT 'White'");
+        }
     }
 
     /**
@@ -25,6 +31,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN `rank` ENUM('White', 'Blue', 'Purple', 'Brown', 'Black') DEFAULT 'White'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN `rank` ENUM('White', 'Blue', 'Purple', 'Brown', 'Black') DEFAULT 'White'");
+        }
     }
 };
