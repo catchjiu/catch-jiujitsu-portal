@@ -7,6 +7,7 @@ use App\Models\PrivateClassBooking;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Support\SchemaCache;
 
 class FamilyDashboardController extends Controller
 {
@@ -21,35 +22,49 @@ class FamilyDashboardController extends Controller
         }
         $user = User::currentFamilyMember();
         $user->load('membershipPackage');
+        $hasClassesTables = SchemaCache::hasTable('classes') && SchemaCache::hasTable('bookings');
+        $hasPrivateClasses = SchemaCache::hasTable('private_class_bookings');
+        $hasShopTables = SchemaCache::hasTable('orders')
+            && SchemaCache::hasTable('order_items')
+            && SchemaCache::hasTable('product_variants')
+            && SchemaCache::hasTable('products');
 
-        $nextClass = $user->nextBookedClass();
+        $nextClass = null;
         $nextBooking = null;
-        if ($nextClass) {
-            $nextBooking = $user->bookings()->where('class_id', $nextClass->id)->first();
+        $classesThisMonth = 0;
+        $previousClasses = collect();
+
+        if ($hasClassesTables) {
+            $nextClass = $user->nextBookedClass();
+            if ($nextClass) {
+                $nextBooking = $user->bookings()->where('class_id', $nextClass->id)->first();
+            }
+
+            $classesThisMonth = $user->bookings()
+                ->whereHas('classSession', fn ($q) => $q->whereMonth('start_time', now()->month)->whereYear('start_time', now()->year))
+                ->count();
+
+            $previousClasses = $user->bookedClasses()
+                ->with('instructor')
+                ->where('start_time', '<', now())
+                ->orderBy('start_time', 'desc')
+                ->take(5)
+                ->get();
         }
-
-        $classesThisMonth = $user->bookings()
-            ->whereHas('classSession', fn ($q) => $q->whereMonth('start_time', now()->month)->whereYear('start_time', now()->year))
-            ->count();
-
-        $previousClasses = $user->bookedClasses()
-            ->with('instructor')
-            ->where('start_time', '<', now())
-            ->orderBy('start_time', 'desc')
-            ->take(5)
-            ->get();
 
         $familyMembers = $me->familyMembersWithSelf();
 
-        $pendingPrivateRequests = $me->is_coach
+        $pendingPrivateRequests = ($me->is_coach && $hasPrivateClasses)
             ? PrivateClassBooking::where('coach_id', $me->id)->where('status', 'pending')->count()
             : 0;
 
-        $shopOrders = $user->orders()
-            ->with(['items.productVariant.product'])
-            ->orderByDesc('created_at')
-            ->take(10)
-            ->get();
+        $shopOrders = $hasShopTables
+            ? $user->orders()
+                ->with(['items.productVariant.product'])
+                ->orderByDesc('created_at')
+                ->take(10)
+                ->get()
+            : collect();
 
         return view('dashboard', [
             'user' => $user,

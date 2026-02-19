@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
@@ -35,15 +36,75 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        // Some deployments end up with NULL/empty passwords (or wrong column types) for existing users.
+        // That can trigger a runtime 500 inside the hasher when an email exists. Fail gracefully instead.
+        $runtimeDebug = (bool) config('runtime.debug', false);
+        try {
+            $user = User::query()->where('email', $credentials['email'])->first();
+            if ($user !== null) {
+                $hash = $user->getAuthPassword();
+                if (!is_string($hash) || $hash === '') {
+                    Log::warning('Login blocked: user password hash missing/invalid', [
+                        'email' => $credentials['email'],
+                        'password_type' => get_debug_type($hash),
+                    ]);
 
-            // Redirect based on user role
-            if (Auth::user()->isAdmin()) {
-                return redirect()->intended('/admin');
+                    return back()->withErrors([
+                        'email' => $runtimeDebug
+                            ? 'This account has no password hash set (password is NULL/empty).'
+                            : 'The provided credentials do not match our records.',
+                    ])->onlyInput('email');
+                }
+            }
+        } catch (\Throwable $e) {
+            // Best-effort only. Login can still proceed; failure will be handled below.
+            Log::warning('Pre-login password sanity check failed', [
+                'email' => $credentials['email'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        try {
+            if (Auth::attempt($credentials, $request->boolean('remember'))) {
+                $request->session()->regenerate();
+
+                // Redirect based on user role
+                if (Auth::user()->isAdmin()) {
+                    return redirect()->intended('/admin');
+                }
+
+                return redirect()->intended('/dashboard');
+            }
+        } catch (\Throwable $e) {
+            Log::error('Login failed with runtime error', [
+                'email' => $request->input('email'),
+                'error' => $e->getMessage(),
+            ]);
+
+            // Ensure the error is visible via /debug/runtime even if global handlers don't capture it.
+            try {
+                @file_put_contents(
+                    storage_path('app/runtime-last-exception.json'),
+                    json_encode([
+                        'time' => date('c'),
+                        'type' => $e::class,
+                        'message' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'url' => $request->getRequestUri(),
+                        'method' => $request->method(),
+                        'email' => (string) $request->input('email', ''),
+                    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                );
+            } catch (\Throwable) {
+                // Best-effort only.
             }
 
-            return redirect()->intended('/dashboard');
+            return response()->view('auth.login', [
+                'runtimeError' => app()->getLocale() === 'zh-TW'
+                    ? '目前無法登入，請稍後再試。'
+                    : 'Login is temporarily unavailable. Please try again in a moment.',
+            ], 503);
         }
 
         return back()->withErrors([

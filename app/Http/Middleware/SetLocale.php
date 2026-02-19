@@ -22,20 +22,25 @@ class SetLocale
     {
         // Priority: User DB > Session > Cookie > Browser > Default
         $locale = null;
-        
-        // Check user's saved preference if logged in
-        if (auth()->check() && auth()->user()->locale) {
-            $locale = auth()->user()->locale;
+
+        try {
+            // Check user's saved preference if logged in
+            if (auth()->check() && auth()->user()->locale) {
+                $locale = auth()->user()->locale;
+            }
+
+            if (!$locale) {
+                $locale = Session::get('locale');
+            }
+
+            if (!$locale) {
+                $locale = $request->cookie('locale');
+            }
+        } catch (\Throwable) {
+            // Fallback to browser/default locale when session or auth storage is not available.
+            $locale = null;
         }
-        
-        if (!$locale) {
-            $locale = Session::get('locale');
-        }
-        
-        if (!$locale) {
-            $locale = $request->cookie('locale');
-        }
-        
+
         if (!$locale) {
             // Detect from browser
             $locale = $this->detectBrowserLocale($request);

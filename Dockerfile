@@ -1,33 +1,26 @@
-# Catch Jiu Jitsu Portal - Coolify deployment
-# React frontend (Vite) + Laravel backend
+# syntax=docker/dockerfile:1
 
 # ========== Stage 1: Build React frontend ==========
 FROM node:20-alpine AS frontend
 
 WORKDIR /app
 
-# Copy root package files and install dependencies
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy frontend source and Laravel structure (build outputs to laravel/public/portal)
 COPY . .
 
-# Build React portal (outputs to laravel/public/portal)
-# VITE_API_URL empty = same-origin API; VITE_BASE_PATH=/portal/
+# Build static portal files into /app/dist
 ENV VITE_API_URL=
 ENV VITE_BASE_PATH=/portal/
-RUN npm run build
+RUN npm run build -- --config vite.config.ts
 
-# ========== Stage 2: Composer dependencies ==========
+# ========== Stage 2: Install Composer dependencies ==========
 FROM composer:2 AS composer
 
 WORKDIR /app
 
-# Copy Laravel files
-COPY laravel/composer.json laravel/composer.lock ./
-
-# Install PHP dependencies (no dev for production)
+COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
     --no-scripts \
@@ -35,65 +28,151 @@ RUN composer install \
     --prefer-dist \
     --no-interaction
 
-# Copy full Laravel app (excluding vendor)
-COPY laravel/ .
-COPY --from=frontend /app/laravel/public/portal ./public/portal
+COPY . .
+COPY --from=frontend /app/dist/ ./public/portal/
 
-# ========== Stage 3: Production image ==========
-FROM php:8.2-fpm-alpine
+# ========== Stage 3: Production runtime (Apache + PHP) ==========
+FROM php:8.2-apache AS app
 
-# Install system dependencies
-RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    curl \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    libzip-dev \
-    icu-dev \
-    libxml2-dev \
-    linux-headers \
-    oniguruma-dev
-
-# Install PHP extensions (Laravel + Intervention Image)
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        pdo \
-        pdo_mysql \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        gd \
-        zip \
-        intl \
-        xml
-
-# PHP config for Laravel
-RUN echo "memory_limit=256M" > /usr/local/etc/php/conf.d/memory.ini \
-    && echo "upload_max_filesize=30M" >> /usr/local/etc/php/conf.d/memory.ini \
-    && echo "post_max_size=35M" >> /usr/local/etc/php/conf.d/memory.ini
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 WORKDIR /var/www/html
 
-# Copy Laravel app from composer stage
-COPY --from=composer /app .
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+        git \
+        unzip \
+        libzip-dev \
+        libpq-dev \
+        libpng-dev \
+        libjpeg62-turbo-dev \
+        libfreetype6-dev \
+        libonig-dev \
+        libxml2-dev \
+        libicu-dev \
+        libsqlite3-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
+        bcmath \
+        exif \
+        gd \
+        intl \
+        mbstring \
+        opcache \
+        pcntl \
+        pdo_mysql \
+        pdo_pgsql \
+        pdo_sqlite \
+        pgsql \
+        xml \
+        zip \
+    && a2enmod rewrite \
+    && sed -ri -e "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" \
+        /etc/apache2/sites-available/*.conf \
+        /etc/apache2/apache2.conf \
+        /etc/apache2/conf-available/*.conf \
+    && printf "Listen 80\nListen 3000\nListen 8080\n" > /etc/apache2/ports.conf \
+    && sed -ri -e "s!<VirtualHost \\*:80>!<VirtualHost *:80 *:3000 *:8080>!g" /etc/apache2/sites-available/000-default.conf \
+    && sed -ri -e '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create required directories and set permissions
-RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
+# Basic performance tuning (OPcache + path cache).
+RUN { \
+      echo 'opcache.enable=1'; \
+      echo 'opcache.enable_cli=0'; \
+      echo 'opcache.memory_consumption=128'; \
+      echo 'opcache.interned_strings_buffer=16'; \
+      echo 'opcache.max_accelerated_files=20000'; \
+      echo 'opcache.validate_timestamps=0'; \
+      echo 'opcache.revalidate_freq=0'; \
+      echo 'realpath_cache_size=4096K'; \
+      echo 'realpath_cache_ttl=600'; \
+    } > /usr/local/etc/php/conf.d/99-opcache.ini
+
+COPY --from=composer /app /var/www/html
+
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
+    && echo "ok" > public/healthz \
     && chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R ug+rwx storage bootstrap/cache
 
-# Nginx config
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY docker/default.conf /etc/nginx/http.d/default.conf
+RUN printf '%s\n' \
+  '#!/bin/sh' \
+  'set -eu' \
+  'cd /var/www/html' \
+  '' \
+  'if [ ! -f .env ]; then' \
+  '  cp .env.example .env' \
+  'fi' \
+  '' \
+  '# If runtime env accidentally injects DB-backed defaults, force safe drivers.' \
+  'if [ "${SESSION_DRIVER:-database}" = "database" ]; then export SESSION_DRIVER=file; fi' \
+  'if [ "${CACHE_STORE:-database}" = "database" ]; then export CACHE_STORE=file; fi' \
+  'if [ "${QUEUE_CONNECTION:-database}" = "database" ]; then export QUEUE_CONNECTION=sync; fi' \
+  '' \
+  '# DB_URL overrides DB_HOST/DB_USERNAME in Laravel; avoid accidental mismatch from old env.' \
+  'if [ -n "${DB_HOST:-}" ] && [ -n "${DB_URL:-}" ]; then unset DB_URL; fi' \
+  '' \
+  '# Ignore placeholder APP_KEY from env so a real key can be generated.' \
+  'if [ "${APP_KEY:-}" = "base64:REPLACE_WITH_YOUR_KEY" ]; then unset APP_KEY; fi' \
+  '' \
+  'set_env_if_missing() {' \
+  '  key="$1"' \
+  '  value="$2"' \
+  '  env_value="$(printenv "${key}" 2>/dev/null || true)"' \
+  '  if [ -z "${env_value}" ]; then' \
+  '    if grep -q "^${key}=" .env; then' \
+  '      sed -i "s|^${key}=.*|${key}=${value}|" .env' \
+  '    else' \
+  '      printf "\n%s=%s\n" "${key}" "${value}" >> .env' \
+  '    fi' \
+  '  fi' \
+  '}' \
+  '' \
+  'set_env_if_missing APP_ENV production' \
+  'set_env_if_missing APP_DEBUG false' \
+  'set_env_if_missing SESSION_DRIVER file' \
+  'set_env_if_missing CACHE_STORE file' \
+  'set_env_if_missing QUEUE_CONNECTION sync' \
+  '' \
+  'file_app_key="$(awk -F= '\''$1=="APP_KEY"{print $2}'\'' .env | tr -d "\r")"' \
+  'if [ "${file_app_key}" = "base64:REPLACE_WITH_YOUR_KEY" ]; then file_app_key=""; fi' \
+  'current_app_key="${APP_KEY:-${file_app_key}}"' \
+  'if [ -z "${current_app_key}" ]; then' \
+  '  php artisan key:generate --force --no-interaction' \
+  'fi' \
+  '' \
+  '# Ensure stale config cache never keeps wrong env values.' \
+  'php artisan config:clear --no-interaction || true' \
+  '' \
+  'mkdir -p database' \
+  'touch database/database.sqlite' \
+  'chown -R www-data:www-data storage bootstrap/cache database' \
+  '' \
+  '# Cache config/views for performance. Disable with AUTO_OPTIMIZE=false.' \
+  'if [ "${AUTO_OPTIMIZE:-true}" = "true" ]; then' \
+  '  php artisan config:cache --no-interaction || true' \
+  '  php artisan event:cache --no-interaction || true' \
+  '  php artisan view:cache --no-interaction || true' \
+  'fi' \
+  '' \
+  '# Keep public storage symlink present (safe to re-run).' \
+  'php artisan storage:link --no-interaction || true' \
+  '' \
+  '# Auto-run migrations only when explicitly enabled.' \
+  '# (Safer for production; enable once with AUTO_RUN_MIGRATIONS=true if needed.)' \
+  'if [ "${AUTO_RUN_MIGRATIONS:-false}" = "true" ]; then' \
+  '  php artisan migrate --force --no-interaction || true' \
+  'fi' \
+  '' \
+  'exec apache2-foreground' \
+  > /usr/local/bin/start-container.sh \
+  && chmod +x /usr/local/bin/start-container.sh
 
-# Supervisor (nginx + php-fpm + queue worker)
-COPY docker/supervisord.conf /etc/supervisord.conf
+EXPOSE 80 3000 8080
 
-# Expose port 80 (Coolify expects this)
-EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD curl -fsS http://127.0.0.1/healthz || exit 1
 
-# Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+CMD ["/usr/local/bin/start-container.sh"]

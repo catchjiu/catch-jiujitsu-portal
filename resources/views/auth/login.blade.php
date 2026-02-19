@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.assets')
     @if(app()->getLocale() === 'zh-TW')
     <style>body { font-family: 'Noto Sans TC', 'Inter', sans-serif; }</style>
     @endif
@@ -44,6 +44,12 @@
         <!-- Login Form -->
         <div class="glass rounded-2xl p-6">
             <h2 class="text-xl font-bold text-white mb-6">{{ __('app.auth.welcome_back') }}</h2>
+
+            @if(!empty($runtimeError))
+                <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    {{ $runtimeError }}
+                </div>
+            @endif
 
             @if ($errors->any())
                 <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
