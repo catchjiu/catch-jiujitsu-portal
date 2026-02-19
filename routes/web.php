@@ -355,7 +355,9 @@ Route::get('/debug/password-check', function (Request $request) {
         'hashing' => [
             'driver' => config('hashing.driver'),
             'bcrypt_rounds' => config('hashing.bcrypt.rounds'),
+            'bcrypt_verify' => config('hashing.bcrypt.verify'),
             'argon_memory' => config('hashing.argon.memory'),
+            'argon_verify' => config('hashing.argon.verify'),
         ],
         'check_catch12' => $check,
         'needs_rehash' => $needsRehash,
