@@ -18,6 +18,7 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopAdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 
@@ -168,13 +169,200 @@ Route::get('/debug/log', function (Request $request) {
 
     $tail = array_slice($content, max(0, count($content) - $lines));
 
+    $q = (string) $request->query('q', '');
+    if ($q !== '') {
+        $tail = array_values(array_filter($tail, static fn ($line) => stripos((string) $line, $q) !== false));
+    }
+
     return response()->json([
         'file' => $logFile,
         'exists' => true,
         'lines' => $lines,
+        'q' => $q !== '' ? $q : null,
+        'matched' => is_string($q) && $q !== '' ? count($tail) : null,
         'tail' => $tail,
     ]);
 })->name('debug.log');
+
+Route::get('/debug/schema/{table}', function (Request $request, string $table) {
+    $token = (string) env('DEBUG_TOKEN', '');
+    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403, 'Forbidden');
+    }
+
+    if (!preg_match('/^[A-Za-z0-9_]+$/', $table)) {
+        abort(400, 'Invalid table name.');
+    }
+
+    $exists = false;
+    try {
+        $exists = Schema::hasTable($table);
+    } catch (\Throwable) {
+        // ignore; we'll still try to query details below
+    }
+
+    $driver = null;
+    try {
+        $driver = DB::getDriverName();
+    } catch (\Throwable) {
+        $driver = null;
+    }
+
+    $columnListing = [];
+    $columns = null;
+    try {
+        $columnListing = Schema::getColumnListing($table);
+    } catch (\Throwable $e) {
+        $columns = ['error' => $e->getMessage()];
+    }
+
+    if ($columns === null && $driver === 'pgsql') {
+        try {
+            $columns = DB::select(
+                'select column_name, data_type, is_nullable, column_default
+                 from information_schema.columns
+                 where table_schema = current_schema()
+                   and table_name = ?
+                 order by ordinal_position',
+                [$table]
+            );
+        } catch (\Throwable $e) {
+            $columns = ['error' => $e->getMessage()];
+        }
+    }
+
+    return response()->json([
+        'driver' => $driver,
+        'table' => $table,
+        'exists' => $exists,
+        'column_listing' => $columnListing,
+        'columns' => $columns,
+        'now' => now()->toIso8601String(),
+    ]);
+})->name('debug.schema');
+
+Route::get('/debug/users/passwords', function (Request $request) {
+    $token = (string) env('DEBUG_TOKEN', '');
+    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403, 'Forbidden');
+    }
+
+    if (!Schema::hasTable('users')) {
+        return response()->json([
+            'exists' => false,
+            'now' => now()->toIso8601String(),
+        ]);
+    }
+
+    $total = DB::table('users')->count();
+    $nullOrEmpty = DB::table('users')
+        ->whereNull('password')
+        ->orWhere('password', '')
+        ->count();
+
+    $bcryptLike = DB::table('users')
+        ->where('password', 'like', '$2%')
+        ->count();
+
+    $argonLike = DB::table('users')
+        ->where('password', 'like', '$argon2%')
+        ->count();
+
+    $unknownFormat = max(0, $total - $nullOrEmpty - $bcryptLike - $argonLike);
+
+    $sampleNullIds = DB::table('users')
+        ->whereNull('password')
+        ->orWhere('password', '')
+        ->orderBy('id')
+        ->limit(10)
+        ->pluck('id')
+        ->all();
+
+    return response()->json([
+        'exists' => true,
+        'total' => $total,
+        'null_or_empty' => $nullOrEmpty,
+        'hash_prefix_counts' => [
+            '$2' => $bcryptLike,
+            '$argon2' => $argonLike,
+            'unknown_or_other' => $unknownFormat,
+        ],
+        'sample_null_or_empty_ids' => $sampleNullIds,
+        'now' => now()->toIso8601String(),
+    ]);
+})->name('debug.users.passwords');
+
+Route::get('/debug/password-check', function (Request $request) {
+    $token = (string) env('DEBUG_TOKEN', '');
+    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403, 'Forbidden');
+    }
+
+    $email = (string) $request->query('email', '');
+    if ($email === '') {
+        abort(400, 'Missing email query parameter.');
+    }
+
+    if (!Schema::hasTable('users')) {
+        return response()->json([
+            'users_table_exists' => false,
+            'email' => $email,
+            'now' => now()->toIso8601String(),
+        ], 500);
+    }
+
+    $row = DB::table('users')
+        ->select(['id', 'email', 'password'])
+        ->where('email', $email)
+        ->first();
+
+    if ($row === null) {
+        return response()->json([
+            'exists' => false,
+            'email' => $email,
+            'now' => now()->toIso8601String(),
+        ]);
+    }
+
+    $hash = $row->password;
+    $hashType = get_debug_type($hash);
+    $hashString = is_string($hash) ? $hash : null;
+
+    $check = null;
+    $needsRehash = null;
+    $checkError = null;
+    try {
+        // Uses the expected shared password from the earlier "set everyone to Catch12" step.
+        if (!is_string($hash) || $hash === '') {
+            $checkError = 'Password hash is NULL/empty or not a string.';
+        } else {
+            $check = Hash::check('Catch12', $hash);
+            $needsRehash = Hash::needsRehash($hash);
+        }
+    } catch (\Throwable $e) {
+        $checkError = $e->getMessage();
+    }
+
+    return response()->json([
+        'exists' => true,
+        'id' => $row->id,
+        'email' => $row->email,
+        'password' => [
+            'type' => $hashType,
+            'length' => is_string($hashString) ? strlen($hashString) : null,
+            'prefix' => is_string($hashString) ? substr($hashString, 0, 6) : null,
+        ],
+        'hashing' => [
+            'driver' => config('hashing.driver'),
+            'bcrypt_rounds' => config('hashing.bcrypt.rounds'),
+            'argon_memory' => config('hashing.argon.memory'),
+        ],
+        'check_catch12' => $check,
+        'needs_rehash' => $needsRehash,
+        'check_error' => $checkError,
+        'now' => now()->toIso8601String(),
+    ]);
+})->name('debug.password_check');
 
 Route::get('/debug/throw', function (Request $request) {
     $token = (string) env('DEBUG_TOKEN', '');

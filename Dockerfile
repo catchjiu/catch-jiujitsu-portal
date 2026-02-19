@@ -139,8 +139,9 @@ RUN printf '%s\n' \
   '# Keep public storage symlink present (safe to re-run).' \
   'php artisan storage:link --no-interaction || true' \
   '' \
-  '# Auto-run migrations on each deploy by default. Disable with AUTO_RUN_MIGRATIONS=false.' \
-  'if [ "${AUTO_RUN_MIGRATIONS:-true}" = "true" ]; then' \
+  '# Auto-run migrations only when explicitly enabled.' \
+  '# (Safer for production; enable once with AUTO_RUN_MIGRATIONS=true if needed.)' \
+  'if [ "${AUTO_RUN_MIGRATIONS:-false}" = "true" ]; then' \
   '  php artisan migrate --force --no-interaction || true' \
   'fi' \
   '' \
