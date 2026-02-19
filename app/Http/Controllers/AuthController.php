@@ -38,7 +38,7 @@ class AuthController extends Controller
 
         // Some deployments end up with NULL/empty passwords (or wrong column types) for existing users.
         // That can trigger a runtime 500 inside the hasher when an email exists. Fail gracefully instead.
-        $runtimeDebug = (bool) env('APP_RUNTIME_DEBUG', false);
+        $runtimeDebug = (bool) config('runtime.debug', false);
         try {
             $user = User::query()->where('email', $credentials['email'])->first();
             if ($user !== null) {

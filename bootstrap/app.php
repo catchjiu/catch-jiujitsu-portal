@@ -53,6 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'member' => \App\Http\Middleware\MemberMiddleware::class,
+            'debug.token' => \App\Http\Middleware\RequireDebugToken::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -98,7 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Throwable $e, Request $request) {
-            $runtimeDebug = filter_var(env('APP_RUNTIME_DEBUG', false), FILTER_VALIDATE_BOOL);
+            $runtimeDebug = (bool) config('runtime.debug', false);
             if (! $runtimeDebug) {
                 return null;
             }

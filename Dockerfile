@@ -59,6 +59,7 @@ RUN apt-get update \
         gd \
         intl \
         mbstring \
+        opcache \
         pcntl \
         pdo_mysql \
         pdo_pgsql \
@@ -75,6 +76,19 @@ RUN apt-get update \
     && sed -ri -e "s!<VirtualHost \\*:80>!<VirtualHost *:80 *:3000 *:8080>!g" /etc/apache2/sites-available/000-default.conf \
     && sed -ri -e '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
     && rm -rf /var/lib/apt/lists/*
+
+# Basic performance tuning (OPcache + path cache).
+RUN { \
+      echo 'opcache.enable=1'; \
+      echo 'opcache.enable_cli=0'; \
+      echo 'opcache.memory_consumption=128'; \
+      echo 'opcache.interned_strings_buffer=16'; \
+      echo 'opcache.max_accelerated_files=20000'; \
+      echo 'opcache.validate_timestamps=0'; \
+      echo 'opcache.revalidate_freq=0'; \
+      echo 'realpath_cache_size=4096K'; \
+      echo 'realpath_cache_ttl=600'; \
+    } > /usr/local/etc/php/conf.d/99-opcache.ini
 
 COPY --from=composer /app /var/www/html
 
@@ -135,6 +149,13 @@ RUN printf '%s\n' \
   'mkdir -p database' \
   'touch database/database.sqlite' \
   'chown -R www-data:www-data storage bootstrap/cache database' \
+  '' \
+  '# Cache config/views for performance. Disable with AUTO_OPTIMIZE=false.' \
+  'if [ "${AUTO_OPTIMIZE:-true}" = "true" ]; then' \
+  '  php artisan config:cache --no-interaction || true' \
+  '  php artisan event:cache --no-interaction || true' \
+  '  php artisan view:cache --no-interaction || true' \
+  'fi' \
   '' \
   '# Keep public storage symlink present (safe to re-run).' \
   'php artisan storage:link --no-interaction || true' \

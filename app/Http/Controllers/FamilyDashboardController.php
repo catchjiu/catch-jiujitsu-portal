@@ -7,7 +7,7 @@ use App\Models\PrivateClassBooking;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
+use App\Support\SchemaCache;
 
 class FamilyDashboardController extends Controller
 {
@@ -22,12 +22,12 @@ class FamilyDashboardController extends Controller
         }
         $user = User::currentFamilyMember();
         $user->load('membershipPackage');
-        $hasClassesTables = Schema::hasTable('classes') && Schema::hasTable('bookings');
-        $hasPrivateClasses = Schema::hasTable('private_class_bookings');
-        $hasShopTables = Schema::hasTable('orders')
-            && Schema::hasTable('order_items')
-            && Schema::hasTable('product_variants')
-            && Schema::hasTable('products');
+        $hasClassesTables = SchemaCache::hasTable('classes') && SchemaCache::hasTable('bookings');
+        $hasPrivateClasses = SchemaCache::hasTable('private_class_bookings');
+        $hasShopTables = SchemaCache::hasTable('orders')
+            && SchemaCache::hasTable('order_items')
+            && SchemaCache::hasTable('product_variants')
+            && SchemaCache::hasTable('products');
 
         $nextClass = null;
         $nextBooking = null;

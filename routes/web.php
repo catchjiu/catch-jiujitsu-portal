@@ -24,12 +24,8 @@ use Illuminate\Support\Facades\Schema;
 
 // Public routes
 
+Route::middleware('debug.token')->group(function (): void {
 Route::get('/debug/runtime', function (Request $request) {
-    $token = (string) env('DEBUG_TOKEN', '');
-    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
-        abort(403, 'Forbidden');
-    }
-
     try {
         DB::connection()->getPdo();
         $dbStatus = [
@@ -99,7 +95,7 @@ Route::get('/debug/runtime', function (Request $request) {
     ];
 
     return response()->json([
-        'app_runtime_debug' => (bool) env('APP_RUNTIME_DEBUG', false),
+        'app_runtime_debug' => (bool) config('runtime.debug', false),
         'app_env' => config('app.env'),
         'app_url' => config('app.url'),
         'php_version' => PHP_VERSION,
@@ -119,11 +115,6 @@ Route::get('/debug/runtime', function (Request $request) {
 })->name('debug.runtime');
 
 Route::get('/debug/auth', function (Request $request) {
-    $token = (string) env('DEBUG_TOKEN', '');
-    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
-        abort(403, 'Forbidden');
-    }
-
     $user = auth()->user();
 
     return response()->json([
@@ -137,11 +128,6 @@ Route::get('/debug/auth', function (Request $request) {
 })->name('debug.auth');
 
 Route::get('/debug/log', function (Request $request) {
-    $token = (string) env('DEBUG_TOKEN', '');
-    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
-        abort(403, 'Forbidden');
-    }
-
     $lines = (int) $request->query('lines', 200);
     if ($lines < 1) {
         $lines = 200;
@@ -185,11 +171,6 @@ Route::get('/debug/log', function (Request $request) {
 })->name('debug.log');
 
 Route::get('/debug/schema/{table}', function (Request $request, string $table) {
-    $token = (string) env('DEBUG_TOKEN', '');
-    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
-        abort(403, 'Forbidden');
-    }
-
     if (!preg_match('/^[A-Za-z0-9_]+$/', $table)) {
         abort(400, 'Invalid table name.');
     }
@@ -242,11 +223,6 @@ Route::get('/debug/schema/{table}', function (Request $request, string $table) {
 })->name('debug.schema');
 
 Route::get('/debug/users/passwords', function (Request $request) {
-    $token = (string) env('DEBUG_TOKEN', '');
-    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
-        abort(403, 'Forbidden');
-    }
-
     if (!Schema::hasTable('users')) {
         return response()->json([
             'exists' => false,
@@ -293,11 +269,6 @@ Route::get('/debug/users/passwords', function (Request $request) {
 })->name('debug.users.passwords');
 
 Route::get('/debug/password-check', function (Request $request) {
-    $token = (string) env('DEBUG_TOKEN', '');
-    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
-        abort(403, 'Forbidden');
-    }
-
     $email = (string) $request->query('email', '');
     if ($email === '') {
         abort(400, 'Missing email query parameter.');
@@ -367,13 +338,9 @@ Route::get('/debug/password-check', function (Request $request) {
 })->name('debug.password_check');
 
 Route::get('/debug/throw', function (Request $request) {
-    $token = (string) env('DEBUG_TOKEN', '');
-    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
-        abort(403, 'Forbidden');
-    }
-
     throw new \RuntimeException('Debug throw endpoint triggered intentionally.');
 })->name('debug.throw');
+});
 
 // LINE Messaging API webhook (no auth; CSRF excluded in bootstrap/app.php)
 Route::post('/webhook/line', LineWebhookController::class)->name('webhook.line');

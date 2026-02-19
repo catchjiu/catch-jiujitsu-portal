@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Schema;
+use App\Support\SchemaCache;
 
 class User extends Authenticatable
 {
@@ -128,7 +128,7 @@ class User extends Authenticatable
      */
     public function isInFamily(): bool
     {
-        if (!Schema::hasTable('family_members')) {
+        if (!SchemaCache::hasTable('family_members')) {
             return false;
         }
 
@@ -140,7 +140,7 @@ class User extends Authenticatable
      */
     public function familyMembers(): \Illuminate\Support\Collection
     {
-        if (!Schema::hasTable('family_members') || !Schema::hasTable('families')) {
+        if (!SchemaCache::hasTable('family_members') || !SchemaCache::hasTable('families')) {
             return collect();
         }
 
@@ -156,7 +156,7 @@ class User extends Authenticatable
      */
     public function familyMembersWithSelf(): \Illuminate\Support\Collection
     {
-        if (!Schema::hasTable('family_members') || !Schema::hasTable('families')) {
+        if (!SchemaCache::hasTable('family_members') || !SchemaCache::hasTable('families')) {
             return collect([$this]);
         }
 
@@ -174,7 +174,7 @@ class User extends Authenticatable
     public static function currentFamilyMember(): ?User
     {
         $me = \Illuminate\Support\Facades\Auth::user();
-        if (!$me || !Schema::hasTable('family_members') || !$me->isInFamily()) {
+        if (!$me || !SchemaCache::hasTable('family_members') || !$me->isInFamily()) {
             return $me;
         }
         $viewingId = session('viewing_family_user_id');
@@ -477,7 +477,7 @@ class User extends Authenticatable
      */
     public function nextBookedClass(): ?ClassSession
     {
-        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
             return null;
         }
 
@@ -493,7 +493,7 @@ class User extends Authenticatable
      */
     public function getMonthlyClassesAttendedAttribute(): int
     {
-        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
             return 0;
         }
 
@@ -511,7 +511,7 @@ class User extends Authenticatable
      */
     public function getMonthlyHoursTrainedAttribute(): float
     {
-        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
             return 0.0;
         }
 
@@ -535,7 +535,7 @@ class User extends Authenticatable
      */
     public function getCalculatedMatHoursAttribute(): int
     {
-        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
             return 0;
         }
 
@@ -557,7 +557,7 @@ class User extends Authenticatable
      */
     public function getTotalMatHoursAttribute(): int
     {
-        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
             return (int) ($this->mat_hours ?? 0);
         }
 
@@ -569,7 +569,7 @@ class User extends Authenticatable
      */
     public function getHoursThisYearAttribute(): float
     {
-        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
             return 0.0;
         }
 
@@ -592,7 +592,7 @@ class User extends Authenticatable
      */
     public function getTotalHoursThisYearAttribute(): float
     {
-        if (!Schema::hasTable('bookings') || !Schema::hasTable('classes')) {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
             return (float) ($this->mat_hours ?? 0);
         }
 
