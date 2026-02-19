@@ -78,6 +78,14 @@ Route::get('/debug/runtime', function (Request $request) {
         $lastException = is_array($decoded) ? $decoded : ['raw' => $raw];
     }
 
+    $lastFatal = null;
+    $lastFatalFile = storage_path('app/runtime-last-fatal.json');
+    if (is_file($lastFatalFile)) {
+        $raw = @file_get_contents($lastFatalFile);
+        $decoded = is_string($raw) ? json_decode($raw, true) : null;
+        $lastFatal = is_array($decoded) ? $decoded : ['raw' => $raw];
+    }
+
     $defaultConnection = (string) config('database.default');
     $connectionConfig = (array) config("database.connections.$defaultConnection", []);
     $effectiveDbConfig = [
@@ -104,9 +112,69 @@ Route::get('/debug/runtime', function (Request $request) {
             'bootstrap_cache' => is_writable(base_path('bootstrap/cache')),
         ],
         'last_exception' => $lastException,
+        'last_fatal' => $lastFatal,
         'now' => now()->toIso8601String(),
     ]);
 })->name('debug.runtime');
+
+Route::get('/debug/auth', function (Request $request) {
+    $token = (string) env('DEBUG_TOKEN', '');
+    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403, 'Forbidden');
+    }
+
+    $user = auth()->user();
+
+    return response()->json([
+        'auth_check' => auth()->check(),
+        'auth_id' => $user?->id,
+        'auth_email' => $user?->email,
+        'session_driver' => config('session.driver'),
+        'cache_store' => config('cache.default'),
+        'queue_connection' => config('queue.default'),
+    ]);
+})->name('debug.auth');
+
+Route::get('/debug/log', function (Request $request) {
+    $token = (string) env('DEBUG_TOKEN', '');
+    if ($token !== '' && !hash_equals($token, (string) $request->query('token', ''))) {
+        abort(403, 'Forbidden');
+    }
+
+    $lines = (int) $request->query('lines', 200);
+    if ($lines < 1) {
+        $lines = 200;
+    }
+    if ($lines > 500) {
+        $lines = 500;
+    }
+
+    $logFile = storage_path('logs/laravel.log');
+    if (!is_file($logFile)) {
+        return response()->json([
+            'file' => $logFile,
+            'exists' => false,
+        ]);
+    }
+
+    $content = @file($logFile, FILE_IGNORE_NEW_LINES);
+    if (!is_array($content)) {
+        return response()->json([
+            'file' => $logFile,
+            'exists' => true,
+            'error' => 'Failed to read log file.',
+        ], 500);
+    }
+
+    $tail = array_slice($content, max(0, count($content) - $lines));
+
+    return response()->json([
+        'file' => $logFile,
+        'exists' => true,
+        'lines' => $lines,
+        'tail' => $tail,
+    ]);
+})->name('debug.log');
 
 Route::get('/debug/throw', function (Request $request) {
     $token = (string) env('DEBUG_TOKEN', '');
