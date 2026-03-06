@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard Shop-Only Mode (Temporary)
+    |--------------------------------------------------------------------------
+    |
+    | When true, members will not see schedule, class bookings, check-in, or
+    | class stats on the dashboard. The dashboard emphasizes the shop instead.
+    | Set DASHBOARD_SHOP_ONLY=true in .env to enable.
+    |
+    */
+
+    'dashboard_shop_only' => env('DASHBOARD_SHOP_ONLY', true),
+
 ];

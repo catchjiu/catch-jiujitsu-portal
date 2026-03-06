@@ -50,6 +50,7 @@
         <p class="text-slate-400 text-sm">{{ __('app.dashboard.ready_to_train') }}</p>
     </div>
 
+    @if(!config('app.dashboard_shop_only'))
     <!-- Check In (opens separate page) -->
     <a href="{{ route('checkin.page') }}" class="block">
         <div class="w-full glass rounded-2xl p-5 border-t-4 border-t-blue-500 relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
@@ -66,6 +67,7 @@
             </div>
         </div>
     </a>
+    @endif
 
     <!-- Rank Card -->
     <div class="glass rounded-2xl p-5 border-t-4 border-t-amber-500 relative overflow-hidden">
@@ -298,6 +300,25 @@
         </div>
     </div>
 
+    @if(config('app.dashboard_shop_only'))
+    <!-- Shop CTA (always visible when dashboard is shop-focused) -->
+    <a href="{{ route('shop.index') }}" class="block">
+        <div class="w-full glass rounded-2xl p-5 border-t-4 border-t-[#00d4ff] relative overflow-hidden hover:bg-slate-800/60 transition-colors text-left">
+            <div class="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+            <div class="relative z-10 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-[#00d4ff]/20 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[#00d4ff] text-2xl">storefront</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-bold text-white" style="font-family: 'Bebas Neue', sans-serif;">{{ app()->getLocale() === 'zh-TW' ? '商城' : 'Shop' }}</h3>
+                    <p class="text-slate-500 text-sm">{{ app()->getLocale() === 'zh-TW' ? '瀏覽商品與訂購' : 'Browse products and place orders' }}</p>
+                </div>
+                <span class="material-symbols-outlined text-slate-500 flex-shrink-0">chevron_right</span>
+            </div>
+        </div>
+    </a>
+    @endif
+
     @if(isset($shopOrders) && $shopOrders->isNotEmpty())
     <!-- Order tracking (Gym Shop) – only when member has orders -->
     <a href="{{ route('shop.index') }}" class="block">
@@ -343,6 +364,7 @@
     </a>
     @endif
 
+    @if(!config('app.dashboard_shop_only'))
     <!-- Next Class (moved here, under membership) -->
     <div>
         <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
@@ -405,6 +427,9 @@
         @endif
     </div>
 
+    @endif
+
+    @if(!config('app.dashboard_shop_only'))
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 gap-4">
         <div class="glass rounded-2xl p-5 relative overflow-hidden">
@@ -423,6 +448,9 @@
         </div>
     </div>
 
+    @endif
+
+    @if(!config('app.dashboard_shop_only'))
     <!-- Monthly Goals Progress -->
     <a href="{{ route('goals') }}" class="block">
         <div class="glass rounded-2xl p-5 relative overflow-hidden hover:bg-slate-800/60 transition-colors">
@@ -456,6 +484,9 @@
         </div>
     </a>
 
+    @endif
+
+    @if(!config('app.dashboard_shop_only'))
     <!-- Leaderboard Link -->
     <a href="{{ route('leaderboard') }}" class="block">
         <div class="glass rounded-2xl p-4 relative overflow-hidden hover:bg-slate-800/60 transition-colors">
@@ -473,6 +504,9 @@
         </div>
     </a>
 
+    @endif
+
+    @if(!config('app.dashboard_shop_only'))
     <!-- Previous Classes -->
     <div>
         <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2" style="font-family: 'Bebas Neue', sans-serif;">
@@ -525,5 +559,6 @@
             </div>
         @endif
     </div>
+    @endif
 </div>
 @endsection

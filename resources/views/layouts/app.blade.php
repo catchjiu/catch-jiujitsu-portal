@@ -81,10 +81,12 @@
                 <span class="material-symbols-outlined text-2xl">home</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.home') }}</span>
             </a>
+            @if(!config('app.dashboard_shop_only'))
             <a href="{{ route('schedule') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('schedule') ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">calendar_today</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.schedule') }}</span>
             </a>
+            @endif
             <a href="{{ route('shop.index') }}" class="flex flex-col items-center justify-center w-full h-full space-y-0.5 transition-colors {{ request()->routeIs('shop.*') ? 'text-[#00d4ff]' : 'text-slate-500 hover:text-slate-300' }}">
                 <span class="material-symbols-outlined text-2xl">storefront</span>
                 <span class="text-[10px] font-medium">{{ __('app.nav.shop') }}</span>
