@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
+use App\Support\SchemaCache;
 
 class User extends Authenticatable
 {
@@ -127,6 +128,10 @@ class User extends Authenticatable
      */
     public function isInFamily(): bool
     {
+        if (!SchemaCache::hasTable('family_members')) {
+            return false;
+        }
+
         return $this->familyMember()->exists();
     }
 
@@ -135,6 +140,10 @@ class User extends Authenticatable
      */
     public function familyMembers(): \Illuminate\Support\Collection
     {
+        if (!SchemaCache::hasTable('family_members') || !SchemaCache::hasTable('families')) {
+            return collect();
+        }
+
         $fm = $this->familyMember;
         if (!$fm || !$fm->family) {
             return collect();
@@ -147,6 +156,10 @@ class User extends Authenticatable
      */
     public function familyMembersWithSelf(): \Illuminate\Support\Collection
     {
+        if (!SchemaCache::hasTable('family_members') || !SchemaCache::hasTable('families')) {
+            return collect([$this]);
+        }
+
         $fm = $this->familyMember;
         if (!$fm || !$fm->family) {
             return collect([$this]);
@@ -161,7 +174,7 @@ class User extends Authenticatable
     public static function currentFamilyMember(): ?User
     {
         $me = \Illuminate\Support\Facades\Auth::user();
-        if (!$me || !$me->isInFamily()) {
+        if (!$me || !SchemaCache::hasTable('family_members') || !$me->isInFamily()) {
             return $me;
         }
         $viewingId = session('viewing_family_user_id');
@@ -464,6 +477,10 @@ class User extends Authenticatable
      */
     public function nextBookedClass(): ?ClassSession
     {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
+            return null;
+        }
+
         return $this->bookedClasses()
                     ->with('instructor')
                     ->where('start_time', '>', now())
@@ -476,6 +493,10 @@ class User extends Authenticatable
      */
     public function getMonthlyClassesAttendedAttribute(): int
     {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
+            return 0;
+        }
+
         return $this->bookings()
             ->whereHas('classSession', function($query) {
                 $query->whereMonth('start_time', now()->month)
@@ -490,6 +511,10 @@ class User extends Authenticatable
      */
     public function getMonthlyHoursTrainedAttribute(): float
     {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
+            return 0.0;
+        }
+
         $totalMinutes = $this->bookings()
             ->whereHas('classSession', function($query) {
                 $query->whereMonth('start_time', now()->month)
@@ -510,6 +535,10 @@ class User extends Authenticatable
      */
     public function getCalculatedMatHoursAttribute(): int
     {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
+            return 0;
+        }
+
         $totalMinutes = $this->bookings()
             ->whereHas('classSession', function($query) {
                 $query->where('start_time', '<', now()); // Only count past classes
@@ -528,6 +557,10 @@ class User extends Authenticatable
      */
     public function getTotalMatHoursAttribute(): int
     {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
+            return (int) ($this->mat_hours ?? 0);
+        }
+
         return ($this->mat_hours ?? 0) + $this->calculated_mat_hours;
     }
 
@@ -536,6 +569,10 @@ class User extends Authenticatable
      */
     public function getHoursThisYearAttribute(): float
     {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
+            return 0.0;
+        }
+
         $totalMinutes = $this->bookings()
             ->whereHas('classSession', function ($query) {
                 $query->whereYear('start_time', now()->year)
@@ -555,6 +592,10 @@ class User extends Authenticatable
      */
     public function getTotalHoursThisYearAttribute(): float
     {
+        if (!SchemaCache::hasTable('bookings') || !SchemaCache::hasTable('classes')) {
+            return (float) ($this->mat_hours ?? 0);
+        }
+
         return ($this->mat_hours ?? 0) + $this->hours_this_year;
     }
 }

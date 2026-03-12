@@ -1,16 +1,18 @@
+.git
+.github
+.cursor
+.idea
+.vscode
+
 # Dependencies (reinstalled in container)
 node_modules
-laravel/node_modules
-laravel/vendor
+vendor
 
 # Build outputs (rebuilt in container)
 dist
-laravel/public/build
-laravel/public/hot
-
-# Git
-.git
-.gitignore
+public/build
+public/hot
+public/portal
 
 # Environment (Coolify injects these)
 .env
@@ -18,16 +20,16 @@ laravel/public/hot
 !.env.example
 
 # IDE and OS
-.vscode
-.idea
 .DS_Store
 
 # Logs and caches
 *.log
-laravel/storage/logs/*
-laravel/storage/framework/cache/*
-laravel/storage/framework/sessions/*
-laravel/storage/framework/views/*
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing/*
+bootstrap/cache/*.php
 .phpunit.result.cache
 
 # Database dumps (sensitive)
@@ -36,3 +38,7 @@ laravel/storage/framework/views/*
 # Docs (not needed for runtime)
 *.md
 !README.md
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
