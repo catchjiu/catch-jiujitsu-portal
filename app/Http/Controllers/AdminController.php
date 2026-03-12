@@ -868,7 +868,31 @@ class AdminController extends Controller
                   });
         }
 
-        $members = $query->orderBy('first_name')->orderBy('last_name')->get();
+        // Sort
+        $sort = $request->get('sort', 'name');
+        $sortDir = $request->get('sort_dir', 'asc');
+        $sortDir = strtolower($sortDir) === 'desc' ? 'desc' : 'asc';
+
+        switch ($sort) {
+            case 'expiry_asc':
+                $query->orderByRaw('CASE WHEN membership_expires_at IS NULL THEN 1 ELSE 0 END')->orderBy('membership_expires_at', 'asc');
+                break;
+            case 'expiry_desc':
+                $query->orderByRaw('CASE WHEN membership_expires_at IS NULL THEN 1 ELSE 0 END')->orderBy('membership_expires_at', 'desc');
+                break;
+            case 'age_asc':
+                $query->orderByRaw('CASE WHEN dob IS NULL THEN 1 ELSE 0 END')->orderBy('dob', 'desc'); // youngest first
+                break;
+            case 'age_desc':
+                $query->orderByRaw('CASE WHEN dob IS NULL THEN 1 ELSE 0 END')->orderBy('dob', 'asc'); // oldest first
+                break;
+            case 'name':
+            default:
+                $query->orderBy('first_name', $sortDir)->orderBy('last_name', $sortDir);
+                break;
+        }
+
+        $members = $query->get();
 
         // User IDs with at least one class (group or private) in the last 7 days (for profile dot)
         $recentGroup = Booking::whereHas('classSession', fn ($q) => $q->where('start_time', '>=', now()->subDays(7)))
@@ -887,6 +911,8 @@ class AdminController extends Controller
             'userIdsWithClassInLast7Days' => $userIdsWithClassInLast7Days,
             'stats' => $stats,
             'search' => $search,
+            'sort' => $sort,
+            'sortDir' => $sortDir,
         ]);
     }
 

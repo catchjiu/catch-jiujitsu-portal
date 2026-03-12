@@ -28,7 +28,27 @@
         <!-- Hidden inputs for filters -->
         <input type="hidden" name="age" id="ageFilter" value="{{ request('age', '') }}">
         <input type="hidden" name="status" id="statusFilter" value="{{ request('status', '') }}">
+        <input type="hidden" name="sort" id="sortFilter" value="{{ $sort ?? 'name' }}">
+        <input type="hidden" name="sort_dir" id="sortDirFilter" value="{{ $sortDir ?? 'asc' }}">
     </form>
+
+    <!-- Sort By -->
+    @php
+        $currentSort = $sort ?? 'name';
+        $currentSortDir = $sortDir ?? 'asc';
+        $sortValue = $currentSort === 'name' ? 'name_' . $currentSortDir : $currentSort;
+    @endphp
+    <div class="flex items-center gap-2">
+        <span class="text-slate-500 text-sm font-medium">Sort by:</span>
+        <select id="sortSelect" onchange="applySort()" class="px-3 py-2 rounded-lg bg-slate-800/60 border border-slate-700/50 text-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <option value="name_asc" {{ $sortValue === 'name_asc' ? 'selected' : '' }}>Name A–Z</option>
+            <option value="name_desc" {{ $sortValue === 'name_desc' ? 'selected' : '' }}>Name Z–A</option>
+            <option value="expiry_asc" {{ $sortValue === 'expiry_asc' ? 'selected' : '' }}>Expiry (soonest first)</option>
+            <option value="expiry_desc" {{ $sortValue === 'expiry_desc' ? 'selected' : '' }}>Expiry (latest first)</option>
+            <option value="age_asc" {{ $sortValue === 'age_asc' ? 'selected' : '' }}>Age (youngest first)</option>
+            <option value="age_desc" {{ $sortValue === 'age_desc' ? 'selected' : '' }}>Age (oldest first)</option>
+        </select>
+    </div>
 
     <!-- Filter Tabs -->
     <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -66,6 +86,20 @@
     </div>
     
     <script>
+        function applySort() {
+            const val = document.getElementById('sortSelect').value;
+            if (val === 'name_asc') {
+                document.getElementById('sortFilter').value = 'name';
+                document.getElementById('sortDirFilter').value = 'asc';
+            } else if (val === 'name_desc') {
+                document.getElementById('sortFilter').value = 'name';
+                document.getElementById('sortDirFilter').value = 'desc';
+            } else {
+                document.getElementById('sortFilter').value = val;
+                document.getElementById('sortDirFilter').value = 'asc';
+            }
+            document.getElementById('filterForm').submit();
+        }
         function toggleFilter(filterType, value) {
             const form = document.getElementById('filterForm');
             
@@ -281,7 +315,9 @@
             sessionStorage.setItem('membersFilters', JSON.stringify({
                 age: document.getElementById('ageFilter').value,
                 status: document.getElementById('statusFilter').value,
-                search: document.querySelector('input[name="search"]').value
+                search: document.querySelector('input[name="search"]').value,
+                sort: document.getElementById('sortFilter').value,
+                sort_dir: document.getElementById('sortDirFilter').value
             }));
         });
     });
@@ -293,14 +329,16 @@
         const urlParams = new URLSearchParams(window.location.search);
         
         // Only restore filters if coming back (URL has no params but we have saved filters)
-        if (savedFilters && !urlParams.has('age') && !urlParams.has('status') && !urlParams.has('search')) {
+        if (savedFilters && !urlParams.has('age') && !urlParams.has('status') && !urlParams.has('search') && !urlParams.has('sort')) {
             const filters = JSON.parse(savedFilters);
-            if (filters.age || filters.status || filters.search) {
+            if (filters.age || filters.status || filters.search || filters.sort) {
                 // Redirect with saved filters
                 const newUrl = new URL(window.location.href);
                 if (filters.age) newUrl.searchParams.set('age', filters.age);
                 if (filters.status) newUrl.searchParams.set('status', filters.status);
                 if (filters.search) newUrl.searchParams.set('search', filters.search);
+                if (filters.sort) newUrl.searchParams.set('sort', filters.sort);
+                if (filters.sort_dir) newUrl.searchParams.set('sort_dir', filters.sort_dir);
                 window.location.href = newUrl.toString();
                 return;
             }

@@ -17,12 +17,16 @@ class Product extends Model
         'image_url',
         'is_preorder',
         'preorder_weeks',
+        'badge_asjjf_legal',
+        'badge_new',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'is_preorder' => 'boolean',
         'preorder_weeks' => 'integer',
+        'badge_asjjf_legal' => 'boolean',
+        'badge_new' => 'boolean',
     ];
 
     public static function categories(): array

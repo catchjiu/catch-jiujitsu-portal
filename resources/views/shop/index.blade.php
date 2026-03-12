@@ -55,6 +55,16 @@
                             <span class="material-symbols-outlined text-5xl">inventory_2</span>
                         </div>
                     @endif
+                    @if($product->badge_asjjf_legal || $product->badge_new)
+                        <div class="absolute top-2 left-2 right-2 flex flex-wrap gap-1.5">
+                            @if($product->badge_asjjf_legal)
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/90 text-white">{{ __('app.shop.badge_asjjf_legal') }}</span>
+                            @endif
+                            @if($product->badge_new)
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/90 text-black">{{ __('app.shop.badge_new') }}</span>
+                            @endif
+                        </div>
+                    @endif
                 </a>
                 <div class="p-3 flex flex-col flex-1">
                     <p class="text-[10px] uppercase tracking-wider text-[#00d4ff]/90 font-medium">{{ $product->category }}</p>

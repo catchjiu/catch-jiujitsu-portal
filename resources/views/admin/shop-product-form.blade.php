@@ -72,6 +72,27 @@
                 <label for="is_preorder" class="text-slate-400 text-sm font-medium">{{ __('app.admin.preorder_toggle') }}</label>
             </div>
             <p class="text-slate-500 text-xs -mt-2">{{ __('app.admin.preorder_toggle_hint') }}</p>
+
+            {{-- Product badges (displayed on shop cards) --}}
+            <div class="space-y-2 pt-2 border-t border-slate-700/50">
+                <p class="text-slate-400 text-sm font-medium">{{ __('app.admin.product_badges') }}</p>
+                <div class="flex flex-wrap gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="hidden" name="badge_asjjf_legal" value="0">
+                        <input type="checkbox" name="badge_asjjf_legal" value="1"
+                               {{ old('badge_asjjf_legal', $product?->badge_asjjf_legal) ? 'checked' : '' }}
+                               class="w-5 h-5 rounded border-slate-600 bg-slate-900 text-[#00d4ff] focus:ring-[#00d4ff]/40">
+                        <span class="text-slate-300 text-sm">{{ __('app.shop.badge_asjjf_legal') }}</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="hidden" name="badge_new" value="0">
+                        <input type="checkbox" name="badge_new" value="1"
+                               {{ old('badge_new', $product?->badge_new) ? 'checked' : '' }}
+                               class="w-5 h-5 rounded border-slate-600 bg-slate-900 text-[#00d4ff] focus:ring-[#00d4ff]/40">
+                        <span class="text-slate-300 text-sm">{{ __('app.shop.badge_new') }}</span>
+                    </label>
+                </div>
+            </div>
             <div id="preorder_weeks_box" class="{{ old('is_preorder', $product?->is_preorder) ? '' : 'hidden' }} mt-3 pl-1 border-l-2 border-amber-500/50">
                 <label for="preorder_weeks" class="block text-slate-400 text-sm font-medium mb-1">{{ __('app.admin.preorder_weeks_label') }}</label>
                 <input type="number" name="preorder_weeks" id="preorder_weeks" value="{{ old('preorder_weeks', $product?->preorder_weeks) }}" min="1" max="52" placeholder="e.g. 4"

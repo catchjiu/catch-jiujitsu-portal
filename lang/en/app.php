@@ -284,6 +284,7 @@ return [
         'no_products_yet' => 'No products yet.',
         'products_list_intro' => 'Add BJJ gear (Gi, belts, rash guards, etc.) and manage stock.',
         'confirm_delete_product' => 'Delete this product and all its variants?',
+        'product_badges' => 'Product badges',
     ],
 
     // Auth
@@ -419,6 +420,8 @@ return [
         'pay_now_hint' => 'Go to My Orders to pay via bank transfer (last 5 digits).',
         'stock_cannot_negative' => 'Stock cannot go below zero.',
         'preorder_badge' => 'Pre-order',
+        'badge_asjjf_legal' => 'ASJJF - Legal',
+        'badge_new' => 'New',
         'preorder_button' => 'Pre-order',
         'preorder_title' => 'Pre-order confirmation',
         'preorder_notice' => 'This item is a pre-order. Delivery may take up to one month. Payment is required upfront. By confirming, you agree to these terms.',

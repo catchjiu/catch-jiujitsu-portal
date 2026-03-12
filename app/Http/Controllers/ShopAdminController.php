@@ -209,6 +209,8 @@ class ShopAdminController extends Controller
             'image_url' => $imagePath ?? $validated['image_url'] ?? null,
             'is_preorder' => !empty($validated['is_preorder']),
             'preorder_weeks' => !empty($validated['is_preorder']) && isset($validated['preorder_weeks']) ? (int) $validated['preorder_weeks'] : null,
+            'badge_asjjf_legal' => !empty($validated['badge_asjjf_legal']),
+            'badge_new' => !empty($validated['badge_new']),
         ]);
         $this->syncVariants($product, $validated['variants'] ?? []);
         return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_added'));
@@ -243,6 +245,8 @@ class ShopAdminController extends Controller
             'image_url' => $imagePath ?? $validated['image_url'] ?? $product->getRawOriginal('image_url'),
             'is_preorder' => !empty($validated['is_preorder']),
             'preorder_weeks' => !empty($validated['is_preorder']) && isset($validated['preorder_weeks']) ? (int) $validated['preorder_weeks'] : null,
+            'badge_asjjf_legal' => !empty($validated['badge_asjjf_legal']),
+            'badge_new' => !empty($validated['badge_new']),
         ]);
         $this->syncVariants($product, $validated['variants'] ?? []);
         return redirect()->route('admin.shop.products')->with('success', __('app.admin.product_updated'));
@@ -273,6 +277,8 @@ class ShopAdminController extends Controller
             'image_url' => $product->getRawOriginal('image_url'),
             'is_preorder' => $product->is_preorder,
             'preorder_weeks' => $product->preorder_weeks,
+            'badge_asjjf_legal' => $product->badge_asjjf_legal,
+            'badge_new' => $product->badge_new,
         ]);
         foreach ($product->variants as $v) {
             $copy->variants()->create([
@@ -295,6 +301,8 @@ class ShopAdminController extends Controller
             'price' => 'required|numeric|min:0',
             'is_preorder' => 'nullable|boolean',
             'preorder_weeks' => 'nullable|integer|min:1|max:52',
+            'badge_asjjf_legal' => 'nullable|boolean',
+            'badge_new' => 'nullable|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,webp|max:5120',
             'image_url' => 'nullable|string|max:500',
             'variants' => 'required|array|min:1',

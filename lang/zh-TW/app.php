@@ -284,6 +284,7 @@ return [
         'no_products_yet' => '尚無商品。',
         'products_list_intro' => '新增 BJJ 裝備（道服、腰帶、防磨衣等）並管理庫存。',
         'confirm_delete_product' => '確定要刪除此商品及所有規格？',
+        'product_badges' => '商品標籤',
     ],
 
     // Auth
@@ -419,6 +420,8 @@ return [
         'pay_now_hint' => '前往「我的訂單」以銀行轉帳付款（輸入帳號末五碼）。',
         'stock_cannot_negative' => '庫存不可為負數。',
         'preorder_badge' => '預購',
+        'badge_asjjf_legal' => 'ASJJF 合格',
+        'badge_new' => '新品',
         'preorder_button' => '預購',
         'preorder_title' => '預購確認',
         'preorder_notice' => '此商品為預購商品。到貨可能需要約一個月。需事先付款。確認即表示您同意以上條件。',
