@@ -4,13 +4,25 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
+    const apiUrl = env.VITE_API_URL || 'http://localhost:8000';
     return {
-      base: process.env.VITE_BASE_PATH || '/',
+      base: process.env.VITE_BASE_PATH || '/portal/',
       server: {
         port: 3000,
         host: '0.0.0.0',
+        proxy: {
+          '/api': {
+            target: apiUrl,
+            changeOrigin: true,
+          },
+        },
+        watch: {
+          ignored: ['**/laravel/**', '**/node_modules/**'],
+        },
       },
       build: {
+        outDir: 'public/portal',
+        emptyOutDir: true,
         rollupOptions: {
           input: ['index.html', 'checkin.html'],
         },

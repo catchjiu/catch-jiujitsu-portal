@@ -1,0 +1,5 @@
+LOAD DATABASE
+     FROM mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}
+     INTO postgresql://${SUPABASE_USER}:${SUPABASE_PASSWORD}@${SUPABASE_HOST}:${SUPABASE_PORT}/${SUPABASE_DATABASE}?sslmode=require
+
+WITH include no drop, create no tables, create no indexes, truncate, disable triggers, reset sequences, downcase identifiers;

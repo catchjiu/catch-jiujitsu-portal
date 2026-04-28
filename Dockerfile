@@ -13,19 +13,20 @@ RUN npm ci
 # Copy frontend source and Laravel structure (build outputs to laravel/public/portal)
 COPY . .
 
-# Build React portal (outputs to laravel/public/portal)
+# Build React portal (outputs to public/portal)
+# Use vite.config.ts explicitly - root also has Laravel's vite.config.js
 # VITE_API_URL empty = same-origin API; VITE_BASE_PATH=/portal/
 ENV VITE_API_URL=
 ENV VITE_BASE_PATH=/portal/
-RUN npm run build
+RUN npm run build -- --config vite.config.ts
 
 # ========== Stage 2: Composer dependencies ==========
 FROM composer:2 AS composer
 
 WORKDIR /app
 
-# Copy Laravel files
-COPY laravel/composer.json laravel/composer.lock ./
+# Copy Laravel files (Laravel is at repo root)
+COPY composer.json composer.lock ./
 
 # Install PHP dependencies (no dev for production)
 RUN composer install \
@@ -36,8 +37,9 @@ RUN composer install \
     --no-interaction
 
 # Copy full Laravel app (excluding vendor)
-COPY laravel/ .
-COPY --from=frontend /app/laravel/public/portal ./public/portal
+COPY app artisan bootstrap config database lang public resources routes storage ./
+# Copy React-built portal (outputs to public/portal)
+COPY --from=frontend /app/public/portal ./public/portal
 
 # ========== Stage 3: Production image ==========
 FROM php:8.2-fpm-alpine

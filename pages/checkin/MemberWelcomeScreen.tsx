@@ -124,16 +124,13 @@ export const MemberWelcomeScreen: React.FC<MemberWelcomeScreenProps> = ({ member
         </h2>
         <p className="text-3xl font-display font-bold text-brand-gold mb-10">{member.name}</p>
 
-        {/* Belt graphic */}
+        {/* Belt graphic - same as member profile: black bar on left with white stripes for earned count */}
         <div
-          className={`h-14 w-full max-w-md rounded shadow-inner relative flex items-center justify-end pr-4 mb-10 ${getBeltColor(member.rank)}`}
+          className={`h-14 w-full max-w-md rounded shadow-inner relative flex items-center pl-4 mb-10 ${getBeltColor(member.rank)}`}
         >
-          <div className="h-full w-20 bg-black flex items-center justify-around px-1 absolute right-4">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className={`w-2 h-full rounded-sm ${i < member.stripes ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-slate-700/50'}`}
-              />
+          <div className="h-full w-16 bg-black flex items-center justify-start gap-1 px-1 absolute left-4">
+            {[...Array(member.stripes)].map((_, i) => (
+              <div key={i} className="w-1.5 h-full bg-white shadow-sm rounded-sm" />
             ))}
           </div>
         </div>
