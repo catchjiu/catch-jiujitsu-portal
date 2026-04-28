@@ -8,17 +8,18 @@ WORKDIR /app
 
 # Copy root package files and install dependencies
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
-# Copy frontend source and Laravel structure (build outputs to laravel/public/portal)
+# Copy frontend source
 COPY . .
 
 # Build React portal (outputs to public/portal)
-# Use vite.config.ts explicitly - root also has Laravel's vite.config.js
-# VITE_API_URL empty = same-origin API; VITE_BASE_PATH=/portal/
 ENV VITE_API_URL=
 ENV VITE_BASE_PATH=/portal/
 RUN npm run build -- --config vite.config.ts
+
+# Build Laravel Blade assets (outputs to public/build for @vite() directive)
+RUN npx vite build --config vite.config.js
 
 # ========== Stage 2: Composer dependencies ==========
 FROM composer:2 AS composer
@@ -40,6 +41,8 @@ RUN composer install \
 COPY app artisan bootstrap config database lang public resources routes storage ./
 # Copy React-built portal (outputs to public/portal)
 COPY --from=frontend /app/public/portal ./public/portal
+# Copy Laravel Blade compiled assets (manifest.json + hashed CSS/JS for @vite())
+COPY --from=frontend /app/public/build ./public/build
 
 # ========== Stage 3: Production image ==========
 FROM php:8.2-fpm-alpine
@@ -63,6 +66,8 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo \
         pdo_mysql \
+        pdo_pgsql \
+        pgsql \
         mbstring \
         exif \
         pcntl \
